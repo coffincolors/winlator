@@ -295,6 +295,15 @@ public class XClientRequestHandler implements RequestHandler {
                         WindowRequests.getInputFocus(client, inputStream, outputStream);
                     }
                     break;
+                case ClientOpcodes.QUERY_KEYMAP:
+                    try (XLock lock = client.xServer.lock(XServer.Lockable.WINDOW_MANAGER)) {
+                        outputStream.writeByte(RESPONSE_CODE_SUCCESS);
+                        outputStream.writeByte((byte) 0);
+                        outputStream.writeShort(client.getSequenceNumber());
+                        outputStream.writeInt(2);
+                        outputStream.writePad(32);
+                    }
+                    break;
                 case ClientOpcodes.OPEN_FONT:
                     FontRequests.openFont(client, inputStream, outputStream);
                     break;

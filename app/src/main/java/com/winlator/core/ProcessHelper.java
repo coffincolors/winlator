@@ -1,6 +1,7 @@
 package com.winlator.core;
 
 import android.os.Process;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,10 +10,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 
 public abstract class ProcessHelper {
-    public static final boolean PRINT_DEBUG = false; // FIXME change to false
+    public static final boolean PRINT_DEBUG = true; // FIXME change to false
     private static final ArrayList<Callback<String>> debugCallbacks = new ArrayList<>();
     private static final byte SIGCONT = 18;
     private static final byte SIGSTOP = 19;
@@ -38,6 +40,8 @@ public abstract class ProcessHelper {
     }
 
     public static int exec(String command, String[] envp, File workingDir, Callback<Integer> terminationCallback) {
+        Log.d("ProcessHelper", "env: " + Arrays.toString(envp) + "\ncmd: " + command);
+
         int pid = -1;
         try {
             java.lang.Process process = Runtime.getRuntime().exec(splitCommand(command), envp, workingDir);

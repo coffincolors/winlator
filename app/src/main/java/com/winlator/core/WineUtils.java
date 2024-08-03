@@ -28,7 +28,7 @@ public abstract class WineUtils {
         if (files != null) for (File file : files) if (file.getName().matches("[a-z]:")) file.delete();
 
         FileUtils.symlink("../drive_c", dosdevicesPath+"/c:");
-        FileUtils.symlink("/", dosdevicesPath+"/z:");
+        FileUtils.symlink(container.getRootDir().getPath() + "/../..", dosdevicesPath+"/z:");
 
         for (String[] drive : container.drivesIterator()) {
             File linkTarget = new File(drive[1]);

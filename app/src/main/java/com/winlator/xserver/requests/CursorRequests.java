@@ -1,5 +1,7 @@
 package com.winlator.xserver.requests;
 
+import static com.winlator.xserver.XClientRequestHandler.RESPONSE_CODE_SUCCESS;
+
 import com.winlator.xconnector.XInputStream;
 import com.winlator.xconnector.XOutputStream;
 import com.winlator.xconnector.XStreamLock;
@@ -57,7 +59,7 @@ public abstract class CursorRequests {
             byte n = (byte) buttonsMap.length;
             int padLen = -n & 3;
 
-            outputStream.writeByte((byte) 1);
+            outputStream.writeByte(RESPONSE_CODE_SUCCESS);
             outputStream.writeByte(n);
             outputStream.writeShort(client.getSequenceNumber());
             outputStream.writeInt((n + padLen) / 4);

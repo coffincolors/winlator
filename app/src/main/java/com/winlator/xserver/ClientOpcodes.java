@@ -27,6 +27,7 @@ public abstract class ClientOpcodes {
     public static final byte WARP_POINTER = 41;
     public static final byte SET_INPUT_FOCUS = 42;
     public static final byte GET_INPUT_FOCUS = 43;
+    public static final byte QUERY_KEYMAP = 44;
     public static final byte OPEN_FONT = 45;
     public static final byte LIST_FONTS = 49;
     public static final byte CREATE_PIXMAP = 53;

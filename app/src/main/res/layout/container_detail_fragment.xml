@@ -485,12 +485,14 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:visibility="gone"
                             android:text="@string/box86_preset" />
 
                         <Spinner
                             style="@style/ComboBox"
                             android:id="@+id/SBox86Preset"
-                            android:layout_width="match_parent" />
+                            android:layout_width="match_parent"
+                            android:visibility="gone" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -530,6 +532,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/enable_experimental_wow64_mode"
+                            android:checked="true"
+                            android:enabled="false"
                             android:layout_marginTop="8dp" />
                     </LinearLayout>
 

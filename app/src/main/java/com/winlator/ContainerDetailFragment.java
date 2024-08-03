@@ -186,7 +186,7 @@ public class ContainerDetailFragment extends Fragment {
                 boolean showFPS = cbShowFPS.isChecked();
                 String cpuList = cpuListView.getCheckedCPUListAsString();
                 String cpuListWoW64 = cpuListViewWoW64.getCheckedCPUListAsString();
-                boolean wow64Mode = cbWoW64Mode.isChecked() && cbWoW64Mode.isEnabled();
+                boolean wow64Mode = cbWoW64Mode.isChecked() /* && cbWoW64Mode.isEnabled() */ ;
                 byte startupSelection = (byte)sStartupSelection.getSelectedItemPosition();
                 String box86Preset = Box86_64PresetManager.getSpinnerSelectedId(sBox86Preset);
                 String box64Preset = Box86_64PresetManager.getSpinnerSelectedId(sBox64Preset);

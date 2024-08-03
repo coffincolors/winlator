@@ -59,6 +59,7 @@ import com.winlator.xconnector.UnixSocketConfig;
 import com.winlator.xenvironment.ImageFs;
 import com.winlator.xenvironment.XEnvironment;
 import com.winlator.xenvironment.components.ALSAServerComponent;
+import com.winlator.xenvironment.components.GlibcProgramLauncherComponent;
 import com.winlator.xenvironment.components.GuestProgramLauncherComponent;
 import com.winlator.xenvironment.components.NetworkInfoUpdateComponent;
 import com.winlator.xenvironment.components.PulseAudioComponent;
@@ -399,7 +400,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private void setupXEnvironment() {
         envVars.put("MESA_DEBUG", "silent");
         envVars.put("MESA_NO_ERROR", "1");
-        envVars.put("WINEPREFIX", ImageFs.WINEPREFIX);
+        envVars.put("WINEPREFIX", imageFs.wineprefix);
 
         boolean enableWineDebug = preferences.getBoolean("enable_wine_debug", false);
         String wineDebugChannels = preferences.getString("wine_debug_channels", SettingsFragment.DEFAULT_WINE_DEBUG_CHANNELS);
@@ -408,7 +409,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         String rootPath = imageFs.getRootDir().getPath();
         FileUtils.clear(imageFs.getTmpDir());
 
-        GuestProgramLauncherComponent guestProgramLauncherComponent = new GuestProgramLauncherComponent();
+        boolean usrGlibc = preferences.getBoolean("use_glibc", true);
+        GuestProgramLauncherComponent guestProgramLauncherComponent = usrGlibc? new GlibcProgramLauncherComponent(): new GuestProgramLauncherComponent();
 
         if (container != null) {
             if (container.getStartupSelection() == Container.STARTUP_SELECTION_AGGRESSIVE) winHandler.killProcess("services.exe");
@@ -435,12 +437,12 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         environment.addComponent(new NetworkInfoUpdateComponent());
 
         if (audioDriver.equals("alsa")) {
-            envVars.put("ANDROID_ALSA_SERVER", UnixSocketConfig.ALSA_SERVER_PATH);
+            envVars.put("ANDROID_ALSA_SERVER", imageFs.getRootDir().getPath() + UnixSocketConfig.ALSA_SERVER_PATH);
             envVars.put("ANDROID_ASERVER_USE_SHM", "true");
             environment.addComponent(new ALSAServerComponent(UnixSocketConfig.createSocket(rootPath, UnixSocketConfig.ALSA_SERVER_PATH)));
         }
         else if (audioDriver.equals("pulseaudio")) {
-            envVars.put("PULSE_SERVER", UnixSocketConfig.PULSE_SERVER_PATH);
+            envVars.put("PULSE_SERVER", imageFs.getRootDir().getPath() + UnixSocketConfig.PULSE_SERVER_PATH);
             environment.addComponent(new PulseAudioComponent(UnixSocketConfig.createSocket(rootPath, UnixSocketConfig.PULSE_SERVER_PATH)));
         }
 

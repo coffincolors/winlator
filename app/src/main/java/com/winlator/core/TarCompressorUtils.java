@@ -168,6 +168,7 @@ public abstract class TarCompressorUtils {
             return true;
         }
         catch (IOException e) {
+            e.printStackTrace();
             return false;
         }
     }
