@@ -40,5 +40,49 @@
             android:layout_width="match_parent"
             android:id="@+id/SMaxDeviceMemory"
             android:entries="@array/dxvk_max_device_memory_entries" />
+
+        <LinearLayout
+            android:id="@+id/LLAsync"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:text="@string/enabled_async" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/SWAsync"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/LLAsyncCache"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:text="@string/enabled_async_cache" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/SWAsyncCache"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

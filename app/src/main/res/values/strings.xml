@@ -240,4 +240,7 @@
     <string name="use_glibc">Use Glibc instead of Proot</string>
     <string name="experimental">Experimental</string>
     <string name="glibc_exp_edition">Glibc Experimental Edition</string>
+    <string name="enabled_async">Enable Async</string>
+    <string name="enabled_async_cache">Enable Async Cache</string>
+    <string name="vkd3d_feature_level">VKD3D Feature Level</string>
 </resources>
