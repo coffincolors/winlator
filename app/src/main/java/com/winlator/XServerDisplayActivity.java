@@ -37,6 +37,7 @@ import com.winlator.core.KeyValueSet;
 import com.winlator.core.OnExtractFileListener;
 import com.winlator.core.PreloaderDialog;
 import com.winlator.core.ProcessHelper;
+import com.winlator.core.StringUtils;
 import com.winlator.core.TarCompressorUtils;
 import com.winlator.core.WineInfo;
 import com.winlator.core.WineRegistryEditor;
@@ -757,9 +758,30 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             default:
                 restoreOriginalDllFiles("d3d12.dll", "d3d12core.dll", "ddraw.dll");
                 TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/"+dxwrapper+".tzst", windowsDir, onExtractFileListener);
-                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/d8vk-"+DefaultVersion.D8VK+".tzst", windowsDir, onExtractFileListener);
+                // d8vk merged into dxvk since dxvk-2.4, so we don't need to extract d8vk after that
+                if (compareVersion(StringUtils.parseNumber(dxwrapper), "2.4") < 0)
+                    TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/d8vk-"+DefaultVersion.D8VK+".tzst", windowsDir, onExtractFileListener);
                 break;
         }
+    }
+
+    private static int compareVersion(String varA, String varB) {
+        final String[] levelsA = varA.split("\\.");
+        final String[] levelsB = varB.split("\\.");
+        int minLen = Math.min(levelsA.length, levelsB.length);
+        int numA, numB;
+
+        for (int i = 0; i < minLen; i++) {
+            numA = Integer.parseInt(levelsA[i]);
+            numB = Integer.parseInt(levelsB[i]);
+            if (numA != numB)
+                return numA - numB;
+        }
+
+        if (levelsA.length != levelsB.length)
+            return levelsA.length - levelsB.length;
+
+        return 0;
     }
 
     private void extractWinComponentFiles() {
