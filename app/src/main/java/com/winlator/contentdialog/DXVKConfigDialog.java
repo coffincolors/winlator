@@ -136,7 +136,7 @@ public class DXVKConfigDialog extends ContentDialog {
 
         FileUtils.delete(dxvkConfigFile);
         if (!content.isEmpty() && FileUtils.writeString(dxvkConfigFile, content)) {
-            envVars.put("DXVK_CONFIG_FILE", ImageFs.CONFIG_PATH+"/dxvk.conf");
+            envVars.put("DXVK_CONFIG_FILE", rootDir + ImageFs.CONFIG_PATH+"/dxvk.conf");
         }
     }
 }
