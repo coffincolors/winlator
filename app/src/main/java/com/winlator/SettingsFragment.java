@@ -43,6 +43,7 @@ import com.winlator.core.PreloaderDialog;
 import com.winlator.core.StringUtils;
 import com.winlator.core.WineInfo;
 import com.winlator.core.WineUtils;
+import com.winlator.inputcontrols.ExternalController;
 import com.winlator.xenvironment.ImageFs;
 
 import org.json.JSONArray;
@@ -139,7 +140,7 @@ public class SettingsFragment extends Fragment {
 
         final RadioGroup rgTriggerMode = view.findViewById(R.id.RGTriggerMode);
         List<Integer> triggerRbIds = List.of(R.id.RBTriggerAsButton, R.id.RBTriggerAsAxis, R.id.RBTriggerAsBoth);
-        int triggerMode = preferences.getInt("trigger_mode", 2);
+        int triggerMode = preferences.getInt("trigger_mode", ExternalController.TRIGGER_AS_AXIS);
 
         if (triggerMode >= 0 && triggerMode < triggerRbIds.size()) {
             ((RadioButton) (rgTriggerMode.findViewById(triggerRbIds.get(triggerMode)))).setChecked(true);

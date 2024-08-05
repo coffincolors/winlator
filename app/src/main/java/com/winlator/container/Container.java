@@ -453,9 +453,10 @@ public class Container {
     }
 
     public static String getFallbackCPUListWoW64() {
-        String cpuList = "";
-        int numProcessors = Runtime.getRuntime().availableProcessors();
-        for (int i = numProcessors / 2; i < numProcessors; i++) cpuList += (!cpuList.isEmpty() ? "," : "")+i;
-        return cpuList;
+//        String cpuList = "";
+//        int numProcessors = Runtime.getRuntime().availableProcessors();
+//        for (int i = numProcessors / 2; i < numProcessors; i++) cpuList += (!cpuList.isEmpty() ? "," : "")+i;
+//        return cpuList;
+        return getFallbackCPUList();
     }
 }
