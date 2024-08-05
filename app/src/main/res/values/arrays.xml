@@ -73,6 +73,7 @@
         <item>0.3.7</item>
     </string-array>
     <string-array name="box64_version_entries">
+        <item>0.2.8</item>
         <item>0.3.0 (Default)</item>
         <item>0.3.1–27a8d19</item>
     </string-array>
