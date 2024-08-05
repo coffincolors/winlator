@@ -19,28 +19,6 @@
             android:id="@+id/SVersion"
             android:entries="@array/dxvk_version_entries" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/frame_rate" />
-
-        <Spinner
-            style="@style/ComboBox"
-            android:layout_width="match_parent"
-            android:id="@+id/SFramerate"
-            android:entries="@array/dxvk_framerate_entries" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/max_device_memory" />
-
-        <Spinner
-            style="@style/ComboBox"
-            android:layout_width="match_parent"
-            android:id="@+id/SMaxDeviceMemory"
-            android:entries="@array/dxvk_max_device_memory_entries" />
-
         <LinearLayout
             android:id="@+id/LLAsync"
             android:layout_width="match_parent"
@@ -68,6 +46,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
             android:orientation="horizontal">
 
             <TextView
@@ -84,5 +63,27 @@
                 android:layout_gravity="center" />
 
         </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/frame_rate" />
+
+        <Spinner
+            style="@style/ComboBox"
+            android:layout_width="match_parent"
+            android:id="@+id/SFramerate"
+            android:entries="@array/dxvk_framerate_entries" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/max_device_memory" />
+
+        <Spinner
+            style="@style/ComboBox"
+            android:layout_width="match_parent"
+            android:id="@+id/SMaxDeviceMemory"
+            android:entries="@array/dxvk_max_device_memory_entries" />
     </LinearLayout>
 </ScrollView>
