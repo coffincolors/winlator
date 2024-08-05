@@ -426,8 +426,13 @@ public class InputControlsView extends View {
             GamepadState state = profile.getGamepadState();
 
             int buttonIdx = binding.ordinal() - Binding.GAMEPAD_BUTTON_A.ordinal();
-            if (buttonIdx <= 11) {
-                state.setPressed(buttonIdx, isActionDown);
+            if (buttonIdx <= ExternalController.IDX_BUTTON_R2) {
+                if (buttonIdx == ExternalController.IDX_BUTTON_L2)
+                    state.triggerL = isActionDown ? 1.0f : 0f;
+                else if (buttonIdx == ExternalController.IDX_BUTTON_R2)
+                    state.triggerR = isActionDown ? 1.0f : 0f;
+                else
+                    state.setPressed(buttonIdx, isActionDown);
             }
             else if (binding == Binding.GAMEPAD_LEFT_THUMB_UP || binding == Binding.GAMEPAD_LEFT_THUMB_DOWN) {
                 state.thumbLY = isActionDown ? offset : 0;

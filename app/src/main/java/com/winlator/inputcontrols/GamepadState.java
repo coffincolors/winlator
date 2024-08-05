@@ -1,5 +1,7 @@
 package com.winlator.inputcontrols;
 
+import android.util.Log;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -9,6 +11,8 @@ public class GamepadState {
     public float thumbLY = 0;
     public float thumbRX = 0;
     public float thumbRY = 0;
+    public float triggerL = 0;
+    public float triggerR = 0;
     public final boolean[] dpad = new boolean[4];
     public short buttons = 0;
 
@@ -32,6 +36,8 @@ public class GamepadState {
         buffer.putShort((short)(thumbLY * Short.MAX_VALUE));
         buffer.putShort((short)(thumbRX * Short.MAX_VALUE));
         buffer.putShort((short)(thumbRY * Short.MAX_VALUE));
+        buffer.put((byte)(triggerL * 255));
+        buffer.put((byte)(triggerR * 255));
     }
 
     public void setPressed(int buttonIdx, boolean pressed) {
@@ -59,6 +65,8 @@ public class GamepadState {
         this.thumbLY = other.thumbLY;
         this.thumbRX = other.thumbRX;
         this.thumbRY = other.thumbRY;
+        this.triggerL = other.triggerL;
+        this.triggerR = other.triggerR;
         this.buttons = other.buttons;
         System.arraycopy(other.dpad, 0, this.dpad, 0, 4);
     }

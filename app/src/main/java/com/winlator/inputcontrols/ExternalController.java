@@ -31,7 +31,7 @@ public class ExternalController {
     private String name;
     private String id;
     private int deviceId = -1;
-    private byte triggerMode = TRIGGER_AS_BOTH;
+    private byte triggerMode = TRIGGER_AS_AXIS;
     private final ArrayList<ExternalControllerBinding> controllerBindings = new ArrayList<>();
     public final GamepadState state = new GamepadState();
 
@@ -148,13 +148,17 @@ public class ExternalController {
     }
 
     private void processTriggerButton(MotionEvent event) {
-        state.setPressed(IDX_BUTTON_L2, event.getAxisValue(MotionEvent.AXIS_LTRIGGER) == 1.0f || event.getAxisValue(MotionEvent.AXIS_BRAKE) == 1.0f);
-        state.setPressed(IDX_BUTTON_R2, event.getAxisValue(MotionEvent.AXIS_RTRIGGER) == 1.0f || event.getAxisValue(MotionEvent.AXIS_GAS) == 1.0f);
+        float l = event.getAxisValue(MotionEvent.AXIS_LTRIGGER) == 0f ? event.getAxisValue(MotionEvent.AXIS_BRAKE) : event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
+        float r = event.getAxisValue(MotionEvent.AXIS_RTRIGGER) == 0f ? event.getAxisValue(MotionEvent.AXIS_GAS) : event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+        state.triggerL = l;
+        state.triggerR = r;
+        state.setPressed(IDX_BUTTON_L2, l == 1.0f);
+        state.setPressed(IDX_BUTTON_R2, r == 1.0f);
     }
 
     public boolean updateStateFromMotionEvent(MotionEvent event) {
         if (isJoystickDevice(event)) {
-            if (triggerMode != TRIGGER_AS_BUTTON)
+            if (triggerMode == TRIGGER_AS_AXIS)
                 processTriggerButton(event);
             int historySize = event.getHistorySize();
             for (int i = 0; i < historySize; i++) processJoystickInput(event, i);
@@ -169,9 +173,20 @@ public class ExternalController {
         int keyCode = event.getKeyCode();
         int buttonIdx = getButtonIdxByKeyCode(keyCode);
         if (buttonIdx != -1) {
-            if (triggerMode != TRIGGER_AS_AXIS || (buttonIdx != IDX_BUTTON_L2 && buttonIdx != IDX_BUTTON_R2)) {
+            if (buttonIdx == IDX_BUTTON_L2) {
+                if (triggerMode == TRIGGER_AS_BUTTON) {
+                    state.triggerL = pressed ? 1.0f : 0f;
+                    state.setPressed(buttonIdx, pressed);
+                } else
+                    return true;
+            } else if (buttonIdx == IDX_BUTTON_R2) {
+                if (triggerMode == TRIGGER_AS_BUTTON) {
+                    state.triggerR = pressed ? 1.0f : 0f;
+                    state.setPressed(buttonIdx, pressed);
+                } else
+                    return true;
+            } else
                 state.setPressed(buttonIdx, pressed);
-            }
             return true;
         }
 

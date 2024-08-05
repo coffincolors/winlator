@@ -227,7 +227,7 @@ public class WinHandler {
             case RequestCodes.INIT: {
                 initReceived = true;
                 preferences = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
-                triggerMode = (byte) preferences.getInt("trigger_mode", ExternalController.TRIGGER_AS_BOTH);
+                triggerMode = (byte) preferences.getInt("trigger_mode", ExternalController.TRIGGER_AS_AXIS);
 
                 synchronized (actions) {
                     actions.notify();
