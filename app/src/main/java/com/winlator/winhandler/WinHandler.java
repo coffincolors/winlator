@@ -169,11 +169,17 @@ public class WinHandler {
     public void bringToFront(final String processName, final long handle) {
         addAction(() -> {
             sendData.rewind();
-            sendData.put(RequestCodes.BRING_TO_FRONT);
-            byte[] bytes = processName.getBytes();
-            sendData.putInt(bytes.length);
-            sendData.put(bytes);
-            sendData.putLong(handle);
+            try {
+                sendData.put(RequestCodes.BRING_TO_FRONT);
+                byte[] bytes = processName.getBytes();
+                sendData.putInt(bytes.length);
+                // FIXME: Chinese and Japanese got from winhandler.exe are broken, and they cause overflow.
+                sendData.put(bytes);
+                sendData.putLong(handle);
+            } catch (java.nio.BufferOverflowException e) {
+                e.printStackTrace();
+                sendData.rewind();
+            }
             sendPacket(CLIENT_PORT);
         });
     }
