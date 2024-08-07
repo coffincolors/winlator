@@ -110,7 +110,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
 
-        show(new ContainersFragment());
+        if (fragmentManager.getBackStackEntryCount() > 0)
+            fragmentManager.popBackStack();
+        else
+            show(new ContainersFragment());
     }
 
     public void setOpenFileCallback(Callback<Uri> openFileCallback) {
@@ -157,6 +160,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.main_menu_input_controls:
                 show(new InputControlsFragment(selectedProfileId));
+                break;
+            case R.id.main_menu_box_rc:
+                show(new Box86_64RCFragment());
                 break;
             case R.id.main_menu_settings:
                 show(new SettingsFragment());

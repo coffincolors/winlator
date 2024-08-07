@@ -176,4 +176,21 @@ public class ContentDialog extends Dialog {
 
         dialog.show();
     }
+
+    public static void showSingleChoiceList(Context context, int titleResId, final String[] items, Callback<Integer> callback) {
+        ContentDialog dialog = new ContentDialog(context);
+
+        final  ListView listView = dialog.findViewById(R.id.ListView);
+        listView.getLayoutParams().width = AppUtils.getPreferredDialogWidth(context);
+        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        listView.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_list_item_single_choice, items));
+        listView.setVisibility(View.VISIBLE);
+
+        dialog.setTitle(titleResId);
+        dialog.setOnConfirmCallback(() -> {
+            callback.call(listView.getCheckedItemPosition());
+        });
+
+        dialog.show();
+    }
 }

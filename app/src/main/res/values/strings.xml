@@ -243,4 +243,21 @@
     <string name="enabled_async">Enable Async</string>
     <string name="enabled_async_cache">Enable Async Cache</string>
     <string name="vkd3d_feature_level">VKD3D Feature Level</string>
+    <string name="box64_rc_file">Box64 RCFile</string>
+    <string name="filter">Filter</string>
+    <string name="all">All</string>
+    <string name="group">Group</string>
+    <string name="new_group">New Group</string>
+    <string name="import_group">Import Group</string>
+    <string name="new_file">New File</string>
+    <string name="new_item">New Item</string>
+    <string name="group_edit">Group Edit</string>
+    <string name="group_name">Group Name</string>
+    <string name="do_you_want_to_duplicate_this_group">Do you want to duplicate this group?</string>
+    <string name="do_you_want_to_remove_this_group">Do you want to remove this group?</string>
+    <string name="do_you_want_to_duplicate_this_process">Do you want to duplicate this process?</string>
+    <string name="do_you_want_to_remove_this_process">Do you want to remove this process?</string>
+    <string name="do_you_want_to_remove_this_variable">Do you want to remove this variable?</string>
+    <string name="variable_name">Variable Name</string>
+    <string name="variable_already_exists">Variable already exists</string>
 </resources>

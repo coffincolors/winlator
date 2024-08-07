@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/profile" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <Spinner
+            android:id="@+id/SRCFile"
+            style="@style/ComboBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/BTAddRCFile"
+            style="@style/ListMenuButton"
+            android:src="@drawable/icon_add" />
+
+        <ImageButton
+            android:id="@+id/BTEditRCFile"
+            style="@style/ListMenuButton"
+            android:src="@drawable/icon_edit" />
+
+        <ImageButton
+            android:id="@+id/BTDuplicateRCFile"
+            style="@style/ListMenuButton"
+            android:src="@drawable/icon_duplicate" />
+
+        <ImageButton
+            android:id="@+id/BTExportRCFile"
+            style="@style/ListMenuButton"
+            android:layout_marginRight="0dp"
+            android:src="@drawable/icon_export" />
+
+        <ImageButton
+            android:id="@+id/BTRemoveRCFile"
+            style="@style/ListMenuButton"
+            android:layout_marginRight="0dp"
+            android:src="@drawable/icon_remove" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/filter" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/ETFilter"
+            style="@style/EditText"
+            android:layout_width="0dp"
+            android:layout_gravity="center"
+            android:layout_weight="1" />
+
+        <RadioGroup
+            android:id="@+id/RBGFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/RBEnabled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/enabled" />
+
+            <RadioButton
+                android:id="@+id/RBDisabled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/disabled" />
+
+            <RadioButton
+                android:id="@+id/RBAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/all" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <View style="@style/HorizontalLine" />
+
+    <androidx.recyclerview.widget.RecyclerView xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/RecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="vertical"
+        app:layoutManager="LinearLayoutManager" />
+
+    <View style="@style/HorizontalLine" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/BTNewGroup"
+            style="@style/ButtonNeutral"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/new_group" />
+
+        <Button
+            android:id="@+id/BTImportGroup"
+            style="@style/ButtonNeutral"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/import_group" />
+    </LinearLayout>
+</LinearLayout>
