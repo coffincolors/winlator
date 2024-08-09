@@ -34,13 +34,13 @@ public enum RCField {
     BOX64_DYNAREC_TRACE("BOX64_DYNAREC_TRACE", false),
     BOX64_NODYNAREC("BOX64_NODYNAREC", false),
     BOX64_DYNAREC_TEST("BOX64_DYNAREC_TEST", false),
-    BOX64_DYNAREC_BIGBLOCK("BOX64_DYNAREC_BIGBLOCK", true),
+    BOX64_DYNAREC_BIGBLOCK("BOX64_DYNAREC_BIGBLOCK", true, S.S4),
     BOX64_DYNAREC_FORWARD("BOX64_DYNAREC_FORWARD", true),
-    BOX64_DYNAREC_STRONGMEM("BOX64_DYNAREC_STRONGMEM", true),
+    BOX64_DYNAREC_STRONGMEM("BOX64_DYNAREC_STRONGMEM", true, S.S4),
     BOX64_DYNAREC_X87DOUBLE("BOX64_DYNAREC_X87DOUBLE", true),
     BOX64_DYNAREC_FASTNAN("BOX64_DYNAREC_FASTNAN", true),
     BOX64_DYNAREC_FASTROUND("BOX64_DYNAREC_FASTROUND", true),
-    BOX64_DYNAREC_SAFEFLAGS("BOX64_DYNAREC_SAFEFLAGS", true),
+    BOX64_DYNAREC_SAFEFLAGS("BOX64_DYNAREC_SAFEFLAGS", true, S.S3),
     BOX64_DYNAREC_CALLRET("BOX64_DYNAREC_CALLRET", true),
     BOX64_DYNAREC_ALIGNED_ATOMICS("BOX64_DYNAREC_ALIGNED_ATOMICS", false),
     BOX64_DYNAREC_BLEEDING_EDGE("BOX64_DYNAREC_BLEEDING_EDGE", false),
@@ -82,16 +82,27 @@ public enum RCField {
     BOX64_CEFDISABLEGPUCOMPOSITOR("BOX64_CEFDISABLEGPUCOMPOSITOR", true),
     BOX64_AVX("BOX64_AVX", true);
 
+
     private final String fieldName;
     private final boolean enabled;
+    private final String[] selections;
 
     RCField(String name, boolean enabled) {
+        this(name, enabled, S.S2);
+    }
+
+    RCField(String name, boolean enabled, String[] selections) {
         this.fieldName = name;
         this.enabled = enabled;
+        this.selections = selections;
     }
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public String[] getSelections() {
+        return selections;
     }
 
     @NonNull
@@ -109,5 +120,11 @@ public enum RCField {
         return list.toArray(new String[0]);
     }
 
-
+    private static class S {
+        public static final String[] S2 = {"0", "1"};
+        public static final String[] S3 = {"0", "1", "2"};
+        public static final String[] S4 = {"0", "1", "2", "3"};
+    }
 }
+
+

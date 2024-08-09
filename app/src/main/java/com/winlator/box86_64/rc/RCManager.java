@@ -160,7 +160,15 @@ public class RCManager {
 
     public static RCFile loadRCFile(Context context, String json) {
         try {
-            JSONObject rcfileJSONObject = new JSONObject(json);
+            return loadRCFile(context, new JSONObject(json));
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    public static RCFile loadRCFile(Context context, JSONObject obj) {
+        try {
+            JSONObject rcfileJSONObject = obj;
             int rcfileId = rcfileJSONObject.getInt("id");
             String rcfileName = rcfileJSONObject.getString("name");
             LinkedList<RCGroup> groups = new LinkedList<>();

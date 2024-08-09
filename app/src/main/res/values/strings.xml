@@ -260,4 +260,7 @@
     <string name="do_you_want_to_remove_this_variable">Do you want to remove this variable?</string>
     <string name="variable_name">Variable Name</string>
     <string name="variable_already_exists">Variable already exists</string>
+    <string name="cannot_remove_default_profile">Cannot remove default profile.</string>
+    <string name="cannot_edit_default_profile">Cannot edit default profile.</string>
+    <string name="do_you_want_to_restore_default_profile">Do you want to restore default profile?</string>
 </resources>
