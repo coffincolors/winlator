@@ -253,7 +253,7 @@ public class RCManager {
         List<RCFile> rcFiles = rcManager.getRCFiles();
 
         List<String> filesName = new ArrayList<>();
-        filesName.add(context.getString(R.string.no_profile_selected));
+        filesName.add("-- " + context.getString(R.string.disabled) + " --");
         for (RCFile rcfile : rcFiles)
             filesName.add(rcfile.getName());
 
