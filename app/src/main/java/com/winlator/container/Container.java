@@ -50,6 +50,7 @@ public class Container {
     private String box64Preset = Box86_64Preset.COMPATIBILITY;
     private File rootDir;
     private JSONObject extraData;
+    private int rcfileId = 0;
 
     public Container(int id) {
         this.id = id;
@@ -260,6 +261,14 @@ public class Container {
         this.desktopTheme = desktopTheme;
     }
 
+    public int getRCFileId() {
+        return rcfileId;
+    }
+
+    public void setRcfileId(int id) {
+        rcfileId = id;
+    }
+
     public Iterable<String[]> drivesIterator() {
         return drivesIterator(drives);
     }
@@ -306,6 +315,7 @@ public class Container {
             data.put("box64Preset", box64Preset);
             data.put("desktopTheme", desktopTheme);
             data.put("extraData", extraData);
+            data.put("rcfileId", rcfileId);
 
             if (!WineInfo.isMainWineVersion(wineVersion)) data.put("wineVersion", wineVersion);
             FileUtils.writeString(getConfigFile(), data.toString());
@@ -380,6 +390,9 @@ public class Container {
                     break;
                 case "desktopTheme" :
                     setDesktopTheme(data.getString(key));
+                    break;
+                case "rcfileId" :
+                    setRcfileId(data.getInt(key));
                     break;
             }
         }

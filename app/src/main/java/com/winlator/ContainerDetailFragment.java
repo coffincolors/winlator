@@ -27,6 +27,7 @@ import androidx.preference.PreferenceManager;
 
 import com.winlator.box86_64.Box86_64Preset;
 import com.winlator.box86_64.Box86_64PresetManager;
+import com.winlator.box86_64.rc.RCManager;
 import com.winlator.container.Container;
 import com.winlator.container.ContainerManager;
 import com.winlator.contentdialog.AddEnvVarDialog;
@@ -160,6 +161,11 @@ public class ContainerDetailFragment extends Fragment {
         final Spinner sBox64Preset = view.findViewById(R.id.SBox64Preset);
         Box86_64PresetManager.loadSpinner("box64", sBox64Preset, isEditMode() ? container.getBox64Preset() : preferences.getString("box64_preset", Box86_64Preset.COMPATIBILITY));
 
+        final Spinner sRCFile = view.findViewById(R.id.SRCFile);
+        final int[] rcfileIds = {0};
+        RCManager rcManager = new RCManager(context);
+        RCManager.loadRCFileSpinner(rcManager, container == null ? 0 : container.getRCFileId(), sRCFile, id -> rcfileIds[0] = id);
+
         final CPUListView cpuListView = view.findViewById(R.id.CPUListView);
         final CPUListView cpuListViewWoW64 = view.findViewById(R.id.CPUListViewWoW64);
 
@@ -192,6 +198,7 @@ public class ContainerDetailFragment extends Fragment {
                 String box86Preset = Box86_64PresetManager.getSpinnerSelectedId(sBox86Preset);
                 String box64Preset = Box86_64PresetManager.getSpinnerSelectedId(sBox64Preset);
                 String desktopTheme = getDesktopTheme(view);
+                int rcfileId = rcfileIds[0];
 
                 if (isEditMode()) {
                     container.setName(name);
@@ -211,6 +218,7 @@ public class ContainerDetailFragment extends Fragment {
                     container.setBox86Preset(box86Preset);
                     container.setBox64Preset(box64Preset);
                     container.setDesktopTheme(desktopTheme);
+                    container.setRcfileId(rcfileId);
                     container.saveData();
                     saveWineRegistryKeys(view);
                     getActivity().onBackPressed();
@@ -234,6 +242,7 @@ public class ContainerDetailFragment extends Fragment {
                     data.put("box86Preset", box86Preset);
                     data.put("box64Preset", box64Preset);
                     data.put("desktopTheme", desktopTheme);
+                    data.put("rcfileId", rcfileId);
 
                     if (wineInfos.size() > 1) {
                         data.put("wineVersion", wineInfos.get(sWineVersion.getSelectedItemPosition()).identifier());

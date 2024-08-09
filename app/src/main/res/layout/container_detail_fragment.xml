@@ -503,6 +503,16 @@
                             style="@style/ComboBox"
                             android:id="@+id/SBox64Preset"
                             android:layout_width="match_parent" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/box86_64_rc_files" />
+
+                        <Spinner
+                            style="@style/ComboBox"
+                            android:id="@+id/SRCFile"
+                            android:layout_width="match_parent" />
                     </LinearLayout>
 
                     <TextView

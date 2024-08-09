@@ -13,6 +13,7 @@ import com.winlator.ContainerDetailFragment;
 import com.winlator.R;
 import com.winlator.ShortcutsFragment;
 import com.winlator.box86_64.Box86_64PresetManager;
+import com.winlator.box86_64.rc.RCManager;
 import com.winlator.container.Shortcut;
 import com.winlator.core.AppUtils;
 import com.winlator.core.EnvVars;
@@ -78,6 +79,14 @@ public class ShortcutSettingsDialog extends ContentDialog {
         final Spinner sBox64Preset = findViewById(R.id.SBox64Preset);
         Box86_64PresetManager.loadSpinner("box64", sBox64Preset, shortcut.getExtra("box64Preset", shortcut.container.getBox64Preset()));
 
+        final Spinner sRCFile = findViewById(R.id.SRCFile);
+        final int[] rcfileIds = {0};
+        RCManager manager = new RCManager(context);
+        String rcfileId = shortcut.getExtra("rcfileId", String.valueOf(shortcut.container.getRCFileId()));
+        RCManager.loadRCFileSpinner(manager, Integer.parseInt(rcfileId), sRCFile, id -> {
+            rcfileIds[0] = id;
+        });
+
         final Spinner sControlsProfile = findViewById(R.id.SControlsProfile);
         loadControlsProfileSpinner(sControlsProfile, shortcut.getExtra("controlsProfile", "0"));
 
@@ -132,6 +141,8 @@ public class ShortcutSettingsDialog extends ContentDialog {
                 String box64Preset = Box86_64PresetManager.getSpinnerSelectedId(sBox64Preset);
                 shortcut.putExtra("box86Preset", !box86Preset.equals(shortcut.container.getBox86Preset()) ? box86Preset : null);
                 shortcut.putExtra("box64Preset", !box64Preset.equals(shortcut.container.getBox64Preset()) ? box64Preset : null);
+
+                shortcut.putExtra("rcfileId", rcfileIds[0] != shortcut.container.getRCFileId() ? Integer.toString(rcfileIds[0]) : null);
 
                 int dinputMapperType = sDInputMapperType.getSelectedItemPosition();
                 ArrayList<ControlsProfile> profiles = inputControlsManager.getProfiles(true);

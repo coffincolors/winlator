@@ -263,4 +263,5 @@
     <string name="cannot_remove_default_profile">Cannot remove default profile.</string>
     <string name="cannot_edit_default_profile">Cannot edit default profile.</string>
     <string name="do_you_want_to_restore_default_profile">Do you want to restore default profile?</string>
+    <string name="box86_64_rc_files">RC File</string>
 </resources>
