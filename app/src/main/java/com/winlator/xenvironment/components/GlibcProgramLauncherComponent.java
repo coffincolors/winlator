@@ -182,7 +182,6 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
 
         envVars.putAll(Box86_64PresetManager.getEnvVars("box86", environment.getContext(), box86Preset));
         envVars.put("BOX86_X11GLX", "1");
-        envVars.put("BOX86_NORCFILES", "1");
     }
 
     private void addBox64EnvVars(EnvVars envVars, boolean enableLogs) {
@@ -197,7 +196,6 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
 
         envVars.putAll(Box86_64PresetManager.getEnvVars("box64", environment.getContext(), box64Preset));
         envVars.put("BOX64_X11GLX", "1");
-        envVars.put("BOX64_NORCFILES", "1");
     }
 
     public void suspendProcess() {
