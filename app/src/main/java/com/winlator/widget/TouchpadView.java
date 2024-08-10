@@ -38,6 +38,7 @@ public class TouchpadView extends View {
     private final XServer xServer;
     private Runnable fourFingersTapCallback;
     private final float[] xform = XForm.getInstance();
+    private boolean simTouchScreen = false;
 
     public TouchpadView(Context context, XServer xServer) {
         super(context);
@@ -368,5 +369,13 @@ public class TouchpadView extends View {
         stateListDrawable.addState(new int[]{}, defaultDrawable);
 
         return stateListDrawable;
+    }
+
+    public void setSimTouchScreen(boolean simTouchScreen) {
+        this.simTouchScreen = simTouchScreen;
+    }
+
+    public boolean isSimTouchScreen() {
+        return simTouchScreen;
     }
 }

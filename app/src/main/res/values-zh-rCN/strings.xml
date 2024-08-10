@@ -213,4 +213,5 @@
     <string name="do_you_want_to_restore_default_profile">你想要恢复默认配置文件吗？</string>
     <string name="box86_64_rc_files">RC 文件</string>
     <string name="letter">盘符</string>
+    <string name="simulate_touch_screen">模拟触摸屏</string>
 </resources>

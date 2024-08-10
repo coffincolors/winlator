@@ -93,6 +93,9 @@ public class ShortcutSettingsDialog extends ContentDialog {
         final Spinner sDInputMapperType = findViewById(R.id.SDInputMapperType);
         sDInputMapperType.setSelection(Byte.parseByte(shortcut.getExtra("dinputMapperType", String.valueOf(WinHandler.DINPUT_MAPPER_TYPE_XINPUT))));
 
+        final CheckBox cbSimulateTouchScreen = findViewById(R.id.CBSimulateTouchScreen);
+        cbSimulateTouchScreen.setChecked(shortcut.getExtra("simTouchScreen", "0").equals("1"));
+
         ContainerDetailFragment.createWinComponentsTab(getContentView(), shortcut.getExtra("wincomponents", shortcut.container.getWinComponents()));
         final EnvVarsView envVarsView = createEnvVarsTab();
 
@@ -149,6 +152,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
                 int controlsProfile = sControlsProfile.getSelectedItemPosition() > 0 ? profiles.get(sControlsProfile.getSelectedItemPosition()-1).id : 0;
                 shortcut.putExtra("controlsProfile", controlsProfile > 0 ? String.valueOf(controlsProfile) : null);
                 shortcut.putExtra("dinputMapperType", dinputMapperType != WinHandler.DINPUT_MAPPER_TYPE_XINPUT ? String.valueOf(dinputMapperType) : null);
+                shortcut.putExtra("simTouchScreen", cbSimulateTouchScreen.isChecked() ? "1" : "0");
                 shortcut.saveData();
             }
         });

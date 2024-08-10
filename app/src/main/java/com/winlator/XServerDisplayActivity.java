@@ -520,6 +520,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 ControlsProfile profile = inputControlsManager.getProfile(Integer.parseInt(controlsProfile));
                 if (profile != null) showInputControls(profile);
             }
+
+            String simTouchScreen = shortcut.getExtra("simTouchScreen");
+            touchpadView.setSimTouchScreen(simTouchScreen.equals("1"));
         }
 
         AppUtils.observeSoftKeyboardVisibility(drawerLayout, renderer::setScreenOffsetYRelativeToCursor);
@@ -550,6 +553,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         final CheckBox cbRelativeMouseMovement = dialog.findViewById(R.id.CBRelativeMouseMovement);
         cbRelativeMouseMovement.setChecked(xServer.isRelativeMouseMovement());
 
+        final CheckBox cbSimTouchScreen = dialog.findViewById(R.id.CBSimulateTouchScreen);
+        cbSimTouchScreen.setChecked(touchpadView.isSimTouchScreen());
+
         final CheckBox cbShowTouchscreenControls = dialog.findViewById(R.id.CBShowTouchscreenControls);
         cbShowTouchscreenControls.setChecked(inputControlsView.isShowTouchscreenControls());
 
@@ -574,6 +580,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 showInputControls(inputControlsManager.getProfiles().get(position - 1));
             }
             else hideInputControls();
+            touchpadView.setSimTouchScreen(cbSimTouchScreen.isChecked());
         });
 
         dialog.show();
