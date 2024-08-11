@@ -22,6 +22,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.navigation.NavigationView;
+import com.winlator.box86_64.rc.RCFile;
+import com.winlator.box86_64.rc.RCManager;
 import com.winlator.container.Container;
 import com.winlator.container.ContainerManager;
 import com.winlator.container.Shortcut;
@@ -455,6 +457,16 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             environment.addComponent(new VirGLRendererComponent(xServer, UnixSocketConfig.createSocket(rootPath, UnixSocketConfig.VIRGL_SERVER_PATH)));
         }
 
+        RCManager manager = new RCManager(this);
+        manager.loadRCFiles();
+        int rcfileId = shortcut == null ? container.getRCFileId() :
+                Integer.parseInt(shortcut.getExtra("rcfileId", String.valueOf(container.getRCFileId())));
+        RCFile rcfile = manager.getRcfile(rcfileId);
+        File file = new File(container.getRootDir(), ".box64rc");
+        String str = rcfile == null ? "" : rcfile.generateBox86_64rc();
+        FileUtils.writeString(file, str);
+        envVars.put("BOX64_RCFILE", file.getAbsolutePath());
+
         guestProgramLauncherComponent.setEnvVars(envVars);
         guestProgramLauncherComponent.setTerminationCallback((status) -> exit());
         environment.addComponent(guestProgramLauncherComponent);
@@ -508,6 +520,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 ControlsProfile profile = inputControlsManager.getProfile(Integer.parseInt(controlsProfile));
                 if (profile != null) showInputControls(profile);
             }
+
+            String simTouchScreen = shortcut.getExtra("simTouchScreen");
+            touchpadView.setSimTouchScreen(simTouchScreen.equals("1"));
         }
 
         AppUtils.observeSoftKeyboardVisibility(drawerLayout, renderer::setScreenOffsetYRelativeToCursor);
@@ -538,6 +553,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         final CheckBox cbRelativeMouseMovement = dialog.findViewById(R.id.CBRelativeMouseMovement);
         cbRelativeMouseMovement.setChecked(xServer.isRelativeMouseMovement());
 
+        final CheckBox cbSimTouchScreen = dialog.findViewById(R.id.CBSimulateTouchScreen);
+        cbSimTouchScreen.setChecked(touchpadView.isSimTouchScreen());
+
         final CheckBox cbShowTouchscreenControls = dialog.findViewById(R.id.CBShowTouchscreenControls);
         cbShowTouchscreenControls.setChecked(inputControlsView.isShowTouchscreenControls());
 
@@ -562,6 +580,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 showInputControls(inputControlsManager.getProfiles().get(position - 1));
             }
             else hideInputControls();
+            touchpadView.setSimTouchScreen(cbSimTouchScreen.isChecked());
         });
 
         dialog.show();
@@ -667,7 +686,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         return (!inputControlsView.onKeyEvent(event) && !winHandler.onKeyEvent(event) && xServer.keyboard.onKeyEvent(event)) ||
-               (!ExternalController.isGameController(event.getDevice()) && super.dispatchKeyEvent(event));
+                (!ExternalController.isGameController(event.getDevice()) && super.dispatchKeyEvent(event));
     }
 
     public InputControlsView getInputControlsView() {
@@ -723,7 +742,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             TarCompressorUtils.compress(TarCompressorUtils.Type.ZSTD, new File(rootDir, ImageFs.WINEPREFIX), containerPatternFile, MainActivity.CONTAINER_PATTERN_COMPRESSION_LEVEL);
 
             if (!containerPatternFile.renameTo(new File(installedWineDir, containerPatternFile.getName())) ||
-                !(new File(wineInfo.path)).renameTo(new File(installedWineDir, wineInfo.identifier()))) {
+                    !(new File(wineInfo.path)).renameTo(new File(installedWineDir, wineInfo.identifier()))) {
                 containerPatternFile.delete();
             }
 

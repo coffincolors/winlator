@@ -1,5 +1,6 @@
 package com.winlator;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -8,11 +9,11 @@ import android.os.Environment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -36,8 +37,12 @@ import com.winlator.box86_64.rc.RCItem;
 import com.winlator.box86_64.rc.RCManager;
 import com.winlator.box86_64.rc.RCFile;
 import com.winlator.contentdialog.ContentDialog;
+import com.winlator.contentdialog.ImportGroupDialog;
 import com.winlator.core.AppUtils;
 import com.winlator.core.Callback;
+import com.winlator.core.FileUtils;
+
+import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -108,15 +113,12 @@ public class Box86_64RCFragment extends Fragment {
         List<String> values = new ArrayList<>();
         values.add("-- " + getString(R.string.select_profile) + " --");
 
-        int selectedPosition = 0;
         for (int i = 0; i < rcfiles.size(); i++) {
             RCFile rcfile = rcfiles.get(i);
-            if (rcfile == currentRCFile) selectedPosition = i + 1;
             values.add(rcfile.getName());
         }
 
         spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, values));
-        spinner.setSelection(selectedPosition, false);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -128,6 +130,10 @@ public class Box86_64RCFragment extends Fragment {
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
+        if (currentRCFile != null)
+            spinner.setSelection(manager.getRCFiles().indexOf(currentRCFile) + 1);
+        else
+            spinner.setSelection(0);
     }
 
     private final View.OnClickListener clickListener = new View.OnClickListener() {
@@ -140,6 +146,17 @@ public class Box86_64RCFragment extends Fragment {
                     break;
                 case R.id.BTEditRCFile:
                     if (currentRCFile != null) {
+                        if (currentRCFile.id == 1) {
+                            ContentDialog.confirm(getContext(), R.string.do_you_want_to_restore_default_profile, () -> {
+                                manager.removeRCFile(currentRCFile);
+                                FileUtils.copy(getContext(), "box86_64/rcfiles", RCManager.getRCFilesDir(getContext()));
+                                manager.loadRCFiles();
+                                currentRCFile = manager.getRcfile(1);
+                                loadRCFileSpinner(sRCFile);
+                                loadRCGroupList();
+                            });
+                            break;
+                        }
                         ContentDialog.prompt(getContext(), R.string.profile_name, currentRCFile.getName(), (name) -> {
                             currentRCFile.setName(name);
                             currentRCFile.save();
@@ -166,6 +183,10 @@ public class Box86_64RCFragment extends Fragment {
                     break;
                 case R.id.BTRemoveRCFile:
                     if (currentRCFile != null) {
+                        if (currentRCFile.id == 1) {
+                            AppUtils.showToast(getContext(), R.string.cannot_remove_default_profile);
+                            break;
+                        }
                         ContentDialog.confirm(getContext(), R.string.do_you_want_to_remove_this_profile, () -> {
                             manager.removeRCFile(currentRCFile);
                             currentRCFile = null;
@@ -183,7 +204,16 @@ public class Box86_64RCFragment extends Fragment {
                     } else AppUtils.showToast(getContext(), R.string.no_profile_selected);
                     break;
                 case R.id.BTImportGroup:
-                    // TODO
+                    if (currentRCFile != null) {
+                        ImportGroupDialog dialog = new ImportGroupDialog(v, manager, new Callback<RCGroup>() {
+                            @Override
+                            public void call(RCGroup group) {
+                                currentRCFile.getGroups().add(group);
+                                loadRCGroupList();
+                            }
+                        });
+                        dialog.show();
+                    } else AppUtils.showToast(getContext(), R.string.no_profile_selected);
                     break;
             }
         }
@@ -245,6 +275,22 @@ public class Box86_64RCFragment extends Fragment {
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
         getActivity().startActivityFromFragment(this, intent, MainActivity.OPEN_FILE_REQUEST_CODE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == MainActivity.OPEN_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            try {
+                RCFile importedProfile = RCManager.loadRCFile(getContext(), new JSONObject(FileUtils.readString(getContext(), data.getData())));
+                if (importedProfile != null) {
+                    importedProfile = manager.duplicateRCFile(importedProfile);
+                    importRCFileCallback.call(importedProfile);
+                }
+            } catch (Exception e) {
+                AppUtils.showToast(getContext(), R.string.unable_to_import_profile);
+            }
+            importRCFileCallback = null;
+        }
     }
 
     private boolean passFilter(RCGroup group) {
@@ -393,15 +439,10 @@ public class Box86_64RCFragment extends Fragment {
             etGroupName.setText(group.getGroupName());
 
             final View btNewItem = layout.findViewById(R.id.BTNewItem);
-            btNewItem.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ContentDialog.prompt(getContext(), R.string.process_name, null, (name) -> {
-                        group.getItems().add(new RCItem(name, "", null));
-                        loadRCItemList();
-                    });
-                }
-            });
+            btNewItem.setOnClickListener(v -> ContentDialog.prompt(getContext(), R.string.process_name, null, (name) -> {
+                group.getItems().add(new RCItem(name, "", null));
+                loadRCItemList();
+            }));
 
             recyclerView = layout.findViewById(R.id.RecyclerView);
             recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
@@ -464,67 +505,56 @@ public class Box86_64RCFragment extends Fragment {
             @Override
             public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
                 final RCItem item = data.get(position);
-                holder.llItem.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        holder.tbExpand.performClick();
-                    }
-                });
+                holder.llItem.setOnClickListener(v -> holder.tbExpand.performClick());
 
                 holder.tvTitle.setText(item.getProcessName());
 
-                holder.tbExpand.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        int visibility = isChecked ? View.VISIBLE : View.GONE;
-                        holder.llItemTools.setVisibility(visibility);
-                        holder.llItemVars.setVisibility(visibility);
-                    }
+                holder.tbExpand.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    int visibility = isChecked ? View.VISIBLE : View.GONE;
+                    holder.llItemTools.setVisibility(visibility);
+                    holder.llItemVars.setVisibility(visibility);
                 });
 
-                View.OnClickListener clickListener = new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        int id = v.getId();
+                View.OnClickListener clickListener = v -> {
+                    int id = v.getId();
 
-                        if (id == R.id.BTAddVar) {
-                            Vars newVar = new Vars();
-                            newVar.key = "";
-                            newVar.value = "";
-                            newVar.buildView(getContext());
-                            addListener(newVar, holder.varList, item);
-                            holder.varList.add(newVar);
-                            holder.llItemVars.addView(newVar.view);
-                        } else if (id == R.id.BTEditItem) {
-                            ContentDialog.prompt(getContext(), R.string.process_name, item.getProcessName(), (name) -> {
-                                item.setProcessName(name);
-                                loadRCItemList();
-                            });
-                        } else if (id == R.id.BTDuplicateItem) {
-                            ContentDialog.confirm(getContext(), R.string.do_you_want_to_duplicate_this_process, () -> {
-                                String processNameNew;
-                                for (int i = 1; ; i++) {
-                                    processNameNew = item.getProcessName() + " (" + i + ")";
-                                    boolean ok = true;
-                                    for (RCItem rcItem : data) {
-                                        if (rcItem.getProcessName().equals(processNameNew)) {
-                                            ok = false;
-                                            break;
-                                        }
+                    if (id == R.id.BTAddVar) {
+                        Vars newVar = new Vars();
+                        newVar.key = "";
+                        newVar.value = "";
+                        newVar.buildView(getContext());
+                        addListener(newVar, holder.varList, item);
+                        holder.varList.add(newVar);
+                        holder.llItemVars.addView(newVar.view);
+                    } else if (id == R.id.BTEditItem) {
+                        ContentDialog.prompt(getContext(), R.string.process_name, item.getProcessName(), (name) -> {
+                            item.setProcessName(name);
+                            loadRCItemList();
+                        });
+                    } else if (id == R.id.BTDuplicateItem) {
+                        ContentDialog.confirm(getContext(), R.string.do_you_want_to_duplicate_this_process, () -> {
+                            String processNameNew;
+                            for (int i = 1; ; i++) {
+                                processNameNew = item.getProcessName() + " (" + i + ")";
+                                boolean ok = true;
+                                for (RCItem rcItem : data) {
+                                    if (rcItem.getProcessName().equals(processNameNew)) {
+                                        ok = false;
+                                        break;
                                     }
-                                    if (ok) break;
                                 }
-                                RCItem itemNew = RCItem.copy(item);
-                                itemNew.setProcessName(processNameNew);
-                                data.add(itemNew);
-                                loadRCItemList();
-                            });
-                        } else if (id == R.id.BTRemoveItem) {
-                            ContentDialog.confirm(getContext(), R.string.do_you_want_to_remove_this_process, () -> {
-                                data.remove(item);
-                                loadRCItemList();
-                            });
-                        }
+                                if (ok) break;
+                            }
+                            RCItem itemNew = RCItem.copy(item);
+                            itemNew.setProcessName(processNameNew);
+                            data.add(itemNew);
+                            loadRCItemList();
+                        });
+                    } else if (id == R.id.BTRemoveItem) {
+                        ContentDialog.confirm(getContext(), R.string.do_you_want_to_remove_this_process, () -> {
+                            data.remove(item);
+                            loadRCItemList();
+                        });
                     }
                 };
                 for (View v : holder.buttons)
@@ -605,31 +635,43 @@ public class Box86_64RCFragment extends Fragment {
                     }
                 });
 
-                var.btRemove.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        ContentDialog.confirm(getContext(), R.string.do_you_want_to_remove_this_variable, () -> {
-                            item.getVarMap().remove(var.key);
-                            vars.remove(var);
-                            ((ViewGroup) (var.view.getParent())).removeView(var.view);
-                        });
-                    }
+                var.btRemove.setOnClickListener(v -> ContentDialog.confirm(getContext(), R.string.do_you_want_to_remove_this_variable, () -> {
+                    item.getVarMap().remove(var.key);
+                    vars.remove(var);
+                    ((ViewGroup) (var.view.getParent())).removeView(var.view);
+                }));
+
+                var.btVarMenu.setOnClickListener(v -> {
+                    String[] fields = RCField.getEnabledField();
+                    ContentDialog.showSingleChoiceList(getContext(), R.string.variable_name, fields, object -> {
+                        String name = fields[object];
+                        if (item.getVarMap().containsKey(name))
+                            AppUtils.showToast(getContext(), R.string.variable_already_exists);
+                        else var.etKey.setText(name);
+                    });
                 });
 
-                var.btVarMenu.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String[] fields = RCField.getEnabledField();
-                        ContentDialog.showSingleChoiceList(getContext(), R.string.variable_name, fields, new Callback<Integer>() {
-                            @Override
-                            public void call(Integer object) {
-                                String name = fields[object];
-                                if (item.getVarMap().containsKey(name))
-                                    AppUtils.showToast(getContext(), R.string.variable_already_exists);
-                                else var.etKey.setText(name);
-                            }
-                        });
+                var.btValueMenu.setOnClickListener(v -> {
+                    RCField field;
+                    try {
+                        field = RCField.valueOf(var.etKey.getText().toString());
+                    } catch (Exception e) {
+                        return;
                     }
+
+                    if (!field.isEnabled())
+                        return;
+
+                    PopupMenu selectionMenu = new PopupMenu(getContext(), var.btValueMenu);
+                    String[] selection = field.getSelections();
+                    for (int i = 0; i < selection.length; i++)
+                        selectionMenu.getMenu().add(Menu.NONE, i + 1, Menu.NONE, selection[i]);
+                    selectionMenu.setOnMenuItemClickListener(item1 -> {
+                        var.etValue.setText(selection[item1.getItemId() - 1]);
+                        return true;
+                    });
+                    selectionMenu.show();
+
                 });
             }
 
@@ -641,6 +683,7 @@ public class Box86_64RCFragment extends Fragment {
                 public EditText etValue;
                 public View btRemove;
                 public View btVarMenu;
+                public View btValueMenu;
 
                 public void buildView(Context context) {
                     LinearLayout layout = (LinearLayout) LayoutInflater.from(context).inflate(R.layout.box86_64_rc_var, null);
@@ -648,6 +691,7 @@ public class Box86_64RCFragment extends Fragment {
                     etValue = layout.findViewById(R.id.ETValue);
                     btRemove = layout.findViewById(R.id.BTRemoveVar);
                     btVarMenu = layout.findViewById(R.id.BTVarMenu);
+                    btValueMenu = layout.findViewById(R.id.BTValueMenu);
 
                     etKey.setText(key);
                     etValue.setText(value);

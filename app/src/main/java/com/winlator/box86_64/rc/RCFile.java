@@ -13,6 +13,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class RCFile implements Comparable<RCFile> {
     public final int id;
@@ -78,6 +80,36 @@ public class RCFile implements Comparable<RCFile> {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String generateBox86_64rc() {
+        TreeMap<String, TreeMap<String, String>> rcMap = new TreeMap<>();
+        for (RCGroup group : groups) {
+            if (!group.isEnabled())
+                continue;
+            for (RCItem item : group.getItems()) {
+                TreeMap<String, String> varMap;
+                String processName = item.getProcessName();
+                if (rcMap.containsKey(processName))
+                    varMap = rcMap.get(processName);
+                else {
+                    varMap = new TreeMap<>();
+                    rcMap.put(processName, varMap);
+                }
+                varMap.putAll(item.getVarMap());
+            }
+        }
+
+        StringBuilder strBuilder = new StringBuilder();
+        for (String processName : rcMap.keySet()) {
+            Map<String, String> varMap = rcMap.get(processName);
+            strBuilder.append('[').append(processName).append(']').append('\n');
+            for (String varName : varMap.keySet())
+                strBuilder.append(varName).append('=').append(varMap.get(varName)).append('\n');
+            strBuilder.append('\n');
+        }
+
+        return strBuilder.toString();
     }
 
     @NonNull

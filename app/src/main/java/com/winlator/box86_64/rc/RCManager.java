@@ -4,7 +4,13 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
+import com.winlator.R;
+import com.winlator.core.Callback;
 import com.winlator.core.FileUtils;
 
 import org.json.JSONArray;
@@ -16,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -160,7 +167,15 @@ public class RCManager {
 
     public static RCFile loadRCFile(Context context, String json) {
         try {
-            JSONObject rcfileJSONObject = new JSONObject(json);
+            return loadRCFile(context, new JSONObject(json));
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    public static RCFile loadRCFile(Context context, JSONObject obj) {
+        try {
+            JSONObject rcfileJSONObject = obj;
             int rcfileId = rcfileJSONObject.getInt("id");
             String rcfileName = rcfileJSONObject.getString("name");
             LinkedList<RCGroup> groups = new LinkedList<>();
@@ -230,5 +245,32 @@ public class RCManager {
     public void removeRCFile(RCFile rcfile) {
         File file = RCFile.getRCFile(context, rcfile.id);
         if (file.isFile() && file.delete()) rcfiles.remove(rcfile);
+    }
+
+    public static void loadRCFileSpinner(RCManager rcManager, int rcfileId, Spinner spinner, Callback<Integer> callback) {
+        Context context = spinner.getContext();
+        rcManager.loadRCFiles();
+        List<RCFile> rcFiles = rcManager.getRCFiles();
+
+        List<String> filesName = new ArrayList<>();
+        filesName.add("-- " + context.getString(R.string.disabled) + " --");
+        for (RCFile rcfile : rcFiles)
+            filesName.add(rcfile.getName());
+
+        spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, filesName));
+        RCFile currentRCFile = rcManager.getRcfile(rcfileId);
+
+        spinner.setSelection(currentRCFile == null ? 0 : rcFiles.indexOf(currentRCFile) + 1);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                callback.call(position == 0 ? 0 : rcFiles.get(position - 1).id);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 }
