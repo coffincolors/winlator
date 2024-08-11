@@ -14,7 +14,7 @@ import com.winlator.core.StringUtils;
 public class VKD3DConfigDialog extends ContentDialog {
     public static final String DEFAULT_CONFIG = DXVKConfigDialog.DEFAULT_CONFIG +
             ",vkd3dVersion=" + DefaultVersion.VKD3D + ",vkd3dLevel=12_1";
-    public static final String[] VKD3D_FEATURE_LEVEL = {"12_0", "12_1", "12_2"};
+    public static final String[] VKD3D_FEATURE_LEVEL = {"12_0", "12_1", "12_2", "11_1", "11_0", "10_1", "10_0", "9_3", "9_2", "9_1"};
 
     public VKD3DConfigDialog(View anchor) {
         super(anchor.getContext(), R.layout.vkd3d_config_dialog);
