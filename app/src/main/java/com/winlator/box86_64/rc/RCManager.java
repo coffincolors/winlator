@@ -1,7 +1,6 @@
 package com.winlator.box86_64.rc;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
 import android.view.View;
@@ -17,11 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -82,53 +77,8 @@ public class RCManager {
 
     private void copyAssetRCFilesIfNeeded() {
         File rcfilesDir = RCManager.getRCFilesDir(context);
-        if (FileUtils.isEmpty(rcfilesDir)) {
+        if (FileUtils.isEmpty(rcfilesDir))
             FileUtils.copy(context, "box86_64/rcfiles", rcfilesDir);
-            return;
-        }
-
-        File[] files = rcfilesDir.listFiles();
-        if (files == null) return;
-
-        try {
-            AssetManager assetManager = context.getAssets();
-            String[] assetFiles = assetManager.list("box86_64/rcfiles");
-            for (String assetFile : assetFiles) {
-                String assetPath = "box86_64/rcfiles/" + assetFile;
-                RCFile originRCFile = loadRCFile(context, FileUtils.readAssetsFile(context, assetPath));
-
-                File targetFile = null;
-                for (File file : files) {
-                    RCFile targetRCFile = loadRCFile(context, file);
-                    if (originRCFile.id == targetRCFile.id && originRCFile.getName().equals(targetRCFile.getName())) {
-                        targetFile = file;
-                        break;
-                    }
-                }
-
-                if (targetFile != null) {
-                    FileUtils.copy(context, assetPath, targetFile);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String loadJSONFromAsset(Context context, String fileName) throws IOException {
-        String l;
-        AssetManager assetManager = context.getAssets();
-        InputStream is = assetManager.open(fileName);
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
-
-        while ((l = reader.readLine()) != null) {
-            sb.append(l);
-        }
-
-        reader.close();
-        return sb.toString();
     }
 
     public RCFile createRCFile(String name) {
