@@ -224,7 +224,7 @@ public class ContentsManager {
     }
 
     public List<ContentProfile.ContentFile> getUnTrustedContentFiles(ContentProfile profile) {
-        createtrustedFilesMap();
+        createTrustedFilesMap();
         List<ContentProfile.ContentFile> files = new ArrayList<>();
         for (ContentProfile.ContentFile contentFile : profile.fileList) {
             if (!trustedFilesMap.get(profile.type).contains(
@@ -251,7 +251,7 @@ public class ContentsManager {
         }
     }
 
-    private void createtrustedFilesMap() {
+    private void createTrustedFilesMap() {
         if (trustedFilesMap == null) {
             trustedFilesMap = new HashMap<>();
             for (ContentProfile.ContentType type : ContentProfile.ContentType.values()) {
@@ -286,5 +286,42 @@ public class ContentsManager {
             FileUtils.delete(getInstallDir(context, profile));
             profilesMap.get(profile.type).remove(profile);
         }
+    }
+
+    public static String getEntryName(ContentProfile profile) {
+        return profile.type.toString() + '-' + profile.verName + '-' + profile.verCode;
+    }
+
+    public ContentProfile getProfileByEntryName(String entryName) {
+        int firstDashIndex = entryName.indexOf('-');
+        int lastDashIndex = entryName.lastIndexOf('-');
+
+        try {
+            String typeName = entryName.substring(0, firstDashIndex);
+            String versionName = entryName.substring(firstDashIndex + 1, lastDashIndex);
+            String versionCode = entryName.substring(lastDashIndex + 1);
+
+            for (ContentProfile profile : profilesMap.get(ContentProfile.ContentType.getTypeByName(typeName))) {
+                if (versionName.equals(profile.verName) && Integer.parseInt(versionCode) == profile.verCode)
+                    return profile;
+            }
+        } catch (Exception e) { }
+
+        return null;
+    }
+
+    public boolean applyContent(ContentProfile profile) {
+        if (profile.type != ContentProfile.ContentType.CONTENT_TYPE_WINE) {
+            for (ContentProfile.ContentFile contentFile : profile.fileList) {
+                File targetFile = new File(getPathFromTemplate(contentFile.target));
+                File sourceFile = new File(getInstallDir(context, profile), contentFile.source);
+
+                targetFile.delete();
+                FileUtils.copy(sourceFile, targetFile);
+            }
+        } else {
+            // TODO
+        }
+        return true;
     }
 }

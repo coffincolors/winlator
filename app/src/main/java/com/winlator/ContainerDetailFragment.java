@@ -33,6 +33,8 @@ import com.winlator.container.ContainerManager;
 import com.winlator.contentdialog.AddEnvVarDialog;
 import com.winlator.contentdialog.DXVKConfigDialog;
 import com.winlator.contentdialog.VKD3DConfigDialog;
+import com.winlator.contents.ContentProfile;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.AppUtils;
 import com.winlator.core.Callback;
 import com.winlator.core.EnvVars;
@@ -61,6 +63,7 @@ import java.util.Locale;
 
 public class ContainerDetailFragment extends Fragment {
     private ContainerManager manager;
+    private ContentsManager contentsManager;
     private final int containerId;
     private Container container;
     private PreloaderDialog preloaderDialog;
@@ -116,6 +119,8 @@ public class ContainerDetailFragment extends Fragment {
         final View view = inflater.inflate(R.layout.container_detail_fragment, root, false);
         manager = new ContainerManager(context);
         container = containerId > 0 ? manager.getContainerById(containerId) : null;
+        contentsManager = new ContentsManager(context);
+        contentsManager.syncContents();
 
         final EditText etName = view.findViewById(R.id.ETName);
 
@@ -137,6 +142,7 @@ public class ContainerDetailFragment extends Fragment {
         vDXWrapperConfig.setTag(isEditMode() ? container.getDXWrapperConfig() : "");
 
         setupDXWrapperSpinner(sDXWrapper, vDXWrapperConfig);
+        updateGraphicsDriverSpinner(getContext(), contentsManager, sGraphicsDriver);
         loadGraphicsDriverSpinner(sGraphicsDriver, sDXWrapper, isEditMode() ? container.getGraphicsDriver() : Container.DEFAULT_GRAPHICS_DRIVER,
             isEditMode() ? container.getDXWrapper() : Container.DEFAULT_DXWRAPPER);
 
@@ -436,10 +442,13 @@ public class ContainerDetailFragment extends Fragment {
 
         Runnable update = () -> {
             String graphicsDriver = StringUtils.parseIdentifier(sGraphicsDriver.getSelectedItem());
-            boolean addAll = graphicsDriver.equals("turnip");
+            boolean addAll = graphicsDriver.startsWith("turnip");
 
             ArrayList<String> items = new ArrayList<>();
-            for (String value : dxwrapperEntries) if (addAll || (!value.equals("DXVK") && !value.equals("VKD3D"))) items.add(value);
+            for (String value : dxwrapperEntries)
+                if (addAll || (!value.equals("DXVK") && !value.equals("VKD3D")))
+                    items.add(value);
+
             sDXWrapper.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, items.toArray(new String[0])));
             AppUtils.setSpinnerSelectionFromIdentifier(sDXWrapper, selectedDXWrapper);
         };
@@ -596,5 +605,13 @@ public class ContainerDetailFragment extends Fragment {
         view.findViewById(R.id.LLWineVersion).setVisibility(View.VISIBLE);
         sWineVersion.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, wineInfos));
         if (isEditMode()) AppUtils.setSpinnerSelectionFromValue(sWineVersion, WineInfo.fromIdentifier(context, container.getWineVersion()).toString());
+    }
+
+    private static void updateGraphicsDriverSpinner(Context context, ContentsManager manager, Spinner spinner) {
+        String[] originalItems = context.getResources().getStringArray(R.array.graphics_driver_entries);
+        List<String> itemList = new ArrayList<>(Arrays.asList(originalItems));
+        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_TURNIP))
+            itemList.add(ContentsManager.getEntryName(profile));
+        spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, itemList));
     }
 }

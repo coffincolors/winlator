@@ -16,8 +16,8 @@
         <item>1920x1080 (16:9)</item>
     </string-array>
     <string-array name="graphics_driver_entries">
-        <item>Turnip (Adreno)</item>
-        <item>VirGL (Universal)</item>
+        <item>Turnip-24.1.0</item>
+        <item>VirGL-23.1.9</item>
     </string-array>
     <string-array name="audio_driver_entries">
         <item>ALSA</item>
@@ -35,8 +35,6 @@
         <item>CNC DDraw</item>
     </string-array>
     <string-array name="dxvk_version_entries">
-        <item>0.96</item>
-        <item>1.10.3</item>
         <item>2.3.1 (Default)</item>
         <item>2.4</item>
         <item>gplasync-2.4</item>

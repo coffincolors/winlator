@@ -238,8 +238,8 @@ public class ContentsFragment extends Fragment {
             };
             holder.ivIcon.setBackground(getContext().getDrawable(iconId));
 
-            holder.tvVersionName.setText(protfile.verName);
-            holder.tvVersionCode.setText(String.valueOf(protfile.verCode));
+            holder.tvVersionName.setText(getContext().getString(R.string.version) + ": " + protfile.verName);
+            holder.tvVersionCode.setText(getContext().getString(R.string.version_code) + ": " + protfile.verCode);
             holder.ibMenu.setOnClickListener(v -> {
                 PopupMenu selectionMenu = new PopupMenu(getContext(), holder.ibMenu);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)

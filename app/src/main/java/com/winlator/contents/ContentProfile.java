@@ -35,7 +35,7 @@ public class ContentProfile {
 
         public static ContentType getTypeByName(String name) {
             for (ContentType type : ContentType.values())
-                if (type.typeName.equals(name))
+                if (type.typeName.toLowerCase().equals(name.toLowerCase()))
                     return type;
             return null;
         }
