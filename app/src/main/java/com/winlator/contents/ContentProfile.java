@@ -10,15 +10,19 @@ public class ContentProfile {
     public static final String MARK_VERSION_CODE = "versionCode";
     public static final String MARK_DESC = "description";
     public static final String MARK_FILE_LIST = "files";
+    public static final String MARK_FILE_SOURCE = "source";
+    public static final String MARK_FILE_TARGET = "target";
 
     public enum ContentType {
-        CONTENT_TYPE_WINE ("Wine"),
-        CONTENT_TYPE_TURNIP ("Turnip"),
-        CONTENT_TYPE_VIRGL ("VirGL"),
-        CONTENT_TYPE_DXVK ("DXVK"),
-        CONTENT_TYPE_VKD3D ("VKD3D");
+        CONTENT_TYPE_WINE("Wine"),
+        CONTENT_TYPE_TURNIP("Turnip"),
+        CONTENT_TYPE_VIRGL("VirGL"),
+        CONTENT_TYPE_DXVK("DXVK"),
+        CONTENT_TYPE_VKD3D("VKD3D"),
+        CONTENT_TYPE_BOX64("Box64");
 
         final String typeName;
+
         ContentType(String typeNmae) {
             this.typeName = typeNmae;
         }
@@ -37,9 +41,14 @@ public class ContentProfile {
         }
     }
 
+    public static class ContentFile {
+        public String source;
+        public String target;
+    }
+
     public ContentType type;
     public String verName;
     public int verCode;
     public String desc;
-    public List<String> fileList;
+    public List<ContentFile> fileList;
 }

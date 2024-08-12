@@ -284,4 +284,9 @@
     <string name="file_list">File List</string>
     <string name="_continue">Continue</string>
     <string name="content_installed_success">Content installed successfully!</string>
+    <string name="content_cannot_be_trusted">Content cannot be trusted.</string>
+    <string name="content_is_incomplete">Content is incomplete.</string>
+    <string name="warning_content_has_untrusted_files">Warning: The additional content contains untrusted files. Generally, the following files should not be modified. Please decide whether to proceed with the installation.</string>
+    <string name="warning">Warning</string>
+    <string name="do_you_want_to_remove_this_content">Do you want to remove this content?</string>
 </resources>

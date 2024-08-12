@@ -233,4 +233,9 @@
     <string name="file_list">文件列表</string>
     <string name="_continue">继续</string>
     <string name="content_installed_success">附加内容安装成功！</string>
+    <string name="content_cannot_be_trusted">附加内容不可信任。</string>
+    <string name="content_is_incomplete">附加内容不完整。</string>
+    <string name="warning_content_has_untrusted_files">警告：该附加内容包含不可信任的文件，一般情况下下列文件不应该被更改。请决定是否继续安装。</string>
+    <string name="warning">警告</string>
+    <string name="do_you_want_to_remove_this_content">您是否要删除该附加内容？</string>
 </resources>
