@@ -35,9 +35,9 @@
         <item>CNC DDraw</item>
     </string-array>
     <string-array name="dxvk_version_entries">
-        <item>2.3.1 (Default)</item>
+        <item>2.3.1</item>
         <item>2.4</item>
-        <item>gplasync-2.4</item>
+        <item>2.4-gplasync</item>
     </string-array>
     <string-array name="dxvk_max_device_memory_entries">
         <item>0 (Default)</item>
@@ -72,7 +72,7 @@
     </string-array>
     <string-array name="box64_version_entries">
         <item>0.2.8</item>
-        <item>0.3.0 (Default)</item>
+        <item>0.3.0</item>
         <item>0.3.1–649a65b</item>
     </string-array>
     <string-array name="dinput_mapper_type_entries">
@@ -93,7 +93,7 @@
         <item>Aggressive (Stop services on startup)</item>
     </string-array>
     <string-array name="vkd3d_version_entries">
-        <item>2.12 (Default)</item>
+        <item>2.12</item>
         <item>2.13</item>>
     </string-array>
 </resources>

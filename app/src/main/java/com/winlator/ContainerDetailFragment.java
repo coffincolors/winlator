@@ -612,6 +612,8 @@ public class ContainerDetailFragment extends Fragment {
         List<String> itemList = new ArrayList<>(Arrays.asList(originalItems));
         for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_TURNIP))
             itemList.add(ContentsManager.getEntryName(profile));
+        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_VIRGL))
+            itemList.add(ContentsManager.getEntryName(profile));
         spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, itemList));
     }
 }

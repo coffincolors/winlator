@@ -423,7 +423,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         FileUtils.clear(imageFs.getTmpDir());
 
         boolean usrGlibc = preferences.getBoolean("use_glibc", true);
-        GuestProgramLauncherComponent guestProgramLauncherComponent = usrGlibc? new GlibcProgramLauncherComponent(): new GuestProgramLauncherComponent();
+        GuestProgramLauncherComponent guestProgramLauncherComponent = usrGlibc? new GlibcProgramLauncherComponent(contentsManager): new GuestProgramLauncherComponent();
 
         if (container != null) {
             if (container.getStartupSelection() == Container.STARTUP_SELECTION_AGGRESSIVE) winHandler.killProcess("services.exe");
@@ -668,7 +668,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             envVars.put("MESA_EXTENSION_OVERRIDE", "-GL_EXT_vertex_array_bgra");
             envVars.put("MESA_GL_VERSION_OVERRIDE", "3.1");
             envVars.put("vblank_mode", "0");
-            if (changed) TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-"+DefaultVersion.VIRGL+".tzst", rootDir);
+            if (changed) {
+                ContentProfile profile = contentsManager.getProfileByEntryName(graphicsDriver);
+                if (profile != null)
+                    contentsManager.applyContent(profile);
+                else
+                    TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-" + DefaultVersion.VIRGL + ".tzst", rootDir);
+            }
         }
     }
 
@@ -783,7 +789,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             default:
                 if (dxwrapper.startsWith("dxvk")) {
                     restoreOriginalDllFiles("d3d12.dll", "d3d12core.dll", "ddraw.dll");
-                    ContentProfile profile = contentsManager.getProfileByEntryName("dxvk-"+dxwrapper);
+                    ContentProfile profile = contentsManager.getProfileByEntryName(dxwrapper);
                     if (profile != null)
                         contentsManager.applyContent(profile);
                     else {
@@ -793,7 +799,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                             TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/d8vk-" + DefaultVersion.D8VK + ".tzst", windowsDir, onExtractFileListener);
                     }
                 } else if (dxwrapper.startsWith("vkd3d")) {
-                    ContentProfile profile = contentsManager.getProfileByEntryName("vkd3d-"+dxwrapper);
+                    ContentProfile profile = contentsManager.getProfileByEntryName(dxwrapper);
                     if (profile != null)
                         contentsManager.applyContent(profile);
                     else

@@ -8,6 +8,8 @@ import androidx.preference.PreferenceManager;
 
 import com.winlator.box86_64.Box86_64Preset;
 import com.winlator.box86_64.Box86_64PresetManager;
+import com.winlator.contents.ContentProfile;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.Callback;
 import com.winlator.core.DefaultVersion;
 import com.winlator.core.EnvVars;
@@ -28,6 +30,11 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
     private Callback<Integer> terminationCallback;
     private static final Object lock = new Object();
     private boolean wow64Mode = true;
+    private final ContentsManager contentsManager;
+
+    public GlibcProgramLauncherComponent(ContentsManager contentsManager) {
+        this.contentsManager = contentsManager;
+    }
 
     @Override
     public void start() {
@@ -166,8 +173,13 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
         }
 
         if (!box64Version.equals(currentBox64Version)) {
-            TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box64-"+box64Version+".tzst", rootDir);
-            preferences.edit().putString("current_box64_version", box64Version).apply();
+            ContentProfile profile = contentsManager.getProfileByEntryName("box64-" + box64Version);
+            if (profile != null)
+                contentsManager.applyContent(profile);
+            else {
+                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box64-" + box64Version + ".tzst", rootDir);
+                preferences.edit().putString("current_box64_version", box64Version).apply();
+            }
         }
     }
 
