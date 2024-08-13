@@ -4,6 +4,8 @@ import android.content.Context;
 import android.os.Handler;
 
 import com.winlator.R;
+import com.winlator.contents.ContentProfile;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.Callback;
 import com.winlator.core.FileUtils;
 import com.winlator.core.OnExtractFileListener;
@@ -58,7 +60,7 @@ public class ContainerManager {
                 }
             }
         }
-        catch (JSONException e) {}
+        catch (JSONException | NullPointerException e) {}
     }
 
     public void activateContainer(Container container) {
@@ -220,11 +222,23 @@ public class ContainerManager {
             return result;
         }
         else {
-            File installedWineDir = ImageFs.find(context).getInstalledWineDir();
-            WineInfo wineInfo = WineInfo.fromIdentifier(context, wineVersion);
-            String suffix = wineInfo.fullVersion()+"-"+wineInfo.getArch();
-            File file = new File(installedWineDir, "container-pattern-"+suffix+".tzst");
-            return TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, file, containerDir, onExtractFileListener);
+//            File installedWineDir = ImageFs.find(context).getInstalledWineDir();
+//            WineInfo wineInfo = WineInfo.fromIdentifier(context, wineVersion);
+//            String suffix = wineInfo.fullVersion()+"-"+wineInfo.getArch();
+//            File file = new File(installedWineDir, "container-pattern-"+suffix+".tzst");
+//            return TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, file, containerDir, onExtractFileListener);
+            ContentsManager contentsManager = new ContentsManager(context);
+            contentsManager.syncContents();
+            ContentProfile profile = contentsManager.getProfileByEntryName(wineVersion);
+            if (profile == null)
+                return false;
+            File file = ContentsManager.getSourceFile(context, profile, profile.winePrefixPack);
+            String suffix = FileUtils.getFileSuffix(file);
+            if (suffix.equals("xz") || suffix.equals("txz"))
+                return TarCompressorUtils.extract(TarCompressorUtils.Type.XZ, file, containerDir, onExtractFileListener);
+            else if (suffix.equals("zst") || suffix.equals("tzst"))
+                return TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, file, containerDir, onExtractFileListener);
+            return false;
         }
     }
 }

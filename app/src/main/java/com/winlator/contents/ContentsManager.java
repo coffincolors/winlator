@@ -141,8 +141,19 @@ public class ContentsManager {
                 callback.onFailed(InstallFailedReason.ERROR_UNTRUSTPROFILE, null);
                 return;
             }
-
         }
+
+        if (profile.type == ContentProfile.ContentType.CONTENT_TYPE_WINE) {
+            File bin = new File(file, profile.wineBinPath);
+            File lib = new File(file, profile.wineLibPath);
+            File cp = new File(file, profile.winePrefixPack);
+
+            if (!bin.exists() || !bin.isDirectory() || !lib.exists() || !lib.isDirectory() || !cp.exists() || !cp.isFile()) {
+                callback.onFailed(InstallFailedReason.ERROR_MISSINGFILES, null);
+                return;
+            }
+        }
+
         callback.onSucceed(profile);
     }
 
@@ -166,8 +177,8 @@ public class ContentsManager {
     }
 
     public ContentProfile readProfile(File file) {
-        ContentProfile profile = null;
         try {
+            ContentProfile profile = new ContentProfile();
             JSONObject profileJSONObject = new JSONObject(FileUtils.readString(file));
             String typeName = profileJSONObject.getString(ContentProfile.MARK_TYPE);
             String verName = profileJSONObject.getString(ContentProfile.MARK_VERSION_NAME);
@@ -183,17 +194,23 @@ public class ContentsManager {
                 contentFile.target = contentFileJSONObject.getString(ContentProfile.MARK_FILE_TARGET);
                 fileList.add(contentFile);
             }
+            if (typeName.equals(ContentProfile.ContentType.CONTENT_TYPE_WINE.toString())) {
+                JSONObject wineJSONObject = profileJSONObject.getJSONObject(ContentProfile.MARK_WINE);
+                profile.wineLibPath = wineJSONObject.getString(ContentProfile.MARK_WINE_LIBPATH);
+                profile.wineBinPath = wineJSONObject.getString(ContentProfile.MARK_WINE_BINPATH);
+                profile.winePrefixPack = wineJSONObject.getString(ContentProfile.MARK_WINE_PREFIX_PACK);
+            }
 
-            profile = new ContentProfile();
             profile.type = ContentProfile.ContentType.getTypeByName(typeName);
             profile.verName = verName;
             profile.verCode = verCode;
             profile.desc = desc;
             profile.fileList = fileList;
+            return profile;
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-        return profile;
     }
 
     public List<ContentProfile> getProfiles(ContentProfile.ContentType type) {
@@ -216,6 +233,10 @@ public class ContentsManager {
 
     public static File getTmpDir(Context context) {
         return new File(context.getFilesDir(), "tmp/" + ContentDirName.CONTENT_MAIN_DIR_NAME);
+    }
+
+    public static File getSourceFile(Context context, ContentProfile profile, String path) {
+        return new File(getInstallDir(context, profile), path);
     }
 
     public static void cleanTmpDir(Context context) {
@@ -306,7 +327,8 @@ public class ContentsManager {
                 if (versionName.equals(profile.verName) && Integer.parseInt(versionCode) == profile.verCode)
                     return profile;
             }
-        } catch (Exception e) { }
+        } catch (Exception e) {
+        }
 
         return null;
     }
@@ -321,7 +343,7 @@ public class ContentsManager {
                 FileUtils.copy(sourceFile, targetFile);
             }
         } else {
-            // TODO
+            // TODO: do nothing?
         }
         return true;
     }

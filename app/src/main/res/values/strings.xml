@@ -269,7 +269,7 @@
     <string name="content_type">Content Type</string>
     <string name="contents">Contents</string>
     <string name="do_you_want_to_install_content">Do you want to install additional content?</string>
-    <string name="pls_make_sure_content_trustworthy">Before installing, please make sure that the additional content you are installing is trustworthy.</string>
+    <string name="pls_make_sure_content_trustworthy">Contents contain executable files. Unsafe executable files may compromise your data or device security. Before installing, PLEASE make sure that the additional content you are installing is trustworthy.</string>
     <string name="content_suffix_is_wcp_packed_xz_zst">The content files have the .wcp extension and are compressed using either xz or zst formats.</string>
     <string name="installing_content">Installing Content…</string>
     <string name="unable_to_install_content">Unable to install content.</string>

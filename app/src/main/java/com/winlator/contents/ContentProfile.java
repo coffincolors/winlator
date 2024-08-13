@@ -12,6 +12,10 @@ public class ContentProfile {
     public static final String MARK_FILE_LIST = "files";
     public static final String MARK_FILE_SOURCE = "source";
     public static final String MARK_FILE_TARGET = "target";
+    public static final String MARK_WINE = "wine";
+    public static final String MARK_WINE_BINPATH = "binPath";
+    public static final String MARK_WINE_LIBPATH = "libPath";
+    public static final String MARK_WINE_PREFIX_PACK = "prefixPack";
 
     public enum ContentType {
         CONTENT_TYPE_WINE("Wine"),
@@ -51,4 +55,7 @@ public class ContentProfile {
     public int verCode;
     public String desc;
     public List<ContentFile> fileList;
+    public String wineLibPath;
+    public String wineBinPath;
+    public String winePrefixPack;
 }

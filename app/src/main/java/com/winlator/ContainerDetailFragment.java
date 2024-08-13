@@ -131,7 +131,8 @@ public class ContainerDetailFragment extends Fragment {
 
         final ArrayList<WineInfo> wineInfos = WineUtils.getInstalledWineInfos(context);
         final Spinner sWineVersion = view.findViewById(R.id.SWineVersion);
-        if (wineInfos.size() > 1) loadWineVersionSpinner(view, sWineVersion, wineInfos);
+        //if (wineInfos.size() > 1) loadWineVersionSpinner(view, sWineVersion, wineInfos);
+        loadWineVersionSpinner(view, sWineVersion, wineInfos);
 
         loadScreenSizeSpinner(view, isEditMode() ? container.getScreenSize() : Container.DEFAULT_SCREEN_SIZE);
 
@@ -249,10 +250,7 @@ public class ContainerDetailFragment extends Fragment {
                     data.put("box64Preset", box64Preset);
                     data.put("desktopTheme", desktopTheme);
                     data.put("rcfileId", rcfileId);
-
-                    if (wineInfos.size() > 1) {
-                        data.put("wineVersion", wineInfos.get(sWineVersion.getSelectedItemPosition()).identifier());
-                    }
+                    data.put("wineVersion", sWineVersion.getSelectedItem().toString());
 
                     preloaderDialog.show(R.string.creating_container);
                     manager.createContainerAsync(data, (container) -> {
@@ -589,22 +587,29 @@ public class ContainerDetailFragment extends Fragment {
     private void loadWineVersionSpinner(final View view, Spinner sWineVersion, final ArrayList<WineInfo> wineInfos) {
         final Context context = getContext();
         sWineVersion.setEnabled(!isEditMode());
-        sWineVersion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-                WineInfo wineInfo = wineInfos.get(position);
-                boolean isMainWineVersion = WineInfo.isMainWineVersion(wineInfo.identifier());
-                CheckBox cbWoW64Mode = view.findViewById(R.id.CBWoW64Mode);
-                cbWoW64Mode.setEnabled(isMainWineVersion);
-                if (!isMainWineVersion) cbWoW64Mode.setChecked(false);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
+//        sWineVersion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+//                WineInfo wineInfo = wineInfos.get(position);
+//                boolean isMainWineVersion = WineInfo.isMainWineVersion(wineInfo.identifier());
+//                CheckBox cbWoW64Mode = view.findViewById(R.id.CBWoW64Mode);
+//                cbWoW64Mode.setEnabled(isMainWineVersion);
+//                if (!isMainWineVersion) cbWoW64Mode.setChecked(false);
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {}
+//        });
+//        view.findViewById(R.id.LLWineVersion).setVisibility(View.VISIBLE);
+//        sWineVersion.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, wineInfos));
+//        if (isEditMode()) AppUtils.setSpinnerSelectionFromValue(sWineVersion, WineInfo.fromIdentifier(context, container.getWineVersion()).toString());
         view.findViewById(R.id.LLWineVersion).setVisibility(View.VISIBLE);
-        sWineVersion.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, wineInfos));
-        if (isEditMode()) AppUtils.setSpinnerSelectionFromValue(sWineVersion, WineInfo.fromIdentifier(context, container.getWineVersion()).toString());
+        ArrayList<String> wineVersions = new ArrayList<>();
+        wineVersions.add(WineInfo.MAIN_WINE_VERSION.identifier());
+        for (ContentProfile profile : contentsManager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_WINE))
+            wineVersions.add(ContentsManager.getEntryName(profile));
+        sWineVersion.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, wineVersions));
+        if (isEditMode()) AppUtils.setSpinnerSelectionFromValue(sWineVersion, container.getWineVersion());
     }
 
     private static void updateGraphicsDriverSpinner(Context context, ContentsManager manager, Spinner spinner) {

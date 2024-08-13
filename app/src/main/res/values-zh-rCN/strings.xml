@@ -218,7 +218,7 @@
     <string name="content_type">附加内容类型</string>
     <string name="contents">附加内容</string>
     <string name="do_you_want_to_install_content">您想要安装附加内容吗？</string>
-    <string name="pls_make_sure_content_trustworthy">在安装前，请确保要安装的附加内容是可信任的。</string>
+    <string name="pls_make_sure_content_trustworthy">附加内容包含可执行文件，不安全的可执行文件会危害您的数据或设备安全。在安装前，请务必确保要安装的附加内容是可信任的。</string>
     <string name="content_suffix_is_wcp_packed_xz_zst">附加内容使用.wcp文件名扩展，并且采用xz或zst格式压缩。</string>
     <string name="installing_content">正在安装附加内容…</string>
     <string name="unable_to_install_content">无法安装附加文件。</string>
