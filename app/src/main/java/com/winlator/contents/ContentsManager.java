@@ -136,7 +136,8 @@ public class ContentsManager {
                 return;
             }
 
-            if (!isSubPath(imagefsPath, getPathFromTemplate(contentFile.target))) {
+            String realPath = getPathFromTemplate(contentFile.target);
+            if (!isSubPath(imagefsPath, realPath) || isSubPath(ContentsManager.getContentDir(context).getAbsolutePath(), realPath)) {
                 callback.onFailed(InstallFailedReason.ERROR_UNTRUSTPROFILE, null);
                 return;
             }
