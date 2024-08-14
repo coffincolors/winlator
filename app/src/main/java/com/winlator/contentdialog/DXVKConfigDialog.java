@@ -119,31 +119,34 @@ public class DXVKConfigDialog extends ContentDialog {
         File rootDir = ImageFs.find(context).getRootDir();
         File dxvkConfigFile = new File(rootDir, ImageFs.CONFIG_PATH+"/dxvk.conf");
 
-        String content = "";
+        String content = "\"";
         String maxDeviceMemory = config.get("maxDeviceMemory");
         if (!maxDeviceMemory.isEmpty() && !maxDeviceMemory.equals("0")) {
-            content += "dxgi.maxDeviceMemory = "+maxDeviceMemory+"\n";
-            content += "dxgi.maxSharedMemory = "+maxDeviceMemory+"\n";
+            content += "dxgi.maxDeviceMemory = "+maxDeviceMemory+';';
+            content += "dxgi.maxSharedMemory = "+maxDeviceMemory+';';
         }
 
         String framerate = config.get("framerate");
         if (!framerate.isEmpty() && !framerate.equals("0")) {
-            content += "dxgi.maxFrameRate = "+framerate+"\n";
-            content += "d3d9.maxFrameRate = "+framerate+"\n";
+            content += "dxgi.maxFrameRate = "+framerate+';';
+            content += "d3d9.maxFrameRate = "+framerate+';';
         }
 
         String async = config.get("async");
         if (!async.isEmpty() && !async.equals("0"))
-            content += "dxvk.enableAsync=true\n";
+            content += "dxvk.enableAsync = True;";
 
         String asyncCache = config.get("asyncCache");
         if (!asyncCache.isEmpty() && !asyncCache.equals("0"))
-            content += "dxvk.gplAsyncCache=true\n";
+            content += "dxvk.gplAsyncCache = True;";
+        content = content + '\"';
 
-        FileUtils.delete(dxvkConfigFile);
-        if (!content.isEmpty() && FileUtils.writeString(dxvkConfigFile, content)) {
-            envVars.put("DXVK_CONFIG_FILE", rootDir + ImageFs.CONFIG_PATH+"/dxvk.conf");
-        }
+//        FileUtils.delete(dxvkConfigFile);
+//        if (!content.isEmpty() && FileUtils.writeString(dxvkConfigFile, content)) {
+//            envVars.put("DXVK_CONFIG_FILE", rootDir + ImageFs.CONFIG_PATH+"/dxvk.conf");
+//        }
+        envVars.put("DXVK_CONFIG_FILE", rootDir + ImageFs.CONFIG_PATH+"/dxvk.conf");
+        envVars.put("DXVK_CONFIG", content);
     }
 
     private void loadDxvkVersionSpinner(ContentsManager manager, Spinner spinner) {
