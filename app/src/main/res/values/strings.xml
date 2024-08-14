@@ -291,4 +291,6 @@
     <string name="do_you_want_to_remove_this_content">Do you want to remove this content?</string>
     <string name="add_to_home_screen">Add to Home Screen</string>
     <string name="shortcut_not_available">This shortcut is no longer available. Please delete or recreate it.</string>
+    <string name="enable_file_provider">Enable File Provider</string>
+    <string name="take_effect_next_startup">This option will take effect at the next startup.</string>
 </resources>

@@ -240,4 +240,6 @@
     <string name="do_you_want_to_remove_this_content">您是否要删除该附加内容？</string>
     <string name="add_to_home_screen">添加到主屏幕</string>
     <string name="shortcut_not_available">该快捷方式不再可用，请删除或重新创建。</string>
+    <string name="enable_file_provider">启用文件提供器</string>
+    <string name="take_effect_next_startup">此选项将在下一次启动时生效。</string>
 </resources>

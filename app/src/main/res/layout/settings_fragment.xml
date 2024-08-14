@@ -294,6 +294,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/use_glibc" />
+
+                    <View style="@style/FieldSeparator" />
+
+                    <CheckBox
+                        android:id="@+id/CBEnableFileProvider"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/enable_file_provider" />
                 </LinearLayout>
 
                 <TextView

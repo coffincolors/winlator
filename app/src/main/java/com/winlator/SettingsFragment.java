@@ -157,6 +157,10 @@ public class SettingsFragment extends Fragment {
         cbUseGlibc.setChecked(preferences.getBoolean("use_glibc", true));
         cbUseGlibc.setEnabled(false);
 
+        final CheckBox cbEnableFileProvider = view.findViewById(R.id.CBEnableFileProvider);
+        cbEnableFileProvider.setChecked(preferences.getBoolean("enable_file_provider", false));
+        cbEnableFileProvider.setOnClickListener(v -> AppUtils.showToast(context, R.string.take_effect_next_startup));
+
         loadInstalledWineList(view);
 
         view.findViewById(R.id.BTSelectWineFile).setOnClickListener((v) -> {
@@ -175,6 +179,7 @@ public class SettingsFragment extends Fragment {
             editor.putBoolean("enable_box86_64_logs", cbEnableBox86_64Logs.isChecked());
             editor.putInt("trigger_mode", triggerRbIds.indexOf(rgTriggerMode.getCheckedRadioButtonId()));
             editor.putBoolean("use_glibc", cbUseGlibc.isChecked());
+            editor.putBoolean("enable_file_provider", cbEnableFileProvider.isChecked());
 
             if (!wineDebugChannels.isEmpty()) {
                 editor.putString("wine_debug_channels", String.join(",", wineDebugChannels));
