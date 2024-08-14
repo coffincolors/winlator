@@ -208,7 +208,6 @@ public class ContentsManager {
             profile.fileList = fileList;
             return profile;
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
     }

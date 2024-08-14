@@ -189,7 +189,14 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             if (wineInfo != WineInfo.MAIN_WINE_VERSION) imageFs.setWinePath(wineInfo.path);
 
             String shortcutPath = getIntent().getStringExtra("shortcut_path");
-            if (shortcutPath != null && !shortcutPath.isEmpty()) shortcut = new Shortcut(container, new File(shortcutPath));
+            if (shortcutPath != null && !shortcutPath.isEmpty()) {
+                try {
+                    shortcut = new Shortcut(container, new File(shortcutPath));
+                } catch (Exception e) {
+                    finish();
+                    System.exit(0);
+                }
+            }
 
             graphicsDriver = container.getGraphicsDriver();
             audioDriver = container.getAudioDriver();

@@ -427,7 +427,7 @@ public class Box86_64RCFragment extends Fragment {
         @Override
         public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
             super.onViewCreated(view, savedInstanceState);
-            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(R.string.input_controls);
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(R.string.group_edit);
         }
 
         @Nullable

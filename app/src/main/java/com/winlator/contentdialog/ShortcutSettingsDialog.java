@@ -1,6 +1,7 @@
 package com.winlator.contentdialog;
 
 import android.content.Context;
+import android.graphics.drawable.Icon;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -160,15 +161,17 @@ public class ShortcutSettingsDialog extends ContentDialog {
 
     private void renameShortcut(String newName) {
         File parent = shortcut.file.getParentFile();
-        File newFile = new File(parent, newName+".desktop");
-        if (!newFile.isFile()) shortcut.file.renameTo(newFile);
+        File newDesktopFile = new File(parent, newName+".desktop");
+        if (!newDesktopFile.isFile()) shortcut.file.renameTo(newDesktopFile);
 
         File linkFile = new File(parent, shortcut.name+".lnk");
         if (linkFile.isFile()) {
-            newFile = new File(parent, newName+".lnk");
-            if (!newFile.isFile()) linkFile.renameTo(newFile);
+            File newLinkFile = new File(parent, newName+".lnk");
+            if (!newLinkFile.isFile()) linkFile.renameTo(newLinkFile);
         }
         fragment.loadShortcutsList();
+        fragment.updateShortcutOnScreen(newName, newName, shortcut.container.id, newDesktopFile.getAbsolutePath(),
+                Icon.createWithBitmap(shortcut.icon), shortcut.getExtra("uuid"));
     }
 
     private EnvVarsView createEnvVarsTab() {

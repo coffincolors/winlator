@@ -289,4 +289,6 @@
     <string name="warning_content_has_untrusted_files">Warning: The additional content contains untrusted files. Generally, the following files should not be modified. Please decide whether to proceed with the installation.</string>
     <string name="warning">Warning</string>
     <string name="do_you_want_to_remove_this_content">Do you want to remove this content?</string>
+    <string name="add_to_home_screen">Add to Home Screen</string>
+    <string name="shortcut_not_available">This shortcut is no longer available. Please delete or recreate it.</string>
 </resources>

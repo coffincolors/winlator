@@ -1,8 +1,13 @@
 package com.winlator;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -28,6 +33,7 @@ import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.ShortcutSettingsDialog;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ShortcutsFragment extends Fragment {
@@ -125,8 +131,14 @@ public class ShortcutsFragment extends Fragment {
                 else if (itemId == R.id.shortcut_remove) {
                     ContentDialog.confirm(context, R.string.do_you_want_to_remove_this_shortcut, () -> {
                         if (shortcut.file.delete() && shortcut.iconFile != null) shortcut.iconFile.delete();
+                        disableShortcutOnScreen(shortcut);
                         loadShortcutsList();
                     });
+                }
+                else if (itemId == R.id.shortcut_add_to_home_screen) {
+                    if (shortcut.getExtra("uuid").equals(""))
+                        shortcut.genUUID();
+                    addShortcutToScreen(shortcut);
                 }
                 return true;
             });
@@ -144,5 +156,47 @@ public class ShortcutsFragment extends Fragment {
             }
             else XrActivity.openIntent(activity, shortcut.container.id, shortcut.file.getPath());
         }
+    }
+
+    private ShortcutInfo buildScreenShortCut(String shortLabel, String longLabel, int containerId, String shortcutPath, Icon icon, String uuid) {
+        Intent intent = new Intent(getActivity(), XServerDisplayActivity.class);
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.putExtra("container_id", containerId);
+        intent.putExtra("shortcut_path", shortcutPath);
+
+        return new ShortcutInfo.Builder(getActivity(), uuid)
+                .setShortLabel(shortLabel)
+                .setLongLabel(longLabel)
+                .setIcon(icon)
+                .setIntent(intent)
+                .build();
+    }
+
+    private void addShortcutToScreen(Shortcut shortcut) {
+        ShortcutManager shortcutManager = getSystemService(requireContext(), ShortcutManager.class);
+        if (shortcutManager != null && shortcutManager.isRequestPinShortcutSupported())
+            shortcutManager.requestPinShortcut(buildScreenShortCut(shortcut.name, shortcut.name, shortcut.container.id,
+                    shortcut.file.getPath(), Icon.createWithBitmap(shortcut.icon), shortcut.getExtra("uuid")), null);
+    }
+
+    private void disableShortcutOnScreen(Shortcut shortcut) {
+        ShortcutManager shortcutManager = getSystemService(requireContext(), ShortcutManager.class);
+        try {
+            shortcutManager.disableShortcuts(Collections.singletonList(shortcut.getExtra("uuid")),
+                    requireContext().getString(R.string.shortcut_not_available));
+        } catch (Exception e) {}
+    }
+
+    public void updateShortcutOnScreen(String shortLabel, String longLabel, int containerId, String shortcutPath, Icon icon, String uuid) {
+        ShortcutManager shortcutManager = getSystemService(requireContext(), ShortcutManager.class);
+        try {
+            for (ShortcutInfo shortcutInfo : shortcutManager.getPinnedShortcuts()) {
+                if (shortcutInfo.getId().equals(uuid)) {
+                    shortcutManager.updateShortcuts(Collections.singletonList(
+                            buildScreenShortCut(shortLabel, longLabel, containerId, shortcutPath, icon, uuid)));
+                    break;
+                }
+            }
+        } catch (Exception e) {}
     }
 }
