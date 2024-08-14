@@ -33,6 +33,8 @@ import com.winlator.container.ContainerManager;
 import com.winlator.contentdialog.AddEnvVarDialog;
 import com.winlator.contentdialog.DXVKConfigDialog;
 import com.winlator.contentdialog.VKD3DConfigDialog;
+import com.winlator.contents.ContentProfile;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.AppUtils;
 import com.winlator.core.Callback;
 import com.winlator.core.EnvVars;
@@ -61,6 +63,7 @@ import java.util.Locale;
 
 public class ContainerDetailFragment extends Fragment {
     private ContainerManager manager;
+    private ContentsManager contentsManager;
     private final int containerId;
     private Container container;
     private PreloaderDialog preloaderDialog;
@@ -116,6 +119,8 @@ public class ContainerDetailFragment extends Fragment {
         final View view = inflater.inflate(R.layout.container_detail_fragment, root, false);
         manager = new ContainerManager(context);
         container = containerId > 0 ? manager.getContainerById(containerId) : null;
+        contentsManager = new ContentsManager(context);
+        contentsManager.syncContents();
 
         final EditText etName = view.findViewById(R.id.ETName);
 
@@ -126,7 +131,8 @@ public class ContainerDetailFragment extends Fragment {
 
         final ArrayList<WineInfo> wineInfos = WineUtils.getInstalledWineInfos(context);
         final Spinner sWineVersion = view.findViewById(R.id.SWineVersion);
-        if (wineInfos.size() > 1) loadWineVersionSpinner(view, sWineVersion, wineInfos);
+        //if (wineInfos.size() > 1) loadWineVersionSpinner(view, sWineVersion, wineInfos);
+        loadWineVersionSpinner(view, sWineVersion, wineInfos);
 
         loadScreenSizeSpinner(view, isEditMode() ? container.getScreenSize() : Container.DEFAULT_SCREEN_SIZE);
 
@@ -137,6 +143,7 @@ public class ContainerDetailFragment extends Fragment {
         vDXWrapperConfig.setTag(isEditMode() ? container.getDXWrapperConfig() : "");
 
         setupDXWrapperSpinner(sDXWrapper, vDXWrapperConfig);
+        updateGraphicsDriverSpinner(getContext(), contentsManager, sGraphicsDriver);
         loadGraphicsDriverSpinner(sGraphicsDriver, sDXWrapper, isEditMode() ? container.getGraphicsDriver() : Container.DEFAULT_GRAPHICS_DRIVER,
             isEditMode() ? container.getDXWrapper() : Container.DEFAULT_DXWRAPPER);
 
@@ -243,10 +250,7 @@ public class ContainerDetailFragment extends Fragment {
                     data.put("box64Preset", box64Preset);
                     data.put("desktopTheme", desktopTheme);
                     data.put("rcfileId", rcfileId);
-
-                    if (wineInfos.size() > 1) {
-                        data.put("wineVersion", wineInfos.get(sWineVersion.getSelectedItemPosition()).identifier());
-                    }
+                    data.put("wineVersion", sWineVersion.getSelectedItem().toString());
 
                     preloaderDialog.show(R.string.creating_container);
                     manager.createContainerAsync(data, (container) -> {
@@ -436,10 +440,13 @@ public class ContainerDetailFragment extends Fragment {
 
         Runnable update = () -> {
             String graphicsDriver = StringUtils.parseIdentifier(sGraphicsDriver.getSelectedItem());
-            boolean addAll = graphicsDriver.equals("turnip");
+            boolean addAll = graphicsDriver.startsWith("turnip");
 
             ArrayList<String> items = new ArrayList<>();
-            for (String value : dxwrapperEntries) if (addAll || (!value.equals("DXVK") && !value.equals("VKD3D"))) items.add(value);
+            for (String value : dxwrapperEntries)
+                if (addAll || (!value.equals("DXVK") && !value.equals("VKD3D")))
+                    items.add(value);
+
             sDXWrapper.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, items.toArray(new String[0])));
             AppUtils.setSpinnerSelectionFromIdentifier(sDXWrapper, selectedDXWrapper);
         };
@@ -580,21 +587,38 @@ public class ContainerDetailFragment extends Fragment {
     private void loadWineVersionSpinner(final View view, Spinner sWineVersion, final ArrayList<WineInfo> wineInfos) {
         final Context context = getContext();
         sWineVersion.setEnabled(!isEditMode());
-        sWineVersion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-                WineInfo wineInfo = wineInfos.get(position);
-                boolean isMainWineVersion = WineInfo.isMainWineVersion(wineInfo.identifier());
-                CheckBox cbWoW64Mode = view.findViewById(R.id.CBWoW64Mode);
-                cbWoW64Mode.setEnabled(isMainWineVersion);
-                if (!isMainWineVersion) cbWoW64Mode.setChecked(false);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
+//        sWineVersion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+//                WineInfo wineInfo = wineInfos.get(position);
+//                boolean isMainWineVersion = WineInfo.isMainWineVersion(wineInfo.identifier());
+//                CheckBox cbWoW64Mode = view.findViewById(R.id.CBWoW64Mode);
+//                cbWoW64Mode.setEnabled(isMainWineVersion);
+//                if (!isMainWineVersion) cbWoW64Mode.setChecked(false);
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {}
+//        });
+//        view.findViewById(R.id.LLWineVersion).setVisibility(View.VISIBLE);
+//        sWineVersion.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, wineInfos));
+//        if (isEditMode()) AppUtils.setSpinnerSelectionFromValue(sWineVersion, WineInfo.fromIdentifier(context, container.getWineVersion()).toString());
         view.findViewById(R.id.LLWineVersion).setVisibility(View.VISIBLE);
-        sWineVersion.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, wineInfos));
-        if (isEditMode()) AppUtils.setSpinnerSelectionFromValue(sWineVersion, WineInfo.fromIdentifier(context, container.getWineVersion()).toString());
+        ArrayList<String> wineVersions = new ArrayList<>();
+        wineVersions.add(WineInfo.MAIN_WINE_VERSION.identifier());
+        for (ContentProfile profile : contentsManager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_WINE))
+            wineVersions.add(ContentsManager.getEntryName(profile));
+        sWineVersion.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, wineVersions));
+        if (isEditMode()) AppUtils.setSpinnerSelectionFromValue(sWineVersion, container.getWineVersion());
+    }
+
+    private static void updateGraphicsDriverSpinner(Context context, ContentsManager manager, Spinner spinner) {
+        String[] originalItems = context.getResources().getStringArray(R.array.graphics_driver_entries);
+        List<String> itemList = new ArrayList<>(Arrays.asList(originalItems));
+        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_TURNIP))
+            itemList.add(ContentsManager.getEntryName(profile));
+        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_VIRGL))
+            itemList.add(ContentsManager.getEntryName(profile));
+        spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, itemList));
     }
 }

@@ -382,4 +382,17 @@ public abstract class FileUtils {
             return null;
         }
     }
+
+    public static String getFileSuffix(File file) {
+        return getFileSuffix(file.getAbsolutePath());
+    }
+
+    public static String getFileSuffix(String path) {
+        try {
+            int lastDotIndex = path.lastIndexOf('.');
+            return path.substring(lastDotIndex + 1);
+        } catch (Exception e) {
+            return "";
+        }
+    }
 }

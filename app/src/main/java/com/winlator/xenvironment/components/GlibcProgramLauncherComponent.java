@@ -8,6 +8,8 @@ import androidx.preference.PreferenceManager;
 
 import com.winlator.box86_64.Box86_64Preset;
 import com.winlator.box86_64.Box86_64PresetManager;
+import com.winlator.contents.ContentProfile;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.Callback;
 import com.winlator.core.DefaultVersion;
 import com.winlator.core.EnvVars;
@@ -28,6 +30,13 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
     private Callback<Integer> terminationCallback;
     private static final Object lock = new Object();
     private boolean wow64Mode = true;
+    private final ContentsManager contentsManager;
+    private final ContentProfile wineProfile;
+
+    public GlibcProgramLauncherComponent(ContentsManager contentsManager, ContentProfile wineProfile) {
+        this.contentsManager = contentsManager;
+        this.wineProfile = wineProfile;
+    }
 
     @Override
     public void start() {
@@ -117,18 +126,23 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
         addBox64EnvVars(envVars, enableBox86_64Logs);
         envVars.put("HOME", imageFs.home_path);
         envVars.put("USER", ImageFs.USER);
-        envVars.put("TMPDIR",imageFs.getRootDir().getPath()+"/tmp");
+        envVars.put("TMPDIR", imageFs.getRootDir().getPath() + "/tmp");
         envVars.put("LC_ALL", "zh_CN.UTF-8");
         envVars.put("DISPLAY", ":0");
-        envVars.put("PATH", imageFs.getWinePath() + "/bin:" +
+
+        String winePath = wineProfile == null ? imageFs.getWinePath() + "/bin"
+                : ContentsManager.getSourceFile(context, wineProfile, wineProfile.wineBinPath).getAbsolutePath();
+        envVars.put("PATH", winePath + ":" +
                 imageFs.getRootDir().getPath() + "/usr/bin:" +
                 imageFs.getRootDir().getPath() + "/usr/local/bin");
+
         envVars.put("LD_LIBRARY_PATH", imageFs.getRootDir().getPath() + "/usr/lib");
         envVars.put("BOX64_LD_LIBRARY_PATH", imageFs.getRootDir().getPath() + "/usr/lib/x86_64-linux-gnu");
         envVars.put("ANDROID_SYSVSHM_SERVER", imageFs.getRootDir().getPath() + UnixSocketConfig.SYSVSHM_SERVER_PATH);
 
         if ((new File(imageFs.getGlibc64Dir(), "libandroid-sysvshm.so")).exists() ||
-                (new File(imageFs.getGlibc32Dir(), "libandroid-sysvshm.so")).exists()) envVars.put("LD_PRELOAD", "libandroid-sysvshm.so");
+                (new File(imageFs.getGlibc32Dir(), "libandroid-sysvshm.so")).exists())
+            envVars.put("LD_PRELOAD", "libandroid-sysvshm.so");
         if (this.envVars != null) envVars.putAll(this.envVars);
 
         String command = rootDir.getPath() + "/usr/local/bin/box64 ";
@@ -159,15 +173,19 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
                 box86File.delete();
                 preferences.edit().putString("current_box86_version", "").apply();
             }
-        }
-        else if (!box86Version.equals(currentBox86Version)) {
-            TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box86-"+box86Version+".tzst", rootDir);
+        } else if (!box86Version.equals(currentBox86Version)) {
+            TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box86-" + box86Version + ".tzst", rootDir);
             preferences.edit().putString("current_box86_version", box86Version).apply();
         }
 
         if (!box64Version.equals(currentBox64Version)) {
-            TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box64-"+box64Version+".tzst", rootDir);
-            preferences.edit().putString("current_box64_version", box64Version).apply();
+            ContentProfile profile = contentsManager.getProfileByEntryName("box64-" + box64Version);
+            if (profile != null)
+                contentsManager.applyContent(profile);
+            else {
+                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box64-" + box64Version + ".tzst", rootDir);
+                preferences.edit().putString("current_box64_version", box64Version).apply();
+            }
         }
     }
 

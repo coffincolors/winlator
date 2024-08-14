@@ -164,6 +164,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.main_menu_box_rc:
                 show(new Box86_64RCFragment());
                 break;
+            case R.id.main_menu_contents:
+                show(new ContentsFragment());
+                break;
             case R.id.main_menu_settings:
                 show(new SettingsFragment());
                 break;

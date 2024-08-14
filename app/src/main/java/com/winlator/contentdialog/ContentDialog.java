@@ -132,9 +132,24 @@ public class ContentDialog extends Dialog {
         dialog.show();
     }
 
+    public static void alert(Context context, String msg, Runnable callback) {
+        ContentDialog dialog = new ContentDialog(context);
+        dialog.setMessage(msg);
+        dialog.setOnConfirmCallback(callback);
+        dialog.findViewById(R.id.BTCancel).setVisibility(View.GONE);
+        dialog.show();
+    }
+
     public static void confirm(Context context, int msgResId, Runnable callback) {
         ContentDialog dialog = new ContentDialog(context);
         dialog.setMessage(msgResId);
+        dialog.setOnConfirmCallback(callback);
+        dialog.show();
+    }
+
+    public static void confirm(Context context, String msg, Runnable callback) {
+        ContentDialog dialog = new ContentDialog(context);
+        dialog.setMessage(msg);
         dialog.setOnConfirmCallback(callback);
         dialog.show();
     }
