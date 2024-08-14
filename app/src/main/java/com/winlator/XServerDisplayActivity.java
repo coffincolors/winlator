@@ -8,6 +8,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.PointerIcon;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -118,6 +119,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private short taskAffinityMaskWoW64 = 0;
     private int frameRatingWindowId = -1;
     private ContentsManager contentsManager;
+    private boolean navigationFocused = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -144,6 +146,15 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         menu.findItem(R.id.main_menu_logs).setVisible(enableLogs);
         if (XrActivity.isSupported()) menu.findItem(R.id.main_menu_magnifier).setVisible(false);
         navigationView.setNavigationItemSelectedListener(this);
+        navigationView.setPointerIcon(PointerIcon.getSystemIcon(this, PointerIcon.TYPE_ARROW));
+        navigationView.setOnFocusChangeListener((v, hasFocus) -> navigationFocused = hasFocus);
+        drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                navigationView.requestFocus();
+            }
+        });
 
         imageFs = ImageFs.find(this);
 
@@ -691,7 +702,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     @Override
     public boolean dispatchGenericMotionEvent(MotionEvent event) {
-        return !winHandler.onGenericMotionEvent(event) && !touchpadView.onExternalMouseEvent(event) && super.dispatchGenericMotionEvent(event);
+        return winHandler.onGenericMotionEvent(event) || (!navigationFocused && touchpadView.onExternalMouseEvent(event)) || super.dispatchGenericMotionEvent(event);
     }
 
     @Override

@@ -10,8 +10,7 @@
     <FrameLayout
         android:id="@+id/FLXServerDisplay"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:pointerIcon="@drawable/hidden_pointer_arrow" />
+        android:layout_height="match_parent" />
 
     <com.google.android.material.navigation.NavigationView
         android:layout_width="wrap_content"
@@ -19,6 +18,9 @@
         android:layout_gravity="start"
         android:id="@+id/NavigationView"
         android:background="#ffffff"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:pointerIcon="arrow"
         app:headerLayout="@layout/main_menu_header"
         app:itemIconTint="@color/colorAccent"
         app:menu="@menu/xserver_menu"/>

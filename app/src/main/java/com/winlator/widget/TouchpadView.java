@@ -1,15 +1,15 @@
 package com.winlator.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.view.InputDevice;
 import android.view.MotionEvent;
+import android.view.PointerIcon;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.winlator.R;
 import com.winlator.core.AppUtils;
 import com.winlator.math.Mathf;
 import com.winlator.math.XForm;
@@ -46,14 +46,16 @@ public class TouchpadView extends View {
     private static final Byte EFFECTIVE_TOUCH_DISTANCE = 20;
     private float resolutionScale;
 
+    @SuppressLint("ResourceType")
     public TouchpadView(Context context, XServer xServer) {
         super(context);
         this.xServer = xServer;
         setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        setBackground(createTransparentBg());
         setClickable(true);
         setFocusable(true);
         setFocusableInTouchMode(false);
+        setBackgroundColor(0x00000000);
+        setPointerIcon(PointerIcon.load(getResources(), R.drawable.hidden_pointer_arrow));
         updateXform(AppUtils.getScreenWidth(), AppUtils.getScreenHeight(), xServer.screenInfo.width, xServer.screenInfo.height);
     }
 
@@ -392,18 +394,6 @@ public class TouchpadView extends View {
         result[0] = x - lastX;
         result[1] = y - lastY;
         return result;
-    }
-
-    private StateListDrawable createTransparentBg() {
-        StateListDrawable stateListDrawable = new StateListDrawable();
-
-        ColorDrawable focusedDrawable = new ColorDrawable(Color.TRANSPARENT);
-        ColorDrawable defaultDrawable = new ColorDrawable(Color.TRANSPARENT);
-
-        stateListDrawable.addState(new int[]{android.R.attr.state_focused}, focusedDrawable);
-        stateListDrawable.addState(new int[]{}, defaultDrawable);
-
-        return stateListDrawable;
     }
 
     public void setSimTouchScreen(boolean simTouchScreen) {
