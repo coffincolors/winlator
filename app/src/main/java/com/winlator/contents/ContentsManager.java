@@ -340,6 +340,10 @@ public class ContentsManager {
 
                 targetFile.delete();
                 FileUtils.copy(sourceFile, targetFile);
+
+                if (profile.type == ContentProfile.ContentType.CONTENT_TYPE_BOX64) {
+                    FileUtils.chmod(targetFile, 0771);
+                }
             }
         } else {
             // TODO: do nothing?

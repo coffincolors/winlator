@@ -183,10 +183,9 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
             ContentProfile profile = contentsManager.getProfileByEntryName("box64-" + box64Version);
             if (profile != null)
                 contentsManager.applyContent(profile);
-            else {
+            else
                 TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box64-" + box64Version + ".tzst", rootDir);
-                preferences.edit().putString("current_box64_version", box64Version).apply();
-            }
+            preferences.edit().putString("current_box64_version", box64Version).apply();
         }
     }
 
