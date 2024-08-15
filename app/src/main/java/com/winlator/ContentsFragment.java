@@ -40,6 +40,7 @@ public class ContentsFragment extends Fragment {
     private View emptyText;
     private ContentsManager manager;
     private ContentProfile.ContentType currentContentType = ContentProfile.ContentType.CONTENT_TYPE_WINE;
+    private Spinner sContentType;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,7 +61,7 @@ public class ContentsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ViewGroup layout = (ViewGroup) inflater.inflate(R.layout.contents_fragment, container, false);
 
-        Spinner sContentType = layout.findViewById(R.id.SContentType);
+        sContentType = layout.findViewById(R.id.SContentType);
         updateContentTypeSpinner(sContentType);
         sContentType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -172,7 +173,7 @@ public class ContentsFragment extends Fragment {
                                 ContentDialog.alert(getContext(), R.string.content_installed_success, null);
                                 manager.syncContents();
                                 currentContentType = profile.type;
-                                loadContentList();
+                                AppUtils.setSpinnerSelectionFromValue(sContentType, currentContentType.toString());
                             });
                         }
                     }
