@@ -139,6 +139,7 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
         envVars.put("LD_LIBRARY_PATH", imageFs.getRootDir().getPath() + "/usr/lib");
         envVars.put("BOX64_LD_LIBRARY_PATH", imageFs.getRootDir().getPath() + "/usr/lib/x86_64-linux-gnu");
         envVars.put("ANDROID_SYSVSHM_SERVER", imageFs.getRootDir().getPath() + UnixSocketConfig.SYSVSHM_SERVER_PATH);
+        envVars.put("FONTCONFIG_PATH", imageFs.getRootDir().getPath() + "/usr/etc/fonts");
 
         if ((new File(imageFs.getGlibc64Dir(), "libandroid-sysvshm.so")).exists() ||
                 (new File(imageFs.getGlibc32Dir(), "libandroid-sysvshm.so")).exists())
