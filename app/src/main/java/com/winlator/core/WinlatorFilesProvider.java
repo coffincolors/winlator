@@ -206,6 +206,24 @@ public class WinlatorFilesProvider extends DocumentsProvider {
         }
     }
 
+    @Override
+    public String renameDocument(String documentId, String displayName) throws FileNotFoundException {
+        File oldFile = new File(documentId);
+
+        if (!oldFile.exists()) {
+            throw new FileNotFoundException("File not found: " + documentId);
+        }
+
+        File parentDir = oldFile.getParentFile();
+        File newFile = new File(parentDir, displayName);
+
+        if (oldFile.renameTo(newFile)) {
+            return newFile.getAbsolutePath();
+        } else {
+            throw new FileNotFoundException("Failed to rename document with id " + documentId);
+        }
+    }
+
     private void includeFile(MatrixCursor result, String docId, File file) throws FileNotFoundException {
         if (!enabled)
             throw new FileNotFoundException();
