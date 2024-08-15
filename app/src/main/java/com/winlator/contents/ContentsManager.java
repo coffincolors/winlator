@@ -265,8 +265,8 @@ public class ContentsManager {
             String imagefsPath = context.getFilesDir().getAbsolutePath() + "/imagefs";
             String drivecPath = imagefsPath + "/home/xuser/.wine/drive_c";
             dirTemplateMap.put("${libdir}", imagefsPath + "/usr/lib");
-            dirTemplateMap.put("${system32}", drivecPath + "/system32");
-            dirTemplateMap.put("${syswow64}", drivecPath + "/syswow64");
+            dirTemplateMap.put("${system32}", drivecPath + "/windows/system32");
+            dirTemplateMap.put("${syswow64}", drivecPath + "/windows/syswow64");
             dirTemplateMap.put("${localbin}", imagefsPath + "/usr/local/bin");
             dirTemplateMap.put("${sharedir}", imagefsPath + "/usr/share");
         }

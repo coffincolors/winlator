@@ -612,7 +612,7 @@ public class ContainerDetailFragment extends Fragment {
         if (isEditMode()) AppUtils.setSpinnerSelectionFromValue(sWineVersion, container.getWineVersion());
     }
 
-    private static void updateGraphicsDriverSpinner(Context context, ContentsManager manager, Spinner spinner) {
+    public static void updateGraphicsDriverSpinner(Context context, ContentsManager manager, Spinner spinner) {
         String[] originalItems = context.getResources().getStringArray(R.array.graphics_driver_entries);
         List<String> itemList = new ArrayList<>(Arrays.asList(originalItems));
         for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_TURNIP))

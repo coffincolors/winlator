@@ -16,6 +16,7 @@ import com.winlator.ShortcutsFragment;
 import com.winlator.box86_64.Box86_64PresetManager;
 import com.winlator.box86_64.rc.RCManager;
 import com.winlator.container.Shortcut;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.AppUtils;
 import com.winlator.core.EnvVars;
 import com.winlator.core.StringUtils;
@@ -58,6 +59,10 @@ public class ShortcutSettingsDialog extends ContentDialog {
 
         final Spinner sGraphicsDriver = findViewById(R.id.SGraphicsDriver);
         final Spinner sDXWrapper = findViewById(R.id.SDXWrapper);
+
+        ContentsManager contentsManager = new ContentsManager(context);
+        contentsManager.syncContents();
+        ContainerDetailFragment.updateGraphicsDriverSpinner(context, contentsManager, sGraphicsDriver);
 
         final View vDXWrapperConfig = findViewById(R.id.BTDXWrapperConfig);
         vDXWrapperConfig.setTag(shortcut.getExtra("dxwrapperConfig", shortcut.container.getDXWrapperConfig()));

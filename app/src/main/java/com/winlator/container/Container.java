@@ -411,7 +411,7 @@ public class Container {
                     data.put("dxwrapper", DEFAULT_DXWRAPPER);
                 }
                 else if (dxwrapper.startsWith("d8vk-") || dxwrapper.startsWith("dxvk-")) {
-                    data.put("dxwrapper", dxwrapper.substring(0, dxwrapper.indexOf("-")));
+                    data.put("dxwrapper", dxwrapper);
                 }
             }
 
