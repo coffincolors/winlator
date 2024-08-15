@@ -242,4 +242,7 @@
     <string name="shortcut_not_available">该快捷方式不再可用，请删除或重新创建。</string>
     <string name="enable_file_provider">启用文件提供器</string>
     <string name="take_effect_next_startup">此选项将在下一次启动时生效。</string>
+    <string name="imagefs">文件系统</string>
+    <string name="reinstall_imagefs">重新安装文件系统</string>
+    <string name="do_you_want_to_reinstall_imagefs">您想要重新安装文件系统吗？该操作会恢复文件系统，您的容器不会被更改。</string>
 </resources>

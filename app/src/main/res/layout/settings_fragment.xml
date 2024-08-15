@@ -308,6 +308,26 @@
                     style="@style/FieldSetLabel"
                     android:text="@string/experimental" />
             </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/FieldSet">
+
+                    <Button
+                        style="@style/ButtonPositive"
+                        android:id="@+id/BTReInstallImagefs"
+                        android:layout_width="240dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="@string/reinstall_imagefs" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/FieldSetLabel"
+                    android:text="@string/imagefs" />
+            </FrameLayout>
         </LinearLayout>
     </ScrollView>
 

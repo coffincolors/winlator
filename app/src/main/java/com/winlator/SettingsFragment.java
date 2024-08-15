@@ -47,6 +47,7 @@ import com.winlator.core.WineInfo;
 import com.winlator.core.WineUtils;
 import com.winlator.inputcontrols.ExternalController;
 import com.winlator.xenvironment.ImageFs;
+import com.winlator.xenvironment.ImageFsInstaller;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -165,6 +166,10 @@ public class SettingsFragment extends Fragment {
 
         view.findViewById(R.id.BTSelectWineFile).setOnClickListener((v) -> {
             ContentDialog.alert(context, R.string.msg_warning_install_wine, this::selectWineFileForInstall);
+        });
+
+        view.findViewById(R.id.BTReInstallImagefs).setOnClickListener(v -> {
+            ContentDialog.confirm(context, R.string.do_you_want_to_reinstall_imagefs, () -> ImageFsInstaller.installFromAssets((MainActivity) getActivity()));
         });
 
         view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {

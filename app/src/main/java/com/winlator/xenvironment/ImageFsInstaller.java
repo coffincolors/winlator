@@ -42,7 +42,7 @@ public abstract class ImageFsInstaller {
         }
     }
 
-    private static void installFromAssets(final MainActivity activity) {
+    public static void installFromAssets(final MainActivity activity) {
         AppUtils.keepScreenOn(activity);
         ImageFs imageFs = ImageFs.find(activity);
         final File rootDir = imageFs.getRootDir();
