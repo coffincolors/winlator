@@ -80,7 +80,8 @@ public enum RCField {
     BOX64_INPROCESSGPU("BOX64_INPROCESSGPU", true),
     BOX64_CEFDISABLEGPU("BOX64_CEFDISABLEGPU", true),
     BOX64_CEFDISABLEGPUCOMPOSITOR("BOX64_CEFDISABLEGPUCOMPOSITOR", true),
-    BOX64_AVX("BOX64_AVX", true);
+    BOX64_AVX("BOX64_AVX", true),
+    BOX64_ARGS("BOX64_ARGS", true, S.S0);
 
 
     private final String fieldName;
@@ -121,6 +122,7 @@ public enum RCField {
     }
 
     private static class S {
+        public static final String[] S0 = {};
         public static final String[] S2 = {"0", "1"};
         public static final String[] S3 = {"0", "1", "2"};
         public static final String[] S4 = {"0", "1", "2", "3"};

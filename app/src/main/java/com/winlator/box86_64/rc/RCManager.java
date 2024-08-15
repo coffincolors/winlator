@@ -98,9 +98,13 @@ public class RCManager {
         if (files != null) {
             for (File file : files) {
                 if (file.getPath().endsWith(".rcp")) {
-                    RCFile rcfile = loadRCFile(context, file);
-                    rcfiles.add(rcfile);
-                    maxRCFileId = Math.max(maxRCFileId, rcfile.id);
+                    try {
+                        RCFile rcfile = loadRCFile(context, file);
+                        maxRCFileId = Math.max(maxRCFileId, rcfile.id);
+                        rcfiles.add(rcfile);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
