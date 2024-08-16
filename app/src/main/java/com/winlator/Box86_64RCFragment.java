@@ -622,14 +622,8 @@ public class Box86_64RCFragment extends Fragment {
 
                     @Override
                     public void afterTextChanged(Editable s) {
-                        String text = s.toString();
-                        if (text.contains(" ")) {
-                            s.replace(0, s.length(), text.replace(" ", ""));
-                            return;
-                        }
-
                         if (item.getVarMap().containsKey(var.key)) {
-                            var.value = text;
+                            var.value = s.toString();
                             item.getVarMap().put(var.key, var.value);
                         }
                     }
