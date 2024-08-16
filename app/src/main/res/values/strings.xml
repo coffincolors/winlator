@@ -296,4 +296,5 @@
     <string name="imagefs">Imagefs</string>
     <string name="reinstall_imagefs">Reinstall Imagefs</string>
     <string name="do_you_want_to_reinstall_imagefs">Do you want to reinstall imagefs? This operation will restore system files, your containers won\'t be changed.</string>
+    <string name="unable_to_remove_content_since_container_using">Unable to remove this content, because a container is currently using this Wine.</string>
 </resources>

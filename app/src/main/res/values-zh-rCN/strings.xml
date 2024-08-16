@@ -245,4 +245,5 @@
     <string name="imagefs">文件系统</string>
     <string name="reinstall_imagefs">重新安装文件系统</string>
     <string name="do_you_want_to_reinstall_imagefs">您想要重新安装文件系统吗？该操作会恢复文件系统，您的容器不会被更改。</string>
+    <string name="unable_to_remove_content_since_container_using">无法删除该附加内容，因为 %s 正在使用该版本Wine.</string>
 </resources>

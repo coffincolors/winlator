@@ -1,5 +1,6 @@
 package com.winlator;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
@@ -23,6 +24,8 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.winlator.container.Container;
+import com.winlator.container.ContainerManager;
 import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.ContentInfoDialog;
 import com.winlator.contentdialog.ContentUntrustedDialog;
@@ -172,8 +175,10 @@ public class ContentsFragment extends Fragment {
                             requireActivity().runOnUiThread(() -> {
                                 ContentDialog.alert(getContext(), R.string.content_installed_success, null);
                                 manager.syncContents();
+                                boolean flashAfter = currentContentType == profile.type;
                                 currentContentType = profile.type;
                                 AppUtils.setSpinnerSelectionFromValue(sContentType, currentContentType.toString());
+                                if (flashAfter) loadContentList();
                             });
                         }
                     }
@@ -229,6 +234,7 @@ public class ContentsFragment extends Fragment {
             return new ContentItemAdapter.ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.content_list_item, parent, false));
         }
 
+        @SuppressLint("StringFormatInvalid")
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             final ContentProfile protfile = data.get(position);
@@ -252,6 +258,15 @@ public class ContentsFragment extends Fragment {
                         new ContentInfoDialog(getContext(), protfile).show();
                     } else if (itemId == R.id.remove_content) {
                         ContentDialog.confirm(getContext(), R.string.do_you_want_to_remove_this_content, () -> {
+                            if (protfile.type == ContentProfile.ContentType.CONTENT_TYPE_WINE) {
+                                ContainerManager containerManager = new ContainerManager(getContext());
+                                for (Container container : containerManager.getContainers()) {
+                                    if (container.getWineVersion().equals(ContentsManager.getEntryName(protfile))) {
+                                        ContentDialog.alert(getContext(), String.format(getString(R.string.unable_to_remove_content_since_container_using), container.getName()), null);
+                                        return;
+                                    }
+                                }
+                            }
                             manager.removeContent(protfile);
                             loadContentList();
                         });
