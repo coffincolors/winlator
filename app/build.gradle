@@ -10,8 +10,8 @@ android {
         applicationId "com.winlator"
         minSdk 26
         targetSdk 28
-        versionCode 17
-        versionName "7.1.1-glibc"
+        versionCode 18
+        versionName "7.1.2-glibc"
         externalNativeBuild {
             cmake {
                 cppFlags ''
