@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -49,6 +51,7 @@ import com.winlator.inputcontrols.ControlsProfile;
 import com.winlator.inputcontrols.ExternalController;
 import com.winlator.inputcontrols.InputControlsManager;
 import com.winlator.math.Mathf;
+import com.winlator.math.XForm;
 import com.winlator.renderer.GLRenderer;
 import com.winlator.widget.FrameRating;
 import com.winlator.widget.InputControlsView;
@@ -68,6 +71,7 @@ import com.winlator.xenvironment.components.PulseAudioComponent;
 import com.winlator.xenvironment.components.SysVSharedMemoryComponent;
 import com.winlator.xenvironment.components.VirGLRendererComponent;
 import com.winlator.xenvironment.components.XServerComponent;
+import com.winlator.xserver.Pointer;
 import com.winlator.xserver.Property;
 import com.winlator.xserver.ScreenInfo;
 import com.winlator.xserver.Window;
@@ -113,7 +117,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private short taskAffinityMask = 0;
     private short taskAffinityMaskWoW64 = 0;
     private int frameRatingWindowId = -1;
-
+    private boolean pointerCaptureRequested = false; // Flag to track if pointer capture was requested
+    private final float[] xform = XForm.getInstance();
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -246,6 +251,63 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         });
     }
 
+    private void handleCapturedPointer(MotionEvent event) {
+
+        boolean handled = false;
+
+        // Update XServer pointer position
+        float dx = event.getX();
+        float dy = event.getY();
+
+        xServer.injectPointerMoveDelta((int) dx, (int) dy);
+
+        int actionButton = event.getActionButton();
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_BUTTON_PRESS:
+                if (actionButton == MotionEvent.BUTTON_PRIMARY) {
+                    xServer.injectPointerButtonPress(Pointer.Button.BUTTON_LEFT);
+                }
+                else if (actionButton == MotionEvent.BUTTON_SECONDARY) {
+                    xServer.injectPointerButtonPress(Pointer.Button.BUTTON_RIGHT);
+                }
+                handled = true;
+                break;
+            case MotionEvent.ACTION_BUTTON_RELEASE:
+                if (actionButton == MotionEvent.BUTTON_PRIMARY) {
+                    xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
+                }
+                else if (actionButton == MotionEvent.BUTTON_SECONDARY) {
+                    xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_RIGHT);
+                }
+                handled = true;
+                break;
+            case MotionEvent.ACTION_HOVER_MOVE:
+                float[] transformedPoint = XForm.transformPoint(xform, event.getX(), event.getY());
+                xServer.injectPointerMove((int)transformedPoint[0], (int)transformedPoint[1]);
+                handled = true;
+                break;
+            case MotionEvent.ACTION_SCROLL:
+                float scrollY = event.getAxisValue(MotionEvent.AXIS_VSCROLL);
+                if (scrollY <= -1.0f) {
+                    xServer.injectPointerButtonPress(Pointer.Button.BUTTON_SCROLL_DOWN);
+                    xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_SCROLL_DOWN);
+                }
+                else if (scrollY >= 1.0f) {
+                    xServer.injectPointerButtonPress(Pointer.Button.BUTTON_SCROLL_UP);
+                    xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_SCROLL_UP);
+                }
+                handled = true;
+                break;
+        }
+    }
+
+
+//    private void setCustomCursor() {
+//        View decorView = getWindow().getDecorView();
+//        Bitmap transparentCursorBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.transparent_cursor);
+//        PointerIcon transparentCursorIcon = PointerIcon.create(transparentCursorBitmap, 0, 0);
+//        decorView.setPointerIcon(transparentCursorIcon);
+//    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -343,6 +405,36 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         return true;
     }
 
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        boolean cursorLock = preferences.getBoolean("cursor_lock", false);
+
+        if (hasFocus && !pointerCaptureRequested && cursorLock) {
+            // Ensure TouchpadView and other relevant views are focused
+            touchpadView.setFocusable(View.FOCUSABLE);
+            touchpadView.setFocusableInTouchMode(true);
+            touchpadView.requestFocus();
+            touchpadView.requestPointerCapture();
+
+            touchpadView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
+                @Override
+                public boolean onCapturedPointer(View view, MotionEvent event) {
+                    handleCapturedPointer(event);
+                    return true;
+                }
+            });
+
+            pointerCaptureRequested = true; // Ensure this is only called once
+
+        } else if (!hasFocus) {
+            if (touchpadView != null) {
+                touchpadView.releasePointerCapture();
+                touchpadView.setOnCapturedPointerListener(null);
+            }
+        }
+    }
     private void exit() {
         winHandler.stop();
         if (environment != null) environment.stopEnvironmentComponents();
@@ -592,11 +684,12 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     private void extractGraphicsDriverFiles() {
         String cacheId = graphicsDriver;
+        String selectedDriverVersion = container.getGraphicsDriverVersion(); // Fetch the selected version
+
         if (graphicsDriver.equals("turnip")) {
-            cacheId += "-"+DefaultVersion.TURNIP+"-"+DefaultVersion.ZINK;
-        }
-        else if (graphicsDriver.equals("virgl")) {
-            cacheId += "-"+DefaultVersion.VIRGL;
+            cacheId += "-" + selectedDriverVersion + "-" + DefaultVersion.ZINK; // Use selected driver version
+        } else if (graphicsDriver.equals("virgl")) {
+            cacheId += "-" + DefaultVersion.VIRGL;
         }
 
         boolean changed = !cacheId.equals(container.getExtra("graphicsDriver"));
@@ -636,20 +729,20 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             }
 
             if (changed) {
-                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/turnip-"+DefaultVersion.TURNIP+".tzst", rootDir);
-                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/zink-"+DefaultVersion.ZINK+".tzst", rootDir);
+                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/turnip-" + selectedDriverVersion + ".tzst", rootDir); // Use selected driver version
+                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/zink-" + DefaultVersion.ZINK + ".tzst", rootDir);
             }
-        }
-        else if (graphicsDriver.equals("virgl")) {
+        } else if (graphicsDriver.equals("virgl")) {
             envVars.put("GALLIUM_DRIVER", "virpipe");
             envVars.put("VIRGL_NO_READBACK", "true");
             envVars.put("VIRGL_SERVER_PATH", rootDir + UnixSocketConfig.VIRGL_SERVER_PATH);
             envVars.put("MESA_EXTENSION_OVERRIDE", "-GL_EXT_vertex_array_bgra");
             envVars.put("MESA_GL_VERSION_OVERRIDE", "3.1");
             envVars.put("vblank_mode", "0");
-            if (changed) TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-"+DefaultVersion.VIRGL+".tzst", rootDir);
+            if (changed) TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-" + DefaultVersion.VIRGL + ".tzst", rootDir);
         }
     }
+
 
     private void showTouchpadHelpDialog() {
         ContentDialog dialog = new ContentDialog(this, R.layout.touchpad_help_dialog);
@@ -664,8 +757,42 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         return !winHandler.onGenericMotionEvent(event) && !touchpadView.onExternalMouseEvent(event) && super.dispatchGenericMotionEvent(event);
     }
 
+    private static final int RECAPTURE_DELAY_MS = 10000; // 10 seconds
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            // Release pointer capture when Volume Down key is pressed
+            if (touchpadView != null && pointerCaptureRequested) {
+                touchpadView.releasePointerCapture();
+                touchpadView.setOnCapturedPointerListener(null);
+                pointerCaptureRequested = false;
+
+                // Show toast message for pointer release
+                AppUtils.showToast(this,"Pointer capture released for 10 seconds");
+
+                // Schedule recapture after 10 seconds
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    if (touchpadView != null) {
+                        touchpadView.requestPointerCapture();
+                        touchpadView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
+                            @Override
+                            public boolean onCapturedPointer(View view, MotionEvent event) {
+                                handleCapturedPointer(event);
+                                return true;
+                            }
+                        });
+                        pointerCaptureRequested = true;
+
+                        // Show toast message for pointer recapture
+                        AppUtils.showToast(this,"Pointer re-captured. If not working, press again to release and re-capture");
+                    }
+                }, RECAPTURE_DELAY_MS);
+
+                return true; // Indicate that the event was handled
+            }
+        }
+
         return (!inputControlsView.onKeyEvent(event) && !winHandler.onKeyEvent(event) && xServer.keyboard.onKeyEvent(event)) ||
                (!ExternalController.isGameController(event.getDevice()) && super.dispatchKeyEvent(event));
     }

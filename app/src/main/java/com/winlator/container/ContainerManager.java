@@ -47,7 +47,8 @@ public class ContainerManager {
                 for (File file : files) {
                     if (file.isDirectory()) {
                         if (file.getName().startsWith(ImageFs.USER+"-")) {
-                            Container container = new Container(Integer.parseInt(file.getName().replace(ImageFs.USER+"-", "")));
+                            Container container = new Container(Integer.parseInt(file.getName().replace(ImageFs.USER+"-", "")), this);
+
                             container.setRootDir(new File(homeDir, ImageFs.USER+"-"+container.id));
                             JSONObject data = new JSONObject(FileUtils.readString(container.getConfigFile()));
                             container.loadData(data);
@@ -100,7 +101,7 @@ public class ContainerManager {
             File containerDir = new File(homeDir, ImageFs.USER+"-"+id);
             if (!containerDir.mkdirs()) return null;
 
-            Container container = new Container(id);
+            Container container = new Container(id, this);
             container.setRootDir(containerDir);
             container.loadData(data);
 
@@ -112,14 +113,23 @@ public class ContainerManager {
                 return null;
             }
 
+//            // Extract the selected graphics driver files
+//            String driverVersion = container.getGraphicsDriverVersion();
+//            if (!extractGraphicsDriverFiles(driverVersion, containerDir, null)) {
+//                FileUtils.delete(containerDir);
+//                return null;
+//            }
+
             container.saveData();
             maxContainerId++;
             containers.add(container);
             return container;
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-        catch (JSONException e) {}
         return null;
     }
+
 
     private void duplicateContainer(Container srcContainer) {
         int id = maxContainerId + 1;
@@ -132,7 +142,7 @@ public class ContainerManager {
             return;
         }
 
-        Container dstContainer = new Container(id);
+        Container dstContainer = new Container(id, this);
         dstContainer.setRootDir(dstDir);
         dstContainer.setName(srcContainer.getName()+" ("+context.getString(R.string.copy)+")");
         dstContainer.setScreenSize(srcContainer.getScreenSize());
@@ -226,4 +236,14 @@ public class ContainerManager {
             return TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, file, containerDir, onExtractFileListener);
         }
     }
+
+    public boolean extractGraphicsDriverFiles(String driverVersion, File containerDir, OnExtractFileListener onExtractFileListener) {
+        File installedDriverDir = ImageFs.find(context).getInstalledWineDir();  // Reusing getInstalledWineDir method
+        String fileName = "turnip-" + driverVersion + ".tzst";  // Assuming the driver files are named in this manner
+        File file = new File(installedDriverDir, fileName);
+
+        // Extract the files into the container directory
+        return TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, file, containerDir, onExtractFileListener);
+    }
+
 }

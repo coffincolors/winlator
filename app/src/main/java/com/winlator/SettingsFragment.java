@@ -61,6 +61,14 @@ public class SettingsFragment extends Fragment {
     private PreloaderDialog preloaderDialog;
     private SharedPreferences preferences;
 
+	// Disable or enable True Mouse Control
+	private CheckBox cbCursorLock;
+    // Disable or enable Xinput Processing
+    private CheckBox cbXinputToggle;
+    // Disable or enable Touchscreen Input Mode
+    private CheckBox cbXTouchscreenToggle;
+
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,6 +101,18 @@ public class SettingsFragment extends Fragment {
         View view = inflater.inflate(R.layout.settings_fragment, container, false);
         final Context context = getContext();
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        // Initialize the cursor lock checkbox
+        cbCursorLock = view.findViewById(R.id.CBCursorLock);
+        cbCursorLock.setChecked(preferences.getBoolean("cursor_lock", true));
+
+        // Initialize the xinput toggle checkbox
+        cbXinputToggle = view.findViewById(R.id.CBXinputToggle);
+        cbXinputToggle.setChecked(preferences.getBoolean("xinput_toggle", false));
+
+        // Initialize the Touchscreen mode toggle
+        cbXTouchscreenToggle = view.findViewById(R.id.CBXTouchscreenToggle);
+        cbXTouchscreenToggle.setChecked(preferences.getBoolean("touchscreen_toggle", false));
 
         final Spinner sBox86Version = view.findViewById(R.id.SBox86Version);
         String box86Version = preferences.getString("box86_version", DefaultVersion.BOX86);
@@ -168,19 +188,23 @@ public class SettingsFragment extends Fragment {
             editor.putBoolean("enable_box86_64_logs", cbEnableBox86_64Logs.isChecked());
             editor.putInt("trigger_mode", triggerRbIds.indexOf(rgTriggerMode.getCheckedRadioButtonId()));
             editor.putBoolean("use_glibc", cbUseGlibc.isChecked());
+            editor.putBoolean("cursor_lock", cbCursorLock.isChecked()); // Save cursor lock state
+            editor.putBoolean("xinput_toggle", cbXinputToggle.isChecked()); // Save xinput toggle state
+            editor.putBoolean("touchscreen_toggle", cbXTouchscreenToggle.isChecked()); // Save touchscreen toggle state
 
             if (!wineDebugChannels.isEmpty()) {
                 editor.putString("wine_debug_channels", String.join(",", wineDebugChannels));
+            } else if (preferences.contains("wine_debug_channels")) {
+                editor.remove("wine_debug_channels");
             }
-            else if (preferences.contains("wine_debug_channels")) editor.remove("wine_debug_channels");
 
             if (editor.commit()) {
                 NavigationView navigationView = getActivity().findViewById(R.id.NavigationView);
                 navigationView.setCheckedItem(R.id.main_menu_containers);
                 FragmentManager fragmentManager = getParentFragmentManager();
                 fragmentManager.beginTransaction()
-                    .replace(R.id.FLFragmentContainer, new ContainersFragment())
-                    .commit();
+                        .replace(R.id.FLFragmentContainer, new ContainersFragment())
+                        .commit();
             }
         });
 

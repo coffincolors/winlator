@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:id="@+id/LLContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/save_title"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/ETTitle"
+        style="@style/EditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:inputType="textCapSentences"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/container"
+        android:textSize="16sp" />
+
+    <Spinner
+        style="@style/ComboBox"
+        android:id="@+id/SContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/TVPath"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:padding="4dp"
+        android:text="@string/save_path"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+    android:visibility="gone" />
+
+    <Button
+        android:id="@+id/BTPickPath"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/select_save_path"
+        android:textSize="16sp" />
+
+</LinearLayout>
+    </ScrollView>

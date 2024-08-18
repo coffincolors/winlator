@@ -1,6 +1,7 @@
 package com.winlator.container;
 
 import android.os.Environment;
+import android.util.Log;
 
 import com.winlator.box86_64.Box86_64Preset;
 import com.winlator.core.EnvVars;
@@ -17,7 +18,7 @@ import java.io.File;
 import java.util.Iterator;
 
 public class Container {
-    public static final String DEFAULT_ENV_VARS = "ZINK_DESCRIPTORS=lazy ZINK_DEBUG=compact MESA_SHADER_CACHE_DISABLE=false MESA_SHADER_CACHE_MAX_SIZE=512MB mesa_glthread=true WINEESYNC=1 MESA_VK_WSI_PRESENT_MODE=mailbox TU_DEBUG=noconform";
+    public static final String DEFAULT_ENV_VARS = "LC_ALL=en_US.utf8 ZINK_DESCRIPTORS=lazy ZINK_DEBUG=compact MESA_SHADER_CACHE_DISABLE=false MESA_SHADER_CACHE_MAX_SIZE=512MB mesa_glthread=true WINEESYNC=1 MESA_VK_WSI_PRESENT_MODE=mailbox TU_DEBUG=noconform DXVK_HUD=devinfo,fps,frametimes,gpuload,version,api";
     public static final String DEFAULT_SCREEN_SIZE = "1280x720";
     public static final String DEFAULT_GRAPHICS_DRIVER = "turnip";
     public static final String DEFAULT_AUDIO_DRIVER = "alsa";
@@ -29,7 +30,7 @@ public class Container {
     public static final byte STARTUP_SELECTION_ESSENTIAL = 1;
     public static final byte STARTUP_SELECTION_AGGRESSIVE = 2;
     public static final byte MAX_DRIVE_LETTERS = 8;
-    public final int id;
+    public int id = 0;
     private String name;
     private String screenSize = DEFAULT_SCREEN_SIZE;
     private String envVars = DEFAULT_ENV_VARS;
@@ -51,9 +52,29 @@ public class Container {
     private File rootDir;
     private JSONObject extraData;
 
-    public Container(int id) {
+    private String graphicsDriverVersion = "24.3.0.2"; // Default version or fallback
+
+    private final ContainerManager containerManager;
+
+
+    public String getGraphicsDriverVersion() {
+        return graphicsDriverVersion;
+    }
+
+    public void setGraphicsDriverVersion(String graphicsDriverVersion) {
+        Log.d("Container", "Setting graphicsDriverVersion: " + graphicsDriverVersion);
+        this.graphicsDriverVersion = graphicsDriverVersion;
+    }
+
+
+    public Container(int id, ContainerManager containerManager) {
         this.id = id;
         this.name = "Container-"+id;
+        this.containerManager = containerManager;
+    }
+
+    public ContainerManager getManager() {
+        return containerManager;
     }
 
     public String getName() {
@@ -294,6 +315,8 @@ public class Container {
             data.put("cpuList", cpuList);
             data.put("cpuListWoW64", cpuListWoW64);
             data.put("graphicsDriver", graphicsDriver);
+            Log.d("Container", "Saving graphicsDriverVersion: " + graphicsDriverVersion);
+            data.put("graphicsDriverVersion", graphicsDriverVersion); // Ensure this is added
             data.put("dxwrapper", dxwrapper);
             if (!dxwrapperConfig.isEmpty()) data.put("dxwrapperConfig", dxwrapperConfig);
             data.put("audioDriver", audioDriver);
@@ -312,6 +335,7 @@ public class Container {
         }
         catch (JSONException e) {}
     }
+
 
     public void loadData(JSONObject data) throws JSONException {
         wineVersion = WineInfo.MAIN_WINE_VERSION.identifier();
@@ -338,6 +362,9 @@ public class Container {
                     break;
                 case "graphicsDriver" :
                     setGraphicsDriver(data.getString(key));
+                    break;
+                case "graphicsDriverVersion":
+                    setGraphicsDriverVersion(data.getString(key));
                     break;
                 case "wincomponents" :
                     setWinComponents(data.getString(key));

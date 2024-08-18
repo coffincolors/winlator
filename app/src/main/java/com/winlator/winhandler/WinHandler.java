@@ -47,6 +47,8 @@ public class WinHandler {
     private SharedPreferences preferences;
     private byte triggerMode;
 
+    private boolean xinputDisabled; // Used for exclusive mouse control
+
     public WinHandler(XServerDisplayActivity activity) {
         this.activity = activity;
     }
@@ -228,6 +230,7 @@ public class WinHandler {
                 initReceived = true;
                 preferences = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
                 triggerMode = (byte) preferences.getInt("trigger_mode", ExternalController.TRIGGER_AS_AXIS);
+                xinputDisabled = preferences.getBoolean("xinput_toggle", false);
 
                 synchronized (actions) {
                     actions.notify();
@@ -252,6 +255,7 @@ public class WinHandler {
                 break;
             }
             case RequestCodes.GET_GAMEPAD: {
+                if (xinputDisabled) return; // Add this check
                 boolean isXInput = receiveData.get() == 1;
                 boolean notify = receiveData.get() == 1;
                 final ControlsProfile profile = activity.getInputControlsView().getProfile();
@@ -288,6 +292,7 @@ public class WinHandler {
                 break;
             }
             case RequestCodes.GET_GAMEPAD_STATE: {
+                if (xinputDisabled) return; // Add this check
                 int gamepadId = receiveData.getInt();
                 final ControlsProfile profile = activity.getInputControlsView().getProfile();
                 boolean useVirtualGamepad = profile != null && profile.isVirtualGamepad();
@@ -329,6 +334,7 @@ public class WinHandler {
         }
     }
 
+
     public void start() {
         try {
             localhost = InetAddress.getLocalHost();
@@ -363,7 +369,7 @@ public class WinHandler {
     }
 
     public void sendGamepadState() {
-        if (!initReceived || gamepadClients.isEmpty()) return;
+        if (!initReceived || gamepadClients.isEmpty() || xinputDisabled) return; // Add this check
         final ControlsProfile profile = activity.getInputControlsView().getProfile();
         final boolean useVirtualGamepad = profile != null && profile.isVirtualGamepad();
         final boolean enabled = currentController != null || useVirtualGamepad;

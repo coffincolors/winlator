@@ -243,4 +243,47 @@
     <string name="enabled_async">Enable Async</string>
     <string name="enabled_async_cache">Enable Async Cache</string>
     <string name="vkd3d_feature_level">VKD3D Feature Level</string>
+    <string name="setup_failed">Setup failed</string>
+    <string name="graphics_driver_configuration">Graphics Driver Configuration</string>
+    <string name="select_graphics_driver_version">Select Graphics Driver Version:</string>
+    <string name="graphics_driver_version">Graphics Driver Version:</string>
+    <string name="add_to_homescreen">Add to Homescreen</string>
+    <string name="add_save">Add Save</string>
+    <string name="saves">Saves</string>
+    <string name="import_save">Import Save</string>
+    <string name="transfer">Transfer</string>
+    <string name="share">Share</string>
+    <string name="unregister">Unregister</string>
+    <string name="no_saves_to_display">No saves to display</string>
+    <string name="new_save">Register a Save</string>
+    <string name="save_path">Save Path</string>
+    <string name="save_title">Save Name</string>
+    <string name="save_container">Selected Container</string>
+    <string name="select_save_path">Locate Save Folder</string>
+    <string name="select_container_first">Please select the container containing your save.</string>
+    <string name="fill_all_fields">Path and Save Name are required</string>
+    <string name="invalid_path">Not a valid save directory path</string>
+    <string name="confirm_selection">Confirm Selection</string>
+    <string name="select_directory">Select your save directory</string>
+    <string name="invalid_container">Invalid Path</string>
+    <string name="up_directory">Up Directory</string>
+    <string name="edit_save_title">Update Save title</string>
+    <string name="edit_save">Save edit</string>
+    <string name="original_save_path">Registered save path</string>
+    <string name="updated_save_path">Updated save path</string>
+    <string name="confirmation">Confirmation</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="path_not_changed_prompt">The path has not been changed. Do you want to continue?</string>
+    <string name="save_transfer">Transfer Save</string>
+    <string name="select_container">Target Container:</string>
+    <string name="transfer_complete">Transfer complete</string>
+    <string name="transfer_failed">Transfer failed</string>
+    <string name="unable_to_transfer_save">Unable to transfer save</string>
+    <string name="spinner_container_selection">Transferring...</string>
+    <string name="name_required">Name is required</string>
+    <string name="exporting_save">Exporting save...</string>
+    <string name="importing_save">Importing save...</string>
+
+
 </resources>

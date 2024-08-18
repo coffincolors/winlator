@@ -3,6 +3,7 @@ package com.winlator.xenvironment.components;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Process;
+import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 
@@ -17,6 +18,7 @@ import com.winlator.xconnector.UnixSocketConfig;
 import com.winlator.xenvironment.ImageFs;
 
 import java.io.File;
+import java.util.Arrays;
 
 public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent {
     private String guestExecutable;
@@ -109,6 +111,9 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
         ImageFs imageFs = environment.getImageFs();
         File rootDir = imageFs.getRootDir();
 
+        Log.d("GlibcDebug", "Context: " + context);
+        Log.d("GlibcDebug", "Root Directory: " + rootDir);
+
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         boolean enableBox86_64Logs = preferences.getBoolean("enable_box86_64_logs", false);
 
@@ -117,8 +122,8 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
         addBox64EnvVars(envVars, enableBox86_64Logs);
         envVars.put("HOME", imageFs.home_path);
         envVars.put("USER", ImageFs.USER);
-        envVars.put("TMPDIR",imageFs.getRootDir().getPath()+"/tmp");
-        envVars.put("LC_ALL", "zh_CN.UTF-8");
+        envVars.put("TMPDIR", imageFs.getRootDir().getPath() + "/tmp");
+        envVars.put("LC_ALL", "en_US.UTF-8");
         envVars.put("DISPLAY", ":0");
         envVars.put("PATH", imageFs.getWinePath() + "/bin:" +
                 imageFs.getRootDir().getPath() + "/usr/bin:" +
@@ -127,13 +132,20 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
         envVars.put("BOX64_LD_LIBRARY_PATH", imageFs.getRootDir().getPath() + "/usr/lib/x86_64-linux-gnu");
         envVars.put("ANDROID_SYSVSHM_SERVER", imageFs.getRootDir().getPath() + UnixSocketConfig.SYSVSHM_SERVER_PATH);
 
+        Log.d("GlibcDebug", "Environment Variables before LD_PRELOAD: " + Arrays.toString(envVars.toStringArray()));
+
         if ((new File(imageFs.getGlibc64Dir(), "libandroid-sysvshm.so")).exists() ||
-                (new File(imageFs.getGlibc32Dir(), "libandroid-sysvshm.so")).exists()) envVars.put("LD_PRELOAD", "libandroid-sysvshm.so");
+                (new File(imageFs.getGlibc32Dir(), "libandroid-sysvshm.so")).exists()) {
+            envVars.put("LD_PRELOAD", "libandroid-sysvshm.so");
+        }
         if (this.envVars != null) envVars.putAll(this.envVars);
 
-        String command = rootDir.getPath() + "/usr/local/bin/box64 ";
+        Log.d("GlibcDebug", "Final Environment Variables: " + Arrays.toString(envVars.toStringArray()));
 
+        String command = rootDir.getPath() + "/usr/local/bin/box64 ";
         command += guestExecutable;
+
+        Log.d("GlibcDebug", "Command to execute: " + command);
 
         return ProcessHelper.exec(command, envVars.toStringArray(), rootDir, (status) -> {
             synchronized (lock) {
@@ -153,21 +165,30 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
         String currentBox64Version = preferences.getString("current_box64_version", "");
         File rootDir = imageFs.getRootDir();
 
+        Log.d("GlibcDebug", "Box86 Version: " + box86Version);
+        Log.d("GlibcDebug", "Box64 Version: " + box64Version);
+        Log.d("GlibcDebug", "Current Box86 Version: " + currentBox86Version);
+        Log.d("GlibcDebug", "Current Box64 Version: " + currentBox64Version);
+        Log.d("GlibcDebug", "Root Directory in Extract Box86_64 Files: " + rootDir);
+
         if (wow64Mode) {
             File box86File = new File(rootDir, "/usr/local/bin/box86");
             if (box86File.isFile()) {
                 box86File.delete();
                 preferences.edit().putString("current_box86_version", "").apply();
+                Log.d("GlibcDebug", "Deleted existing Box86 file");
             }
         }
         else if (!box86Version.equals(currentBox86Version)) {
-            TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box86-"+box86Version+".tzst", rootDir);
+            TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box86-" + box86Version + ".tzst", rootDir);
             preferences.edit().putString("current_box86_version", box86Version).apply();
+            Log.d("GlibcDebug", "Extracted and updated Box86 version");
         }
 
         if (!box64Version.equals(currentBox64Version)) {
-            TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box64-"+box64Version+".tzst", rootDir);
+            TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box64-" + box64Version + ".tzst", rootDir);
             preferences.edit().putString("current_box64_version", box64Version).apply();
+            Log.d("GlibcDebug", "Extracted and updated Box64 version");
         }
     }
 

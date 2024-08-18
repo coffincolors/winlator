@@ -54,6 +54,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
 
         ContainerDetailFragment.loadScreenSizeSpinner(getContentView(), shortcut.getExtra("screenSize", shortcut.container.getScreenSize()));
 
+													 
         final Spinner sGraphicsDriver = findViewById(R.id.SGraphicsDriver);
         final Spinner sDXWrapper = findViewById(R.id.SDXWrapper);
 
@@ -63,6 +64,13 @@ public class ShortcutSettingsDialog extends ContentDialog {
         ContainerDetailFragment.setupDXWrapperSpinner(sDXWrapper, vDXWrapperConfig);
         ContainerDetailFragment.loadGraphicsDriverSpinner(sGraphicsDriver, sDXWrapper, shortcut.getExtra("graphicsDriver", shortcut.container.getGraphicsDriver()),
             shortcut.getExtra("dxwrapper", shortcut.container.getDXWrapper()));
+																						
+
+													
+																			
+																								 
+																							   
+																					  
 
         findViewById(R.id.BTHelpDXWrapper).setOnClickListener((v) -> AppUtils.showHelpBox(context, v, R.string.dxwrapper_help_content));
 
@@ -116,6 +124,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
                 String execArgs = etExecArgs.getText().toString();
                 shortcut.putExtra("execArgs", !execArgs.isEmpty() ? execArgs : null);
                 shortcut.putExtra("screenSize", !screenSize.equals(shortcut.container.getScreenSize()) ? screenSize : null);
+											   
                 shortcut.putExtra("graphicsDriver", !graphicsDriver.equals(shortcut.container.getGraphicsDriver()) ? graphicsDriver : null);
                 shortcut.putExtra("dxwrapper", !dxwrapper.equals(shortcut.container.getDXWrapper()) ? dxwrapper : null);
                 shortcut.putExtra("dxwrapperConfig", !dxwrapperConfig.equals(shortcut.container.getDXWrapperConfig()) ? dxwrapperConfig : null);

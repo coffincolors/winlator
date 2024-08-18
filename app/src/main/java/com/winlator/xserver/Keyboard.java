@@ -97,8 +97,17 @@ public class Keyboard {
         if (ExternalController.isGameController(event.getDevice())) return false;
 
         int action = event.getAction();
-        if (action == KeyEvent.ACTION_DOWN || action == KeyEvent.ACTION_UP) {
-            int keyCode = event.getKeyCode();
+        int keyCode = event.getKeyCode();
+
+        if (keyCode == KeyEvent.KEYCODE_TAB || keyCode == KeyEvent.KEYCODE_ESCAPE) {
+            if (action == KeyEvent.ACTION_DOWN) {
+                xServer.injectKeyPress(keycodeMap[keyCode]);
+                return true; // Consume the event to prevent default focus change
+            } else if (action == KeyEvent.ACTION_UP) {
+                xServer.injectKeyRelease(keycodeMap[keyCode]);
+                return true; // Consume the event to prevent default focus change
+            }
+        } else if (action == KeyEvent.ACTION_DOWN || action == KeyEvent.ACTION_UP) {
             XKeycode xKeycode = keycodeMap[keyCode];
             if (xKeycode == null) return false;
 
@@ -106,8 +115,7 @@ public class Keyboard {
                 boolean shiftPressed = event.isShiftPressed() || keyCode == KeyEvent.KEYCODE_AT || keyCode == KeyEvent.KEYCODE_STAR || keyCode == KeyEvent.KEYCODE_POUND || keyCode == KeyEvent.KEYCODE_PLUS;
                 if (shiftPressed) xServer.injectKeyPress(XKeycode.KEY_SHIFT_L);
                 xServer.injectKeyPress(xKeycode, xKeycode != XKeycode.KEY_ENTER ? event.getUnicodeChar() : 0);
-            }
-            else if (action == KeyEvent.ACTION_UP) {
+            } else if (action == KeyEvent.ACTION_UP) {
                 xServer.injectKeyRelease(XKeycode.KEY_SHIFT_L);
                 xServer.injectKeyRelease(xKeycode);
             }
@@ -117,6 +125,8 @@ public class Keyboard {
 
     private static XKeycode[] createKeycodeMap() {
         XKeycode[] keycodeMap = new XKeycode[(KeyEvent.getMaxKeyCode() + 1)];
+        // Adding the Escape key mapping
+        keycodeMap[KeyEvent.KEYCODE_ESCAPE] = XKeycode.KEY_ESC;
         keycodeMap[KeyEvent.KEYCODE_ENTER] = XKeycode.KEY_ENTER;
         keycodeMap[KeyEvent.KEYCODE_DPAD_LEFT] = XKeycode.KEY_LEFT;
         keycodeMap[KeyEvent.KEYCODE_DPAD_RIGHT] = XKeycode.KEY_RIGHT;
