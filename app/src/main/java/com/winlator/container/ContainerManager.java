@@ -2,6 +2,7 @@ package com.winlator.container;
 
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 
 import com.winlator.R;
 import com.winlator.core.Callback;
@@ -47,7 +48,8 @@ public class ContainerManager {
                 for (File file : files) {
                     if (file.isDirectory()) {
                         if (file.getName().startsWith(ImageFs.USER+"-")) {
-                            Container container = new Container(Integer.parseInt(file.getName().replace(ImageFs.USER+"-", "")));
+                            Container container = new Container(Integer.parseInt(file.getName().replace(ImageFs.USER+"-", "")), this);
+
                             container.setRootDir(new File(homeDir, ImageFs.USER+"-"+container.id));
                             JSONObject data = new JSONObject(FileUtils.readString(container.getConfigFile()));
                             container.loadData(data);
@@ -100,7 +102,7 @@ public class ContainerManager {
             File containerDir = new File(homeDir, ImageFs.USER+"-"+id);
             if (!containerDir.mkdirs()) return null;
 
-            Container container = new Container(id);
+            Container container = new Container(id, this);
             container.setRootDir(containerDir);
             container.loadData(data);
 
@@ -112,14 +114,23 @@ public class ContainerManager {
                 return null;
             }
 
+//            // Extract the selected graphics driver files
+//            String driverVersion = container.getGraphicsDriverVersion();
+//            if (!extractGraphicsDriverFiles(driverVersion, containerDir, null)) {
+//                FileUtils.delete(containerDir);
+//                return null;
+//            }
+
             container.saveData();
             maxContainerId++;
             containers.add(container);
             return container;
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-        catch (JSONException e) {}
         return null;
     }
+
 
     private void duplicateContainer(Container srcContainer) {
         int id = maxContainerId + 1;
@@ -132,7 +143,7 @@ public class ContainerManager {
             return;
         }
 
-        Container dstContainer = new Container(id);
+        Container dstContainer = new Container(id, this);
         dstContainer.setRootDir(dstDir);
         dstContainer.setName(srcContainer.getName()+" ("+context.getString(R.string.copy)+")");
         dstContainer.setScreenSize(srcContainer.getScreenSize());
@@ -226,4 +237,51 @@ public class ContainerManager {
             return TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, file, containerDir, onExtractFileListener);
         }
     }
+
+    public boolean extractGraphicsDriverFiles(String driverVersion, File containerDir, OnExtractFileListener onExtractFileListener) {
+        // Instead of using containerDir, point directly to the root of imagefs
+        File imageFsRootDir = ImageFs.find(context).getRootDir(); // Get the root directory of imagefs
+        File installedDriverDir = ImageFs.find(context).getInstalledWineDir();
+        String fileName = "turnip-" + driverVersion + ".tzst";
+        File file = new File(installedDriverDir, fileName);
+
+        // Log the correct intended paths
+        Log.d("ContainerManager", "Extracting to imageFsRootDir: " + imageFsRootDir.getAbsolutePath());
+
+        if (!file.exists()) {
+            Log.e("ContainerManager", "Driver file does not exist: " + file.getAbsolutePath());
+            return false;
+        }
+
+        // Perform the extraction to the correct root directory
+        boolean result = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, file, imageFsRootDir, onExtractFileListener);
+
+        // Log the result of the extraction
+        if (result) {
+            Log.d("ContainerManager", "Extraction succeeded for version: " + driverVersion);
+        } else {
+            Log.e("ContainerManager", "Extraction failed for version: " + driverVersion);
+        }
+
+        // Log the contents of the root directory after extraction
+        logDirectoryContents(imageFsRootDir);
+
+        return result;
+    }
+
+
+    private void logDirectoryContents(File dir) {
+        Log.d("ContainerManager", "Directory: " + dir.getAbsolutePath());
+        if (dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    Log.d("ContainerManager", "File/Dir: " + file.getAbsolutePath() + " (" + (file.isDirectory() ? "Dir" : "File") + ")");
+                }
+            }
+        }
+    }
+
+
+
 }

@@ -10,9 +10,6 @@
         android:name="com.oculus.feature.PASSTHROUGH"
         android:required="false" />
     <uses-feature
-        android:name="oculus.software.handtracking"
-        android:required="false" />
-    <uses-feature
         android:name="oculus.software.overlay_keyboard"
         android:required="false" />
 
@@ -22,6 +19,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+
 
     <application
         android:icon="@mipmap/ic_launcher"
@@ -29,7 +29,7 @@
         android:isGame="true"
         android:extractNativeLibs="true"
         android:allowAudioPlaybackCapture="true"
-        android:label="@string/app_name">
+        android:label="Winlator.cmod">
 
         <activity android:name="com.winlator.MainActivity"
             android:theme="@style/AppTheme"
@@ -59,7 +59,6 @@
             android:process=":vr_process"
             android:theme="@style/AppThemeFullscreen">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
                 <category android:name="com.oculus.intent.category.VR" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
@@ -74,5 +73,20 @@
             android:theme="@style/AppTheme"
             android:exported="false"
             android:screenOrientation="sensor" />
+
+        <activity
+            android:name="com.winlator.saves.CustomFilePickerActivity"
+            android:theme="@style/AppTheme"
+            android:exported="false"
+            android:screenOrientation="sensor" />
+
+        <receiver
+            android:name=".ShortcutBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.winlator.SHORTCUT_ADDED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>

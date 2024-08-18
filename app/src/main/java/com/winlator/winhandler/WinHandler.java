@@ -1,12 +1,17 @@
 package com.winlator.winhandler;
 
+import android.content.SharedPreferences;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+
+import androidx.preference.PreferenceManager;
 
 import com.winlator.XServerDisplayActivity;
 import com.winlator.core.StringUtils;
 import com.winlator.inputcontrols.ControlsProfile;
 import com.winlator.inputcontrols.ExternalController;
+import com.winlator.inputcontrols.GamepadState;
+import com.winlator.math.Mathf;
 import com.winlator.xserver.XServer;
 
 import java.io.IOException;
@@ -41,9 +46,78 @@ public class WinHandler {
     private byte dinputMapperType = DINPUT_MAPPER_TYPE_XINPUT;
     private final XServerDisplayActivity activity;
     private final List<Integer> gamepadClients = new CopyOnWriteArrayList<>();
+    private SharedPreferences preferences;
+    private byte triggerMode;
+
+    private boolean xinputDisabled; // Used for exclusive mouse control
 
     public WinHandler(XServerDisplayActivity activity) {
         this.activity = activity;
+    }
+
+    // Gyro related variables
+    private float gyroX = 0;
+    private float gyroY = 0;
+    // Add fields for sensitivity, smoothing, and inversion
+    private float gyroSensitivityX = 1.0f;
+    private float gyroSensitivityY = 1.0f;
+    private float smoothingFactor = 0.9f; // For exponential smoothing
+    private boolean invertGyroX = true;
+    private boolean invertGyroY = false;
+    private float gyroDeadzone = 0.05f;
+
+    // Implement exponential smoothing
+    private float smoothGyroX = 0;
+    private float smoothGyroY = 0;
+
+    public void setGyroSensitivityX(float sensitivity) {
+        this.gyroSensitivityX = sensitivity;
+    }
+
+    public void setGyroSensitivityY(float sensitivity) {
+        this.gyroSensitivityY = sensitivity;
+    }
+
+    public void setSmoothingFactor(float factor) {
+        this.smoothingFactor = factor;
+    }
+
+    public void setInvertGyroX(boolean invert) {
+        this.invertGyroX = invert;
+    }
+
+    public void setInvertGyroY(boolean invert) {
+        this.invertGyroY = invert;
+    }
+
+    public void setGyroDeadzone(float deadzone) {
+        this.gyroDeadzone = deadzone;
+    }
+
+
+    public void updateGyroData(float rawGyroX, float rawGyroY) {
+        // Apply deadzone
+        if (Math.abs(rawGyroX) < gyroDeadzone) rawGyroX = 0;
+        if (Math.abs(rawGyroY) < gyroDeadzone) rawGyroY = 0;
+
+        // Apply inversion
+        if (invertGyroX) rawGyroX = -rawGyroX;
+        if (invertGyroY) rawGyroY = -rawGyroY;
+
+        // Apply sensitivity
+        rawGyroX *= gyroSensitivityX;
+        rawGyroY *= gyroSensitivityY;
+
+        // Apply smoothing
+        smoothGyroX = smoothGyroX * smoothingFactor + rawGyroX * (1 - smoothingFactor);
+        smoothGyroY = smoothGyroY * smoothingFactor + rawGyroY * (1 - smoothingFactor);
+
+        // Update the gyro data
+        this.gyroX = smoothGyroX;
+        this.gyroY = smoothGyroY;
+
+        // Send the updated gamepad state
+        sendGamepadState();
     }
 
     private boolean sendPacket(int port) {
@@ -222,6 +296,20 @@ public class WinHandler {
             case RequestCodes.INIT: {
                 initReceived = true;
 
+                preferences = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
+
+                // Load and apply trigger mode and xinput toggle settings
+                triggerMode = (byte) preferences.getInt("trigger_mode", ExternalController.TRIGGER_AS_AXIS);
+                xinputDisabled = preferences.getBoolean("xinput_toggle", false);
+
+                // Load and apply gyro settings
+                setGyroSensitivityX(preferences.getFloat("gyro_x_sensitivity", 1.0f));
+                setGyroSensitivityY(preferences.getFloat("gyro_y_sensitivity", 1.0f));
+                setSmoothingFactor(preferences.getFloat("gyro_smoothing", 0.9f));
+                setInvertGyroX(preferences.getBoolean("invert_gyro_x", false));
+                setInvertGyroY(preferences.getBoolean("invert_gyro_y", false));
+                setGyroDeadzone(preferences.getFloat("gyro_deadzone", 0.05f));
+
                 synchronized (actions) {
                     actions.notify();
                 }
@@ -245,6 +333,7 @@ public class WinHandler {
                 break;
             }
             case RequestCodes.GET_GAMEPAD: {
+                if (xinputDisabled) return;
                 boolean isXInput = receiveData.get() == 1;
                 boolean notify = receiveData.get() == 1;
                 final ControlsProfile profile = activity.getInputControlsView().getProfile();
@@ -252,14 +341,17 @@ public class WinHandler {
 
                 if (!useVirtualGamepad && (currentController == null || !currentController.isConnected())) {
                     currentController = ExternalController.getController(0);
+                    if (currentController != null)
+                        currentController.setTriggerMode(triggerMode);
                 }
 
                 final boolean enabled = currentController != null || useVirtualGamepad;
 
                 if (enabled && notify) {
                     if (!gamepadClients.contains(port)) gamepadClients.add(port);
+                } else {
+                    gamepadClients.remove(Integer.valueOf(port));
                 }
-                else gamepadClients.remove(Integer.valueOf(port));
 
                 addAction(() -> {
                     sendData.rewind();
@@ -271,14 +363,16 @@ public class WinHandler {
                         byte[] bytes = (useVirtualGamepad ? profile.getName() : currentController.getName()).getBytes();
                         sendData.putInt(bytes.length);
                         sendData.put(bytes);
+                    } else {
+                        sendData.putInt(0);
                     }
-                    else sendData.putInt(0);
 
                     sendPacket(port);
                 });
                 break;
             }
             case RequestCodes.GET_GAMEPAD_STATE: {
+                if (xinputDisabled) return;
                 int gamepadId = receiveData.getInt();
                 final ControlsProfile profile = activity.getInputControlsView().getProfile();
                 boolean useVirtualGamepad = profile != null && profile.isVirtualGamepad();
@@ -295,8 +389,9 @@ public class WinHandler {
                         sendData.putInt(gamepadId);
                         if (useVirtualGamepad) {
                             profile.getGamepadState().writeTo(sendData);
+                        } else {
+                            currentController.state.writeTo(sendData);
                         }
-                        else currentController.state.writeTo(sendData);
                     }
 
                     sendPacket(port);
@@ -319,6 +414,7 @@ public class WinHandler {
             }
         }
     }
+
 
     public void start() {
         try {
@@ -354,7 +450,7 @@ public class WinHandler {
     }
 
     public void sendGamepadState() {
-        if (!initReceived || gamepadClients.isEmpty()) return;
+        if (!initReceived || gamepadClients.isEmpty() || xinputDisabled) return; // Add this check
         final ControlsProfile profile = activity.getInputControlsView().getProfile();
         final boolean useVirtualGamepad = profile != null && profile.isVirtualGamepad();
         final boolean enabled = currentController != null || useVirtualGamepad;
@@ -367,16 +463,21 @@ public class WinHandler {
 
                 if (enabled) {
                     sendData.putInt(!useVirtualGamepad ? currentController.getDeviceId() : profile.id);
-                    if (useVirtualGamepad) {
-                        profile.getGamepadState().writeTo(sendData);
-                    }
-                    else currentController.state.writeTo(sendData);
+                    GamepadState state = useVirtualGamepad ? profile.getGamepadState() : currentController.state;
+
+                    // Combine gyro input with thumbstick input
+                    state.thumbRX = Mathf.clamp(state.thumbRX + gyroX, -1.0f, 1.0f); // Apply clamping
+                    state.thumbRY = Mathf.clamp(state.thumbRY + gyroY, -1.0f, 1.0f); // Apply clamping
+
+                    state.writeTo(sendData);
                 }
 
                 sendPacket(port);
             });
         }
     }
+
+
 
     public boolean onGenericMotionEvent(MotionEvent event) {
         boolean handled = false;

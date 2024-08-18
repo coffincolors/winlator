@@ -37,6 +37,9 @@ public class SysVSharedMemoryComponent extends EnvironmentComponent {
             connector = null;
         }
 
-        sysVSharedMemory.deleteAll();
+        if (sysVSharedMemory != null) {
+            sysVSharedMemory.deleteAll();
+            sysVSharedMemory = null;
+        }
     }
 }

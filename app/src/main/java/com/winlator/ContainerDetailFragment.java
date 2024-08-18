@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,8 +33,11 @@ import com.winlator.container.Container;
 import com.winlator.container.ContainerManager;
 import com.winlator.contentdialog.AddEnvVarDialog;
 import com.winlator.contentdialog.DXVKConfigDialog;
+import com.winlator.contentdialog.GraphicsDriverConfigDialog;
+import com.winlator.contentdialog.VKD3DConfigDialog;
 import com.winlator.core.AppUtils;
 import com.winlator.core.Callback;
+import com.winlator.core.DefaultVersion;
 import com.winlator.core.EnvVars;
 import com.winlator.core.FileUtils;
 import com.winlator.core.KeyValueSet;
@@ -60,10 +65,14 @@ import java.util.Locale;
 public class ContainerDetailFragment extends Fragment {
     private ContainerManager manager;
     private final int containerId;
-    private Container container;
+    private static Container container;
     private PreloaderDialog preloaderDialog;
     private JSONArray gpuCards;
     private Callback<String> openDirectoryCallback;
+
+    private String graphicsDriverVersion;
+
+    private String tempGraphicsDriverVersion; // Temporary storage for the graphics driver version
 
     public ContainerDetailFragment() {
         this(0);
@@ -73,16 +82,25 @@ public class ContainerDetailFragment extends Fragment {
         this.containerId = containerId;
     }
 
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(false);
         preloaderDialog = new PreloaderDialog(getActivity());
 
+
         try {
             gpuCards = new JSONArray(FileUtils.readString(getContext(), "gpu_cards.json"));
         }
         catch (JSONException e) {}
+
+//        // Initialize graphicsDriverVersion
+//        if (isEditMode() && container != null) {
+//            graphicsDriverVersion = container.getGraphicsDriverVersion();
+//        } else {
+//            graphicsDriverVersion = DefaultVersion.TURNIP;  // Set a default valid value
+//        }
     }
 
     @Override
@@ -117,10 +135,18 @@ public class ContainerDetailFragment extends Fragment {
 
         final EditText etName = view.findViewById(R.id.ETName);
 
+//        // Ensure graphicsDriverVersion is initialized even in view creation
+//        if (!isEditMode()) {
+//            graphicsDriverVersion = DefaultVersion.TURNIP;
+//        }
+
         if (isEditMode()) {
             etName.setText(container.getName());
+            graphicsDriverVersion = container.getGraphicsDriverVersion();  // Use the existing version for editing
+        } else {
+            etName.setText(getString(R.string.container) + "-" + manager.getNextContainerId());
+//            graphicsDriverVersion = DefaultVersion.TURNIP;  // Default to the latest Turnip version for new containers
         }
-        else etName.setText(getString(R.string.container)+"-"+manager.getNextContainerId());
 
         final ArrayList<WineInfo> wineInfos = WineUtils.getInstalledWineInfos(context);
         final Spinner sWineVersion = view.findViewById(R.id.SWineVersion);
@@ -134,9 +160,12 @@ public class ContainerDetailFragment extends Fragment {
         final View vDXWrapperConfig = view.findViewById(R.id.BTDXWrapperConfig);
         vDXWrapperConfig.setTag(isEditMode() ? container.getDXWrapperConfig() : "");
 
+        final View vGraphicsDriverConfig = view.findViewById(R.id.BTGraphicsDriverConfig);
+
         setupDXWrapperSpinner(sDXWrapper, vDXWrapperConfig);
-        loadGraphicsDriverSpinner(sGraphicsDriver, sDXWrapper, isEditMode() ? container.getGraphicsDriver() : Container.DEFAULT_GRAPHICS_DRIVER,
-            isEditMode() ? container.getDXWrapper() : Container.DEFAULT_DXWRAPPER);
+        loadGraphicsDriverSpinner(sGraphicsDriver, sDXWrapper, vGraphicsDriverConfig,
+                isEditMode() ? container.getGraphicsDriver() : Container.DEFAULT_GRAPHICS_DRIVER,
+                isEditMode() ? container.getDXWrapper() : Container.DEFAULT_DXWRAPPER);
 
         view.findViewById(R.id.BTHelpDXWrapper).setOnClickListener((v) -> AppUtils.showHelpBox(context, v, R.string.dxwrapper_help_content));
 
@@ -178,6 +207,7 @@ public class ContainerDetailFragment extends Fragment {
                 String screenSize = getScreenSize(view);
                 String envVars = envVarsView.getEnvVars();
                 String graphicsDriver = StringUtils.parseIdentifier(sGraphicsDriver.getSelectedItem());
+                String graphicsDriverVersion = (this.graphicsDriverVersion != null) ? this.graphicsDriverVersion : DefaultVersion.TURNIP; // Use the selected version or default
                 String dxwrapper = StringUtils.parseIdentifier(sDXWrapper.getSelectedItem());
                 String dxwrapperConfig = vDXWrapperConfig.getTag().toString();
                 String audioDriver = StringUtils.parseIdentifier(sAudioDriver.getSelectedItem());
@@ -186,8 +216,8 @@ public class ContainerDetailFragment extends Fragment {
                 boolean showFPS = cbShowFPS.isChecked();
                 String cpuList = cpuListView.getCheckedCPUListAsString();
                 String cpuListWoW64 = cpuListViewWoW64.getCheckedCPUListAsString();
-                boolean wow64Mode = cbWoW64Mode.isChecked() && cbWoW64Mode.isEnabled();
-                byte startupSelection = (byte)sStartupSelection.getSelectedItemPosition();
+                boolean wow64Mode = cbWoW64Mode.isChecked();
+                byte startupSelection = (byte) sStartupSelection.getSelectedItemPosition();
                 String box86Preset = Box86_64PresetManager.getSpinnerSelectedId(sBox86Preset);
                 String box64Preset = Box86_64PresetManager.getSpinnerSelectedId(sBox64Preset);
                 String desktopTheme = getDesktopTheme(view);
@@ -199,6 +229,7 @@ public class ContainerDetailFragment extends Fragment {
                     container.setCPUList(cpuList);
                     container.setCPUListWoW64(cpuListWoW64);
                     container.setGraphicsDriver(graphicsDriver);
+                    container.setGraphicsDriverVersion(graphicsDriverVersion); // Set the updated version here
                     container.setDXWrapper(dxwrapper);
                     container.setDXWrapperConfig(dxwrapperConfig);
                     container.setAudioDriver(audioDriver);
@@ -210,11 +241,11 @@ public class ContainerDetailFragment extends Fragment {
                     container.setBox86Preset(box86Preset);
                     container.setBox64Preset(box64Preset);
                     container.setDesktopTheme(desktopTheme);
+                    Log.d("ContainerDetailFragment", "Saving graphics driver: " + graphicsDriver + ", version: " + graphicsDriverVersion);
                     container.saveData();
                     saveWineRegistryKeys(view);
                     getActivity().onBackPressed();
-                }
-                else {
+                } else {
                     JSONObject data = new JSONObject();
                     data.put("name", name);
                     data.put("screenSize", screenSize);
@@ -238,21 +269,25 @@ public class ContainerDetailFragment extends Fragment {
                         data.put("wineVersion", wineInfos.get(sWineVersion.getSelectedItemPosition()).identifier());
                     }
 
+                    // Store the selected graphics driver version temporarily
+                    tempGraphicsDriverVersion = (graphicsDriverVersion != null) ? graphicsDriverVersion : DefaultVersion.TURNIP;
+
                     preloaderDialog.show(R.string.creating_container);
                     manager.createContainerAsync(data, (container) -> {
                         if (container != null) {
                             this.container = container;
+                            container.setGraphicsDriverVersion(tempGraphicsDriverVersion);
                             saveWineRegistryKeys(view);
                         }
                         preloaderDialog.close();
                         getActivity().onBackPressed();
                     });
                 }
-            }
-            catch (JSONException e) {}
+            } catch (JSONException e) {}
         });
         return view;
     }
+
 
     private void saveWineRegistryKeys(View view) {
         File userRegFile = new File(container.getRootDir(), ".wine/user.reg");
@@ -388,7 +423,7 @@ public class ContainerDetailFragment extends Fragment {
         ColorPickerView cpvDesktopBackground = view.findViewById(R.id.CPVDesktopBackgroundColor);
         WineThemeManager.Theme theme = WineThemeManager.Theme.values()[sDesktopTheme.getSelectedItemPosition()];
 
-       String desktopTheme = theme+","+type+","+cpvDesktopBackground.getColorAsString();
+        String desktopTheme = theme+","+type+","+cpvDesktopBackground.getColorAsString();
         if (type == WineThemeManager.BackgroundType.IMAGE) {
             File userWallpaperFile = WineThemeManager.getUserWallpaperFile(getContext());
             desktopTheme += ","+(userWallpaperFile.isFile() ? userWallpaperFile.lastModified() : "0");
@@ -420,6 +455,15 @@ public class ContainerDetailFragment extends Fragment {
         }
     }
 
+    // This method shows the GraphicsDriverConfigDialog
+    private void showGraphicsDriverConfigDialog(View anchor) {
+        new GraphicsDriverConfigDialog(anchor, manager, container, graphicsDriverVersion, version -> {
+            // Capture the selected version
+            graphicsDriverVersion = version;
+        }).show();
+    }
+
+    // Original method: Used for compatibility with ShortcutSettingsDialog
     public static void loadGraphicsDriverSpinner(final Spinner sGraphicsDriver, final Spinner sDXWrapper, String selectedGraphicsDriver, String selectedDXWrapper) {
         final Context context = sGraphicsDriver.getContext();
         final String[] dxwrapperEntries = context.getResources().getStringArray(R.array.dxwrapper_entries);
@@ -429,7 +473,11 @@ public class ContainerDetailFragment extends Fragment {
             boolean addAll = graphicsDriver.equals("turnip");
 
             ArrayList<String> items = new ArrayList<>();
-            for (String value : dxwrapperEntries) if (addAll || (!value.equals("DXVK") && !value.equals("VKD3D"))) items.add(value);
+            for (String value : dxwrapperEntries) {
+                if (addAll || (!value.equals("DXVK") && !value.equals("VKD3D"))) {
+                    items.add(value);
+                }
+            }
             sDXWrapper.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, items.toArray(new String[0])));
             AppUtils.setSpinnerSelectionFromIdentifier(sDXWrapper, selectedDXWrapper);
         };
@@ -448,6 +496,57 @@ public class ContainerDetailFragment extends Fragment {
         update.run();
     }
 
+    // New method: Adds support for the GraphicsDriverConfigDialog
+    public void loadGraphicsDriverSpinner(final Spinner sGraphicsDriver, final Spinner sDXWrapper, final View vGraphicsDriverConfig, String selectedGraphicsDriver, String selectedDXWrapper) {
+        final Context context = sGraphicsDriver.getContext();
+        final String[] dxwrapperEntries = context.getResources().getStringArray(R.array.dxwrapper_entries);
+
+        Runnable update = () -> {
+            String graphicsDriver = StringUtils.parseIdentifier(sGraphicsDriver.getSelectedItem());
+            boolean isTurnip = graphicsDriver.equals("turnip");
+
+            // Update the DXWrapper spinner
+            ArrayList<String> items = new ArrayList<>();
+            for (String value : dxwrapperEntries) {
+                if (isTurnip || (!value.equals("DXVK") && !value.equals("VKD3D"))) {
+                    items.add(value);
+                }
+            }
+            sDXWrapper.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, items.toArray(new String[0])));
+            AppUtils.setSpinnerSelectionFromIdentifier(sDXWrapper, selectedDXWrapper);
+
+            // Update the gear icon for the graphics driver
+            if (isTurnip) {
+                vGraphicsDriverConfig.setOnClickListener((v) -> {
+                    if (container != null) {
+                        showGraphicsDriverConfigDialog(vGraphicsDriverConfig);
+                    } else {
+                        Toast.makeText(context, "Please save this container before attempting to change the driver version", Toast.LENGTH_LONG).show();
+                    }
+                });
+                vGraphicsDriverConfig.setVisibility(View.VISIBLE);
+            } else {
+                vGraphicsDriverConfig.setVisibility(View.GONE);  // VirGL doesn't allow version selection
+            }
+        };
+
+        sGraphicsDriver.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                update.run();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        AppUtils.setSpinnerSelectionFromIdentifier(sGraphicsDriver, selectedGraphicsDriver);
+        update.run();
+    }
+
+
+
+
     public static void setupDXWrapperSpinner(final Spinner sDXWrapper, final View vDXWrapperConfig) {
         sDXWrapper.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -457,7 +556,10 @@ public class ContainerDetailFragment extends Fragment {
                     vDXWrapperConfig.setOnClickListener((v) -> (new DXVKConfigDialog(vDXWrapperConfig)).show());
                     vDXWrapperConfig.setVisibility(View.VISIBLE);
                 }
-                else vDXWrapperConfig.setVisibility(View.GONE);
+                else if (dxwrapper.equals("vkd3d")) {
+                    vDXWrapperConfig.setOnClickListener((v) -> (new VKD3DConfigDialog(vDXWrapperConfig)).show());
+                    vDXWrapperConfig.setVisibility(View.VISIBLE);
+                } else vDXWrapperConfig.setVisibility(View.GONE);
             }
 
             @Override

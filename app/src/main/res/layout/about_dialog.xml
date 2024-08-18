@@ -24,10 +24,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
+                    android:text="Winlator.cmod"
                     android:textColor="@color/colorPrimary"
-                    android:text="@string/app_name" />
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/TVWebpage"

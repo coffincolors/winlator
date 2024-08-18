@@ -1,24 +1,35 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.2'
+    }
+}
+
 apply plugin: 'com.android.application'
 
 android {
+    namespace 'com.winlator'
     compileSdk 30
 
     defaultConfig {
-        applicationId 'com.winlator'
+        applicationId 'com.cmodded.winlator'
         minSdkVersion 26
         targetSdkVersion 28
         versionCode 16
-        versionName "7.1"
+        versionName "7.1-cmod-v5"
+
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        }
     }
 
     buildTypes {
         debug {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-
-            ndk {
-                abiFilters 'arm64-v8a', 'armeabi-v7a'
-            }
         }
     }
 
@@ -33,6 +44,11 @@ android {
             version '3.22.1'
             path 'src/main/cpp/CMakeLists.txt'
         }
+    }
+
+    repositories {
+        google()
+        mavenCentral()
     }
 }
 

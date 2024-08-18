@@ -189,12 +189,66 @@
                         android:layout_height="wrap_content"
                         android:text="@string/use_dri3_extension"
                         android:layout_marginTop="8dp" />
+
+                    <!-- New Cursor Lock Checkbox -->
+                    <CheckBox
+                        android:id="@+id/CBCursorLock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="True Mouse Control (Deactivate with Volume Down)"
+                        android:layout_marginTop="8dp" />
+
+                    <!-- New Xinput Toggle Checkbox -->
+                    <CheckBox
+                        android:id="@+id/CBXinputToggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Disable Xinput (Used for Exclusive M/KB support)"
+                        android:layout_marginTop="8dp" />
+
+                    <CheckBox
+                        android:id="@+id/CBXTouchscreenToggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Touchscreen Mode"
+                        android:layout_marginTop="8dp" />
                 </LinearLayout>
 
                 <TextView
                     style="@style/FieldSetLabel"
                     android:text="@string/xserver" />
             </FrameLayout>
+
+            <!-- Add to the appropriate section in your XML -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/FieldSet">
+
+                    <CheckBox
+                        android:id="@+id/CBGyroEnabled"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Enable Right-Stick Gyroscope (Experimental)"
+                        android:layout_marginTop="8dp" />
+
+                    <Button
+                        android:id="@+id/BTConfigureGyro"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Configure Gyroscope"
+                        android:layout_marginTop="16dp" />
+
+
+                </LinearLayout>
+
+                <TextView
+                    style="@style/FieldSetLabel"
+                    android:text="Gyro Settings" />
+
+            </FrameLayout>
+
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -233,6 +287,51 @@
                     style="@style/FieldSetLabel"
                     android:text="@string/logs" />
             </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/FieldSet">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/trigger_mode"/>
+
+                    <RadioGroup
+                        android:id="@+id/RGTriggerMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <RadioButton
+                            android:id="@+id/RBTriggerAsButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/as_button"/>
+
+                        <RadioButton
+                            android:id="@+id/RBTriggerAsAxis"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/as_axis"/>
+
+                        <RadioButton
+                            android:id="@+id/RBTriggerAsBoth"
+                            android:visibility="gone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/both"/>
+                    </RadioGroup>
+                </LinearLayout>
+
+                <TextView
+                    style="@style/FieldSetLabel"
+                    android:text="@string/game_controller" />
+            </FrameLayout>
+
         </LinearLayout>
     </ScrollView>
 

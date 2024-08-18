@@ -5,8 +5,10 @@ import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
+import android.provider.DocumentsContract;
 import android.system.ErrnoException;
 import android.system.Os;
+import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -21,6 +23,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -32,11 +36,14 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 
 public abstract class FileUtils {
+    private static final String TAG = "FileUtils";
+
     public static byte[] read(Context context, String assetFile) {
         try (InputStream inStream = context.getAssets().open(assetFile)) {
             return StreamUtils.copyToByteArray(inStream);
         }
         catch (IOException e) {
+            Log.e(TAG, "Error reading asset file: " + assetFile, e);
             return null;
         }
     }
@@ -46,16 +53,27 @@ public abstract class FileUtils {
             return StreamUtils.copyToByteArray(inStream);
         }
         catch (IOException e) {
+            Log.e(TAG, "Error reading file: " + file.getAbsolutePath(), e);
             return null;
         }
     }
 
     public static String readString(Context context, String assetFile) {
-        return new String(read(context, assetFile), StandardCharsets.UTF_8);
+        byte[] data = read(context, assetFile);
+        if (data != null) {
+            return new String(data, StandardCharsets.UTF_8);
+        } else {
+            return null;
+        }
     }
 
     public static String readString(File file) {
-        return new String(read(file), StandardCharsets.UTF_8);
+        byte[] data = read(file);
+        if (data != null) {
+            return new String(data, StandardCharsets.UTF_8);
+        } else {
+            return null;
+        }
     }
 
     public static String readString(Context context, Uri uri) {
@@ -63,10 +81,13 @@ public abstract class FileUtils {
         try (InputStream inputStream = context.getContentResolver().openInputStream(uri);
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
-            while ((line = reader.readLine()) != null) sb.append(line);
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
             return sb.toString();
         }
         catch (IOException e) {
+            Log.e(TAG, "Error reading from URI: " + uri.toString(), e);
             return null;
         }
     }
@@ -77,9 +98,9 @@ public abstract class FileUtils {
             return true;
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error writing to file: " + file.getAbsolutePath(), e);
+            return false;
         }
-        return false;
     }
 
     public static boolean writeString(File file, String data) {
@@ -89,9 +110,9 @@ public abstract class FileUtils {
             return true;
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error writing string to file: " + file.getAbsolutePath(), e);
+            return false;
         }
-        return false;
     }
 
     public static void symlink(File linkTarget, File linkFile) {
@@ -103,7 +124,9 @@ public abstract class FileUtils {
             (new File(linkFile)).delete();
             Os.symlink(linkTarget, linkFile);
         }
-        catch (ErrnoException e) {}
+        catch (ErrnoException e) {
+            Log.e(TAG, "Error creating symlink from " + linkFile + " to " + linkTarget, e);
+        }
     }
 
     public static boolean isSymlink(File file) {
@@ -174,6 +197,7 @@ public abstract class FileUtils {
                 return dstFile.exists();
             }
             catch (IOException e) {
+                Log.e(TAG, "Error copying file from " + srcFile.getAbsolutePath() + " to " + dstFile.getAbsolutePath(), e);
                 return false;
             }
         }
@@ -193,7 +217,9 @@ public abstract class FileUtils {
                     else copy(context, relativePath, dstFile);
                 }
             }
-            catch (IOException e) {}
+            catch (IOException e) {
+                Log.e(TAG, "Error copying directory from assets: " + assetFile, e);
+            }
         }
         else {
             if (dstFile.isDirectory()) dstFile = new File(dstFile, FileUtils.getName(assetFile));
@@ -203,7 +229,9 @@ public abstract class FileUtils {
                  BufferedOutputStream outStream = new BufferedOutputStream(new FileOutputStream(dstFile), StreamUtils.BUFFER_SIZE)) {
                 StreamUtils.copy(inStream, outStream);
             }
-            catch (IOException e) {}
+            catch (IOException e) {
+                Log.e(TAG, "Error copying file from assets: " + assetFile, e);
+            }
         }
     }
 
@@ -215,7 +243,7 @@ public abstract class FileUtils {
             while ((line = reader.readLine()) != null) lines.add(line);
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error reading lines from file: " + file.getAbsolutePath(), e);
         }
         return lines;
     }
@@ -242,7 +270,9 @@ public abstract class FileUtils {
         try {
             Os.chmod(file.getAbsolutePath(), mode);
         }
-        catch (ErrnoException e) {}
+        catch (ErrnoException e) {
+            Log.e(TAG, "Error changing mode of file: " + file.getAbsolutePath(), e);
+        }
     }
 
     public static File createTempFile(File parent, String prefix) {
@@ -276,6 +306,7 @@ public abstract class FileUtils {
             return true;
         }
         catch (IOException e) {
+            Log.e(TAG, "Error comparing file contents: " + origin.getAbsolutePath() + " and " + target.getAbsolutePath(), e);
             return false;
         }
     }
@@ -315,6 +346,7 @@ public abstract class FileUtils {
             return inStream.available();
         }
         catch (IOException e) {
+            Log.e(TAG, "Error getting size of asset file: " + assetFile, e);
             return 0;
         }
     }
@@ -333,6 +365,7 @@ public abstract class FileUtils {
             return files != null && files.length > 0;
         }
         catch (IOException e) {
+            Log.e(TAG, "Error checking if asset file is a directory: " + assetFile, e);
             return false;
         }
     }
@@ -349,7 +382,9 @@ public abstract class FileUtils {
                 result = !line.isEmpty() ? Integer.parseInt(line) : 0;
             }
         }
-        catch (Exception e) {}
+        catch (Exception e) {
+            Log.e(TAG, "Error reading integer from file: " + path, e);
+        }
         return result;
     }
 
@@ -358,7 +393,45 @@ public abstract class FileUtils {
             return Files.readSymbolicLink(file.toPath()).toString();
         }
         catch (IOException e) {
+            Log.e(TAG, "Error reading symlink from file: " + file.getAbsolutePath(), e);
             return "";
         }
+    }
+
+    public static String getFilePathFromUriUsingSAF(Context context, Uri uri) {
+        Log.d(TAG, "getFilePathFromUriUsingSAF called with URI: " + uri.toString());
+
+        String documentId;
+        try {
+            documentId = DocumentsContract.getTreeDocumentId(uri);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Invalid URI: " + uri.toString(), e);
+            return null;
+        }
+
+        Log.d(TAG, "Document ID: " + documentId);
+        String[] split = documentId.split(":");
+        String type = split[0];
+        String path = split.length > 1 ? split[1] : "";
+
+        try {
+            path = URLDecoder.decode(path, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            Log.e(TAG, "Error decoding path: " + path, e);
+            return null;
+        }
+
+        if ("primary".equalsIgnoreCase(type)) {
+            return Environment.getExternalStorageDirectory() + "/" + path;
+        } else {
+            return "/mnt/media_rw/" + type + "/" + path;
+        }
+    }
+
+    public static String getFilePathFromUri(Context context, Uri uri) {
+        Log.d(TAG, "getFilePathFromUri called with URI: " + uri.toString());
+        String filePath = getFilePathFromUriUsingSAF(context, uri);
+        Log.d(TAG, "File path obtained: " + filePath);
+        return filePath;
     }
 }

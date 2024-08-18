@@ -9,6 +9,8 @@ public class GamepadState {
     public float thumbLY = 0;
     public float thumbRX = 0;
     public float thumbRY = 0;
+    public float triggerL = 0;
+    public float triggerR = 0;
     public final boolean[] dpad = new boolean[4];
     public short buttons = 0;
 
@@ -59,6 +61,8 @@ public class GamepadState {
         this.thumbLY = other.thumbLY;
         this.thumbRX = other.thumbRX;
         this.thumbRY = other.thumbRY;
+        this.triggerL = other.triggerL;
+        this.triggerR = other.triggerR;
         this.buttons = other.buttons;
         System.arraycopy(other.dpad, 0, this.dpad, 0, 4);
     }

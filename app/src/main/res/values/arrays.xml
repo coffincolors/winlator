@@ -2,6 +2,8 @@
 <resources>
     <string-array name="screen_size_entries">
         <item>Custom</item>
+        <item>690x360 (16:9)</item>
+        <item>780x360 (19.5:9)</item>
         <item>640x480 (4:3)</item>
         <item>800x600 (4:3)</item>
         <item>854x480 (16:9)</item>
@@ -12,12 +14,19 @@
         <item>1280x1024 (5:4)</item>
         <item>1366x768 (16:9)</item>
         <item>1440x900 (16:10)</item>
+        <item>1560x720 (19.5:9)</item>
         <item>1600x900 (16:9)</item>
         <item>1920x1080 (16:9)</item>
     </string-array>
     <string-array name="graphics_driver_entries">
         <item>Turnip (Adreno)</item>
         <item>VirGL (Universal)</item>
+    </string-array>
+    <string-array name="graphics_driver_version_entries">
+        <item>23.3.0</item>
+        <item>24.1.0</item>
+        <item>24.3.0</item>
+        <item>24.3.0.2</item>
     </string-array>
     <string-array name="audio_driver_entries">
         <item>ALSA</item>
@@ -35,9 +44,16 @@
         <item>CNC DDraw</item>
     </string-array>
     <string-array name="dxvk_version_entries">
+        <item>0.40.1</item>
         <item>0.96</item>
+		<item>1.7.1</item>
         <item>1.10.3 (Default)</item>
+        <item>1.10.3.0 (ASYNC)</item>
+        <item>2.2.116</item>
+        <item>2.3.1.1</item>
+        <item>2.3.1.54</item>
         <item>2.3.1</item>
+        <item>2.4</item>
     </string-array>
     <string-array name="dxvk_max_device_memory_entries">
         <item>0 (Default)</item>
@@ -58,8 +74,16 @@
     </string-array>
     <string-array name="dxvk_framerate_entries">
         <item>0 (Default)</item>
+        <item>20</item>
         <item>30</item>
+        <item>40</item>
+        <item>50</item>
         <item>60</item>
+        <item>70</item>
+        <item>80</item>
+        <item>90</item>
+        <item>100</item>
+        <item>110</item>
         <item>120</item>
     </string-array>
     <string-array name="wincomponent_entries">
@@ -67,12 +91,14 @@
         <item>Native (Windows)</item>
     </string-array>
     <string-array name="box86_version_entries">
+        <item>0.3.0</item>
         <item>0.3.2 (Default)</item>
         <item>0.3.7</item>
     </string-array>
     <string-array name="box64_version_entries">
-        <item>0.2.8 (Default)</item>
-        <item>0.2.9</item>
+		<item>0.2.7</item>
+        <item>0.2.8</item>
+        <item>0.3.1 (Default)</item>
     </string-array>
     <string-array name="dinput_mapper_type_entries">
         <item>Standard (Old Gamepads)</item>
@@ -90,5 +116,9 @@
         <item>Normal (Load all services)</item>
         <item>Essential (Load only essential services)</item>
         <item>Aggressive (Stop services on startup)</item>
+    </string-array>
+    <string-array name="vkd3d_version_entries">
+        <item>2.12 (Default)</item>
+        <item>2.13</item>>
     </string-array>
 </resources>

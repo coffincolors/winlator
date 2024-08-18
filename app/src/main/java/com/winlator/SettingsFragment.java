@@ -1,6 +1,7 @@
 package com.winlator;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,9 +11,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -41,6 +45,7 @@ import com.winlator.core.PreloaderDialog;
 import com.winlator.core.StringUtils;
 import com.winlator.core.WineInfo;
 import com.winlator.core.WineUtils;
+import com.winlator.inputcontrols.ExternalController;
 import com.winlator.xenvironment.ImageFs;
 
 import org.json.JSONArray;
@@ -58,6 +63,18 @@ public class SettingsFragment extends Fragment {
     private PreloaderDialog preloaderDialog;
     private SharedPreferences preferences;
 
+    // UI Elements
+    private CheckBox cbCursorLock;
+    private CheckBox cbXinputToggle;
+    private CheckBox cbXTouchscreenToggle;
+    private CheckBox cbGyroEnabled;
+    private SeekBar sbGyroXSensitivity;
+    private SeekBar sbGyroYSensitivity;
+    private SeekBar sbGyroSmoothing;
+    private SeekBar sbGyroDeadzone;
+    private CheckBox cbInvertGyroX;
+    private CheckBox cbInvertGyroY;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +85,10 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        Button btnConfigureGyro = view.findViewById(R.id.BTConfigureGyro);
+        btnConfigureGyro.setOnClickListener(v -> showGyroConfigDialog());
+
         ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(R.string.settings);
     }
 
@@ -76,8 +97,7 @@ public class SettingsFragment extends Fragment {
         if (requestCode == MainActivity.OPEN_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             try {
                 if (selectWineFileCallback != null && data != null) selectWineFileCallback.call(data.getData());
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 AppUtils.showToast(getContext(), R.string.unable_to_import_profile);
             }
             selectWineFileCallback = null;
@@ -91,6 +111,23 @@ public class SettingsFragment extends Fragment {
         final Context context = getContext();
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
+        // Initialize the cursor lock checkbox
+        cbCursorLock = view.findViewById(R.id.CBCursorLock);
+        cbCursorLock.setChecked(preferences.getBoolean("cursor_lock", true));
+
+        // Initialize the xinput toggle checkbox
+        cbXinputToggle = view.findViewById(R.id.CBXinputToggle);
+        cbXinputToggle.setChecked(preferences.getBoolean("xinput_toggle", false));
+
+        // Initialize the Touchscreen mode toggle
+        cbXTouchscreenToggle = view.findViewById(R.id.CBXTouchscreenToggle);
+        cbXTouchscreenToggle.setChecked(preferences.getBoolean("touchscreen_toggle", false));
+
+        // Initialize gyro enable checkbox
+        cbGyroEnabled = view.findViewById(R.id.CBGyroEnabled);
+        cbGyroEnabled.setChecked(preferences.getBoolean("gyro_enabled", false));
+
+        // Initialize version spinners
         final Spinner sBox86Version = view.findViewById(R.id.SBox86Version);
         String box86Version = preferences.getString("box86_version", DefaultVersion.BOX86);
         if (!AppUtils.setSpinnerSelectionFromIdentifier(sBox86Version, box86Version)) {
@@ -103,28 +140,32 @@ public class SettingsFragment extends Fragment {
             AppUtils.setSpinnerSelectionFromIdentifier(sBox64Version, DefaultVersion.BOX64);
         }
 
+        // Initialize presets spinners
         final Spinner sBox86Preset = view.findViewById(R.id.SBox86Preset);
         final Spinner sBox64Preset = view.findViewById(R.id.SBox64Preset);
         loadBox86_64PresetSpinners(view, sBox86Preset, sBox64Preset);
 
+        // Initialize DRI3 checkbox
         final CheckBox cbUseDRI3 = view.findViewById(R.id.CBUseDRI3);
         cbUseDRI3.setChecked(preferences.getBoolean("use_dri3", true));
 
+        // Initialize Wine debug checkbox and load channels
         final CheckBox cbEnableWineDebug = view.findViewById(R.id.CBEnableWineDebug);
         cbEnableWineDebug.setChecked(preferences.getBoolean("enable_wine_debug", false));
-
         final ArrayList<String> wineDebugChannels = new ArrayList<>(Arrays.asList(preferences.getString("wine_debug_channels", DEFAULT_WINE_DEBUG_CHANNELS).split(",")));
         loadWineDebugChannels(view, wineDebugChannels);
 
+        // Initialize Box86/64 logs checkbox
         final CheckBox cbEnableBox86_64Logs = view.findViewById(R.id.CBEnableBox86_64Logs);
         cbEnableBox86_64Logs.setChecked(preferences.getBoolean("enable_box86_64_logs", false));
 
+        // Initialize cursor speed SeekBar and TextView
         final TextView tvCursorSpeed = view.findViewById(R.id.TVCursorSpeed);
         final SeekBar sbCursorSpeed = view.findViewById(R.id.SBCursorSpeed);
         sbCursorSpeed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                tvCursorSpeed.setText(progress+"%");
+                tvCursorSpeed.setText(progress + "%");
             }
 
             @Override
@@ -133,14 +174,25 @@ public class SettingsFragment extends Fragment {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
-        sbCursorSpeed.setProgress((int)(preferences.getFloat("cursor_speed", 1.0f) * 100));
+        sbCursorSpeed.setProgress((int) (preferences.getFloat("cursor_speed", 1.0f) * 100));
 
+        // Initialize trigger mode RadioGroup
+        final RadioGroup rgTriggerMode = view.findViewById(R.id.RGTriggerMode);
+        List<Integer> triggerRbIds = List.of(R.id.RBTriggerAsButton, R.id.RBTriggerAsAxis, R.id.RBTriggerAsBoth);
+        int triggerMode = preferences.getInt("trigger_mode", ExternalController.TRIGGER_AS_AXIS);
+        if (triggerMode >= 0 && triggerMode < triggerRbIds.size()) {
+            ((RadioButton) (rgTriggerMode.findViewById(triggerRbIds.get(triggerMode)))).setChecked(true);
+        }
+
+        // Load installed Wine list
         loadInstalledWineList(view);
 
+        // Set up Wine file selection button
         view.findViewById(R.id.BTSelectWineFile).setOnClickListener((v) -> {
             ContentDialog.alert(context, R.string.msg_warning_install_wine, this::selectWineFileForInstall);
         });
 
+        // Set up confirmation button
         view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
             SharedPreferences.Editor editor = preferences.edit();
             editor.putString("box86_version", StringUtils.parseIdentifier(sBox86Version.getSelectedItem()));
@@ -151,19 +203,27 @@ public class SettingsFragment extends Fragment {
             editor.putFloat("cursor_speed", sbCursorSpeed.getProgress() / 100.0f);
             editor.putBoolean("enable_wine_debug", cbEnableWineDebug.isChecked());
             editor.putBoolean("enable_box86_64_logs", cbEnableBox86_64Logs.isChecked());
+            editor.putInt("trigger_mode", triggerRbIds.indexOf(rgTriggerMode.getCheckedRadioButtonId()));
+            editor.putBoolean("cursor_lock", cbCursorLock.isChecked());
+            editor.putBoolean("xinput_toggle", cbXinputToggle.isChecked());
+            editor.putBoolean("touchscreen_toggle", cbXTouchscreenToggle.isChecked());
+
+            // Save gyro settings
+            editor.putBoolean("gyro_enabled", cbGyroEnabled.isChecked());
 
             if (!wineDebugChannels.isEmpty()) {
                 editor.putString("wine_debug_channels", String.join(",", wineDebugChannels));
+            } else if (preferences.contains("wine_debug_channels")) {
+                editor.remove("wine_debug_channels");
             }
-            else if (preferences.contains("wine_debug_channels")) editor.remove("wine_debug_channels");
 
             if (editor.commit()) {
                 NavigationView navigationView = getActivity().findViewById(R.id.NavigationView);
                 navigationView.setCheckedItem(R.id.main_menu_containers);
                 FragmentManager fragmentManager = getParentFragmentManager();
                 fragmentManager.beginTransaction()
-                    .replace(R.id.FLFragmentContainer, new ContainersFragment())
-                    .commit();
+                        .replace(R.id.FLFragmentContainer, new ContainersFragment())
+                        .commit();
             }
         });
 
@@ -178,7 +238,7 @@ public class SettingsFragment extends Fragment {
         final Context context = getContext();
 
         Callback<String> updateSpinner = (prefix) -> {
-            Box86_64PresetManager.loadSpinner(prefix, spinners.get(prefix), preferences.getString(prefix+"_preset", Box86_64Preset.COMPATIBILITY));
+            Box86_64PresetManager.loadSpinner(prefix, spinners.get(prefix), preferences.getString(prefix + "_preset", Box86_64Preset.COMPATIBILITY));
         };
 
         Callback<String> onAddPreset = (prefix) -> {
@@ -197,7 +257,7 @@ public class SettingsFragment extends Fragment {
             Spinner spinner = spinners.get(prefix);
             Box86_64PresetManager.duplicatePreset(prefix, context, Box86_64PresetManager.getSpinnerSelectedId(spinner));
             updateSpinner.call(prefix);
-            spinner.setSelection(spinner.getCount()-1);
+            spinner.setSelection(spinner.getCount() - 1);
         });
 
         Callback<String> onRemovePreset = (prefix) -> {
@@ -238,10 +298,10 @@ public class SettingsFragment extends Fragment {
             }
         }
 
-        String suffix = wineInfo.fullVersion()+"-"+wineInfo.getArch();
+        String suffix = wineInfo.fullVersion() + "-" + wineInfo.getArch();
         File installedWineDir = ImageFs.find(activity).getInstalledWineDir();
         File wineDir = new File(wineInfo.path);
-        File containerPatternFile = new File(installedWineDir, "container-pattern-"+suffix+".tzst");
+        File containerPatternFile = new File(installedWineDir, "container-pattern-" + suffix + ".tzst");
 
         if (!wineDir.isDirectory() || !containerPatternFile.isFile()) {
             AppUtils.showToast(activity, R.string.unable_to_remove_this_wine_version);
@@ -266,7 +326,7 @@ public class SettingsFragment extends Fragment {
         LayoutInflater inflater = LayoutInflater.from(context);
         for (final WineInfo wineInfo : wineInfos) {
             View itemView = inflater.inflate(R.layout.installed_wine_list_item, container, false);
-            ((TextView)itemView.findViewById(R.id.TVTitle)).setText(wineInfo.toString());
+            ((TextView) itemView.findViewById(R.id.TVTitle)).setText(wineInfo.toString());
             if (wineInfo != WineInfo.MAIN_WINE_VERSION) {
                 View removeButton = itemView.findViewById(R.id.BTRemove);
                 removeButton.setVisibility(View.VISIBLE);
@@ -295,8 +355,7 @@ public class SettingsFragment extends Fragment {
 
                         getActivity().runOnUiThread(() -> showWineInstallOptionsDialog(wineInfo));
                     });
-                }
-                else {
+                } else {
                     AppUtils.showToast(context, R.string.unable_to_install_wine);
                     preloaderDialog.closeOnUiThread();
                 }
@@ -334,12 +393,12 @@ public class SettingsFragment extends Fragment {
         dialog.setIcon(R.drawable.icon_wine);
 
         EditText etVersion = dialog.findViewById(R.id.ETVersion);
-        etVersion.setText("Wine "+wineInfo.version+(wineInfo.subversion != null ? " ("+wineInfo.subversion+")" : ""));
+        etVersion.setText("Wine " + wineInfo.version + (wineInfo.subversion != null ? " (" + wineInfo.subversion + ")" : ""));
 
         Spinner sArch = dialog.findViewById(R.id.SArch);
         List<String> archList = wineInfo.isWin64() ? Arrays.asList("x86", "x86_64") : Arrays.asList("x86");
         sArch.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, archList));
-        sArch.setSelection(archList.size()-1);
+        sArch.setSelection(archList.size() - 1);
 
         dialog.setOnConfirmCallback(() -> {
             wineInfo.setArch(sArch.getSelectedItem().toString());
@@ -364,12 +423,14 @@ public class SettingsFragment extends Fragment {
             JSONArray jsonArray = null;
             try {
                 jsonArray = new JSONArray(FileUtils.readString(context, "wine_debug_channels.json"));
+            } catch (JSONException e) {
             }
-            catch (JSONException e) {}
 
             final String[] items = ArrayUtils.toStringArray(jsonArray);
             ContentDialog.showMultipleChoiceList(context, R.string.wine_debug_channel, items, (selectedPositions) -> {
-                for (int selectedPosition : selectedPositions) if (!debugChannels.contains(items[selectedPosition])) debugChannels.add(items[selectedPosition]);
+                for (int selectedPosition : selectedPositions)
+                    if (!debugChannels.contains(items[selectedPosition]))
+                        debugChannels.add(items[selectedPosition]);
                 loadWineDebugChannels(view, debugChannels);
             });
         });
@@ -404,5 +465,108 @@ public class SettingsFragment extends Fragment {
         editor.remove("current_box86_version");
         editor.remove("current_box64_version");
         editor.apply();
+    }
+
+    private void showGyroConfigDialog() {
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.gyro_config_dialog, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setView(dialogView);
+        builder.setTitle("Gyroscope Configuration");
+
+        // Initialize dialog UI elements
+        sbGyroXSensitivity = dialogView.findViewById(R.id.SBGyroXSensitivity);
+        sbGyroYSensitivity = dialogView.findViewById(R.id.SBGyroYSensitivity);
+        sbGyroSmoothing = dialogView.findViewById(R.id.SBGyroSmoothing);
+        sbGyroDeadzone = dialogView.findViewById(R.id.SBGyroDeadzone);
+        cbInvertGyroX = dialogView.findViewById(R.id.CBInvertGyroX);
+        cbInvertGyroY = dialogView.findViewById(R.id.CBInvertGyroY);
+        TextView tvGyroXSensitivity = dialogView.findViewById(R.id.TVGyroXSensitivity);
+        TextView tvGyroYSensitivity = dialogView.findViewById(R.id.TVGyroYSensitivity);
+        TextView tvGyroSmoothing = dialogView.findViewById(R.id.TVGyroSmoothing);
+        TextView tvGyroDeadzone = dialogView.findViewById(R.id.TVGyroDeadzone);
+
+        // Load current preferences
+        sbGyroXSensitivity.setProgress((int) (preferences.getFloat("gyro_x_sensitivity", 1.0f) * 100));
+        sbGyroYSensitivity.setProgress((int) (preferences.getFloat("gyro_y_sensitivity", 1.0f) * 100));
+        sbGyroSmoothing.setProgress((int) (preferences.getFloat("gyro_smoothing", 0.9f) * 100));
+        sbGyroDeadzone.setProgress((int) (preferences.getFloat("gyro_deadzone", 0.05f) * 100));
+        cbInvertGyroX.setChecked(preferences.getBoolean("invert_gyro_x", false));
+        cbInvertGyroY.setChecked(preferences.getBoolean("invert_gyro_y", false));
+
+        // Update text views for SeekBars
+        tvGyroXSensitivity.setText("X Sensitivity: " + sbGyroXSensitivity.getProgress() + "%");
+        tvGyroYSensitivity.setText("Y Sensitivity: " + sbGyroYSensitivity.getProgress() + "%");
+        tvGyroSmoothing.setText("Smoothing: " + sbGyroSmoothing.getProgress() + "%");
+        tvGyroDeadzone.setText("Deadzone: " + sbGyroDeadzone.getProgress() + "%");
+
+        // Listeners for SeekBars
+        sbGyroXSensitivity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvGyroXSensitivity.setText("X Sensitivity: " + progress + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        sbGyroYSensitivity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvGyroYSensitivity.setText("Y Sensitivity: " + progress + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        sbGyroSmoothing.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvGyroSmoothing.setText("Smoothing: " + progress + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        sbGyroDeadzone.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvGyroDeadzone.setText("Deadzone: " + progress + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // Set up the dialog buttons
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putFloat("gyro_x_sensitivity", sbGyroXSensitivity.getProgress() / 100.0f);
+            editor.putFloat("gyro_y_sensitivity", sbGyroYSensitivity.getProgress() / 100.0f);
+            editor.putFloat("gyro_smoothing", sbGyroSmoothing.getProgress() / 100.0f);
+            editor.putFloat("gyro_deadzone", sbGyroDeadzone.getProgress() / 100.0f);
+            editor.putBoolean("invert_gyro_x", cbInvertGyroX.isChecked());
+            editor.putBoolean("invert_gyro_y", cbInvertGyroY.isChecked());
+            editor.apply();
+        });
+
+        builder.setNegativeButton("Cancel", null);
+
+        // Show the dialog
+        builder.create().show();
     }
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:icon="@drawable/icon_action_bar_add"
+        android:id="@+id/saves_menu_add"
+        android:title="@string/add_save"
+        app:showAsAction="ifRoom" />
+    <item
+        android:icon="@drawable/icon_action_bar_import"
+        android:id="@+id/saves_menu_import"
+        android:title="@string/import_save"
+        app:showAsAction="ifRoom" />
+</menu>

@@ -2,13 +2,20 @@ package com.winlator;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -27,8 +34,14 @@ import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.navigation.NavigationView;
 import com.winlator.contentdialog.ContentDialog;
+import com.winlator.contentdialog.SaveEditDialog;
+import com.winlator.contentdialog.SaveSettingsDialog;
 import com.winlator.core.Callback;
 import com.winlator.core.PreloaderDialog;
+import com.winlator.container.ContainerManager;
+import com.winlator.saves.CustomFilePickerActivity;
+import com.winlator.saves.Save;
+import com.winlator.saves.SaveManager;
 import com.winlator.xenvironment.ImageFsInstaller;
 
 import java.util.List;
@@ -44,6 +57,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean editInputControls = false;
     private int selectedProfileId;
     private Callback<Uri> openFileCallback;
+    private SharedPreferences sharedPreferences;
+
+    // Add SaveSettingsDialog and SaveEditDialog instances
+    private SaveSettingsDialog saveSettingsDialog;
+    private SaveEditDialog saveEditDialog;
+    private SaveManager saveManager;
+    private ContainerManager containerManager;
+
+    private SaveEditDialog currentSaveEditDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +78,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         setSupportActionBar(findViewById(R.id.Toolbar));
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(R.drawable.icon_action_bar_menu);
+        }
+
+        // Initialize SaveManager and ContainerManager
+        saveManager = new SaveManager(this);
+        containerManager = new ContainerManager(this);
 
         Intent intent = getIntent();
         editInputControls = intent.getBooleanExtra("edit_input_controls", false);
@@ -65,16 +94,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             actionBar.setHomeAsUpIndicator(R.drawable.icon_action_bar_back);
             onNavigationItemSelected(navigationView.getMenu().findItem(R.id.main_menu_input_controls));
             navigationView.setCheckedItem(R.id.main_menu_input_controls);
-        }
-        else {
+        } else {
             int selectedMenuItemId = intent.getIntExtra("selected_menu_item_id", 0);
             int menuItemId = selectedMenuItemId > 0 ? selectedMenuItemId : R.id.main_menu_containers;
 
             actionBar.setHomeAsUpIndicator(R.drawable.icon_action_bar_menu);
             onNavigationItemSelected(navigationView.getMenu().findItem(menuItemId));
             navigationView.setCheckedItem(menuItemId);
-            if (!requestAppPermissions()) ImageFsInstaller.installIfNeeded(this);
+
+            if (!requestAppPermissions()) {
+                ImageFsInstaller.installIfNeeded(this);
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+                showAllFilesAccessDialog();
+            }
         }
+    }
+
+    private void showAllFilesAccessDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("All Files Access Required")
+                .setMessage("In order to grant access to additional storage devices such as USB storage device, the All Files Access permission must be granted. Press Okay to grant All Files Access in your Android Settings.")
+                .setPositiveButton("Okay", (dialog, which) -> {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     @Override
@@ -83,19 +131,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (requestCode == PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 ImageFsInstaller.installIfNeeded(this);
+            } else {
+                finish();
             }
-            else finish();
         }
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == MainActivity.OPEN_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            if (openFileCallback != null) {
-                openFileCallback.call(data.getData());
-                openFileCallback = null;
-            }
+
+        Log.d("WinActivity", "onActivityResult called with requestCode: " + requestCode + " and resultCode: " + resultCode);
+
+        if (saveSettingsDialog != null && saveSettingsDialog.isShowing()) {
+            Log.d("WinActivity", "Forwarding result to SaveSettingsDialog");
+            saveSettingsDialog.onActivityResult(requestCode, resultCode, data);
+        } else if (saveEditDialog != null && saveEditDialog.isShowing()) {
+            Log.d("WinActivity", "Forwarding result to SaveEditDialog");
+            saveEditDialog.onActivityResult(requestCode, resultCode, data);
+        } else {
+            Log.d("WinActivity", "No dialog found for request code: " + requestCode);
+        }
+    }
+
+    private void showSavesFragment() {
+        SavesFragment fragment = new SavesFragment();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.FLFragmentContainer, fragment)
+                .commit();
+    }
+
+    // Method to show SaveEditDialog
+    public void showSaveEditDialog(Save saveToEdit) {
+        saveEditDialog = new SaveEditDialog(this, saveManager, containerManager, saveToEdit);
+        saveEditDialog.show();
+    }
+
+    public void onSaveAdded() {
+        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.FLFragmentContainer);
+        if (currentFragment instanceof SavesFragment) {
+            ((SavesFragment) currentFragment).refreshSavesList();
         }
     }
 
@@ -118,26 +193,60 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private boolean requestAppPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) return false;
+        boolean hasWritePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        boolean hasReadPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        boolean hasManageStoragePermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.R || Environment.isExternalStorageManager();
 
-        String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
-        ActivityCompat.requestPermissions(this, permissions, PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
-        return true;
+        if (hasWritePermission && hasReadPermission && hasManageStoragePermission) {
+            return false; // All permissions are granted
+        }
+
+        if (!hasWritePermission || !hasReadPermission) {
+            String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+            ActivityCompat.requestPermissions(this, permissions, PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
+        }
+
+        return true; // Permissions are still being requested
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
-        if (menuItem.getItemId() == R.id.containers_menu_add) {
+        if (menuItem.getItemId() == android.R.id.home) {
+            // Toggle the drawer
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+            return true;
+        } else if (menuItem.getItemId() == R.id.saves_menu_add) {
+            // Check if we are editing a save
+            Intent intent = getIntent();
+            int editSaveId = intent.getIntExtra("edit_save_id", -1);
+            Save saveToEdit = editSaveId >= 0 ? saveManager.getSaveById(editSaveId) : null;
+
+            // Create and show SaveEditDialog or SaveSettingsDialog as appropriate
+            if (saveToEdit != null) {
+                // Ensure previous dialog is dismissed before showing a new one
+                if (saveEditDialog != null && saveEditDialog.isShowing()) {
+                    saveEditDialog.dismiss();
+                }
+                showSaveEditDialog(saveToEdit); // Use the correct method to show SaveEditDialog
+            } else {
+                saveSettingsDialog = new SaveSettingsDialog(this, saveManager, containerManager);
+                saveSettingsDialog.show();
+            }
+            return true;
+        } else {
             return super.onOptionsItemSelected(menuItem);
         }
-        else {
-            if (editInputControls) {
-                setResult(RESULT_OK);
-                finish();
-            }
-            else drawerLayout.openDrawer(GravityCompat.START);
-            return true;
+    }
+
+    public void toggleDrawer() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            drawerLayout.openDrawer(GravityCompat.START);
         }
     }
 
@@ -158,6 +267,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.main_menu_input_controls:
                 show(new InputControlsFragment(selectedProfileId));
                 break;
+            case R.id.main_menu_saves:
+                show(new SavesFragment());
+                break;
             case R.id.main_menu_settings:
                 show(new SettingsFragment());
                 break;
@@ -171,12 +283,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void show(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
-            .replace(R.id.FLFragmentContainer, fragment)
-            .commit();
+                .replace(R.id.FLFragmentContainer, fragment)
+                .commit();
 
         drawerLayout.closeDrawer(GravityCompat.START);
     }
-
     private void showAboutDialog() {
         ContentDialog dialog = new ContentDialog(this, R.layout.about_dialog);
         dialog.findViewById(R.id.LLBottomBar).setVisibility(View.GONE);
@@ -199,7 +310,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 "DXVK (<a href=\"https://github.com/doitsujin/dxvk\">github.com/doitsujin/dxvk</a>)",
                 "VKD3D (<a href=\"https://gitlab.winehq.org/wine/vkd3d\">gitlab.winehq.org/wine/vkd3d</a>)",
                 "D8VK (<a href=\"https://github.com/AlpyneDreams/d8vk\">github.com/AlpyneDreams/d8vk</a>)",
-                "CNC DDraw (<a href=\"https://github.com/FunkyFr3sh/cnc-ddraw\">github.com/FunkyFr3sh/cnc-ddraw</a>)"
+                "CNC DDraw (<a href=\"https://github.com/FunkyFr3sh/cnc-ddraw\">github.com/FunkyFr3sh/cnc-ddraw</a>)",
+                "-",
+                "Cmod by coffincolors"
             );
 
             TextView tvCreditsAndThirdPartyApps = dialog.findViewById(R.id.TVCreditsAndThirdPartyApps);

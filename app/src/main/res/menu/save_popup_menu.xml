@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Remove the edit option -->
+    <item android:id="@+id/save_edit" android:title="@string/edit" android:icon="@drawable/icon_popup_menu_edit" android:iconTint="@color/colorAccent" />
+    <item android:id="@+id/save_transfer" android:title="@string/transfer" android:icon="@drawable/icon_popup_menu_transfer" android:iconTint="@color/colorAccent" />
+    <item android:id="@+id/save_export" android:title="@string/export" android:icon="@drawable/icon_popup_menu_export" android:iconTint="@color/colorAccent" />
+    <item android:id="@+id/save_share" android:title="@string/share" android:icon="@drawable/icon_popup_menu_share" android:iconTint="@color/colorAccent" />
+    <item android:id="@+id/save_unregister" android:title="@string/unregister" android:icon="@drawable/icon_popup_menu_remove" android:iconTint="@color/colorAccent" />
+</menu>
