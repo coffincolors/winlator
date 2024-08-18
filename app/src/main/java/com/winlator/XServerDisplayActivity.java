@@ -6,6 +6,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -137,6 +141,28 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private ContentsManager contentsManager;
     private boolean navigationFocused = false;
 
+    // Inside the XServerDisplayActivity class
+    private SensorManager sensorManager;
+    private Sensor gyroSensor;
+    private ExternalController controller;
+
+    private final SensorEventListener gyroListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                float gyroX = event.values[0]; // Rotation around the X-axis
+                float gyroY = event.values[1]; // Rotation around the Y-axis
+
+                winHandler.updateGyroData(gyroX, gyroY); // Send gyro data to WinHandler
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            // No action needed
+        }
+    };
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -146,6 +172,19 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         final PreloaderDialog preloaderDialog = new PreloaderDialog(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // Initialize and SensorManager
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+
+        // Get the gyroscope sensor
+        gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+
+        boolean gyroEnabled = preferences.getBoolean("gyro_enabled", true);
+
+        if (gyroEnabled) {
+            // Register the sensor event listener
+            sensorManager.registerListener(gyroListener, gyroSensor, SensorManager.SENSOR_DELAY_GAME);
+        }
 
         contentsManager = new ContentsManager(this);
         contentsManager.syncContents();
@@ -352,6 +391,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     @Override
     public void onResume() {
         super.onResume();
+        boolean gyroEnabled = preferences.getBoolean("gyro_enabled", true);
+
+        if (gyroEnabled) {
+            // Re-register the sensor listener when the activity is resumed
+            sensorManager.registerListener(gyroListener, gyroSensor, SensorManager.SENSOR_DELAY_GAME);
+        }
+
         if (environment != null) {
             xServerView.onResume();
             environment.onResume();
@@ -361,6 +407,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     @Override
     public void onPause() {
         super.onPause();
+        boolean gyroEnabled = preferences.getBoolean("gyro_enabled", true);
+
+        if (gyroEnabled) {
+            // Unregister the sensor listener when the activity is paused
+            sensorManager.unregisterListener(gyroListener);
+        }
+
         if (environment != null) {
             environment.onPause();
             xServerView.onPause();
@@ -369,9 +422,11 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     @Override
     protected void onDestroy() {
-        winHandler.stop();
-        if (environment != null) environment.stopEnvironmentComponents();
         super.onDestroy();
+        // Unregister sensor listener to avoid memory leaks
+        sensorManager.unregisterListener(gyroListener);
+        if (environment != null) environment.stopEnvironmentComponents();
+        winHandler.stop();
     }
 
     @Override

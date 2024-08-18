@@ -66,6 +66,9 @@ import java.util.List;
 import java.util.Locale;
 
 public class ContainerDetailFragment extends Fragment {
+
+    private static final String TAG = "FileUtils";
+
     private ContainerManager manager;
     private ContentsManager contentsManager;
     private final int containerId;
@@ -102,8 +105,17 @@ public class ContainerDetailFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == MainActivity.OPEN_DIRECTORY_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             if (data != null) {
-                String path = FileUtils.getFilePathFromUri(data.getData());
-                if (path != null && openDirectoryCallback != null) openDirectoryCallback.call(path);
+                Uri uri = data.getData();
+                Log.d(TAG, "URI obtained in onActivityResult: " + uri.toString());
+                String path = FileUtils.getFilePathFromUri(getContext(), uri);
+                Log.d(TAG, "File path in onActivityResult: " + path);
+                if (path != null) {
+                    if (openDirectoryCallback != null) {
+                        openDirectoryCallback.call(path);
+                    }
+                } else {
+                    Toast.makeText(getContext(), "Invalid directory selected", Toast.LENGTH_SHORT).show();
+                }
             }
             openDirectoryCallback = null;
         }

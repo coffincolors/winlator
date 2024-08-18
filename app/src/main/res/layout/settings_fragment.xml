@@ -230,6 +230,43 @@
                 android:layout_height="wrap_content">
 
                 <LinearLayout style="@style/FieldSet">
+
+                    <CheckBox
+                        android:id="@+id/CBGyroEnabled"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Enable Right-Stick Gyroscope (Experimental)"
+                        android:layout_marginTop="8dp" />
+
+                    <CheckBox
+                        android:id="@+id/CBProcessGyroWithLeftTrigger"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Process Motion Only When Left Trigger is Held (Requires Axis Trigger Mode)"
+                        android:layout_marginTop="8dp" />
+
+
+                    <Button
+                        android:id="@+id/BTConfigureGyro"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Configure Gyroscope"
+                        android:layout_marginTop="16dp" />
+
+
+                </LinearLayout>
+
+                <TextView
+                    style="@style/FieldSetLabel"
+                    android:text="Gyro Settings" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/FieldSet">
                     <CheckBox
                         android:id="@+id/CBEnableWineDebug"
                         android:layout_width="wrap_content"

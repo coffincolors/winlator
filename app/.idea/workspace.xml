@@ -72,6 +72,11 @@
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/gyro_config_dialog.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/input_controls_dialog.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
@@ -193,31 +198,32 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="Cmod test commit">
-      <change afterPath="$PROJECT_DIR$/src/main/assets/dexopt/baseline.prof" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/dexopt/baseline.profm" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="modified xserverdisplayactivity to handle turnip installations for selections that were added via content manager">
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/gyro_config_dialog.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/.gitattributes" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.1.0.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.1.0.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.2.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.2.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/direct3d.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/direct3d.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directmusic.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/directmusic.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directplay.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/directplay.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directshow.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/directshow.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directsound.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/directsound.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/vcrun2010.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/vcrun2010.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/wmdecoder.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/wmdecoder.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.8.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.8.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.0.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.0.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/container_pattern.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/container_pattern.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/ddraw.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/ddraw.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/d8vk-1.0.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/d8vk-1.0.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.3.1.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.3.1.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4-gplasync.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4-gplasync.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.12.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.12.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.13.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.13.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/virgl-23.1.9.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/virgl-23.1.9.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/zink-22.2.5.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/zink-22.2.5.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/imagefs.txz" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/imagefs.txz" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/imagefs_patches.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/imagefs_patches.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/pulseaudio.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/pulseaudio.tzst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wine_startmenu.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/wine_startmenu.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ContainerDetailFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ContainerDetailFragment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/MainActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/MainActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/SettingsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/SettingsFragment.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/container/ContainerManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/container/ContainerManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/GraphicsDriverConfigDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/GraphicsDriverConfigDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contents/ContentsManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contents/ContentsManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/values/arrays.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/arrays.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/core/FileUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/core/FileUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/winhandler/WinHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/winhandler/WinHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/settings_fragment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/settings_fragment.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -227,7 +233,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=PhysicalDevice, isTemplate=false, identifier=serial=R5CX10LYMLW)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\alexs\.android\avd\Pixel_Fold_API_35.avd)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -282,26 +288,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;Android App.app.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/res/drawable&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;AndroidSdkUpdater&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Android App.app.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/res/layout",
+    "settings.editor.selected.configurable": "AndroidSdkUpdater"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\layout" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\drawable" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\menu" />
-      <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\layout" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="com.winlator.saves" />
@@ -395,7 +401,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723946058964</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="modified xserverdisplayactivity to handle turnip installations for selections that were added via content manager">
+      <option name="closed" value="true" />
+      <created>1724007253311</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1724007253311</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -412,6 +426,7 @@
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Cmod test commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="Cmod test commit" />
+    <MESSAGE value="modified xserverdisplayactivity to handle turnip installations for selections that were added via content manager" />
+    <option name="LAST_COMMIT_MESSAGE" value="modified xserverdisplayactivity to handle turnip installations for selections that were added via content manager" />
   </component>
 </project>

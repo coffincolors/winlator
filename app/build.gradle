@@ -23,7 +23,7 @@ android {
         minSdkVersion 26
         targetSdkVersion 28
         versionCode 18
-        versionName "7.1.2-glibc"
+        versionName "7.1.2-glibc+cmod-v5"
     }
 
     buildTypes {

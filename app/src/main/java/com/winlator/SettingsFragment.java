@@ -1,6 +1,7 @@
 package com.winlator;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -71,6 +73,14 @@ public class SettingsFragment extends Fragment {
     // Disable or enable Touchscreen Input Mode
     private CheckBox cbXTouchscreenToggle;
 
+    private CheckBox cbGyroEnabled;
+    private SeekBar sbGyroXSensitivity;
+    private SeekBar sbGyroYSensitivity;
+    private SeekBar sbGyroSmoothing;
+    private SeekBar sbGyroDeadzone;
+    private CheckBox cbInvertGyroX;
+    private CheckBox cbInvertGyroY;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -82,6 +92,10 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        Button btnConfigureGyro = view.findViewById(R.id.BTConfigureGyro);
+        btnConfigureGyro.setOnClickListener(v -> showGyroConfigDialog());
+
         ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(R.string.settings);
     }
 
@@ -116,6 +130,13 @@ public class SettingsFragment extends Fragment {
         // Initialize the Touchscreen mode toggle
         cbXTouchscreenToggle = view.findViewById(R.id.CBXTouchscreenToggle);
         cbXTouchscreenToggle.setChecked(preferences.getBoolean("touchscreen_toggle", false));
+
+        // Initialize gyro enable checkbox
+        cbGyroEnabled = view.findViewById(R.id.CBGyroEnabled);
+        cbGyroEnabled.setChecked(preferences.getBoolean("gyro_enabled", false));
+
+        CheckBox cbProcessGyroWithLeftTrigger = view.findViewById(R.id.CBProcessGyroWithLeftTrigger);
+        cbProcessGyroWithLeftTrigger.setChecked(preferences.getBoolean("process_gyro_with_left_trigger", false));
 
         final Spinner sBox86Version = view.findViewById(R.id.SBox86Version);
         String box86Version = preferences.getString("box86_version", DefaultVersion.BOX86);
@@ -208,6 +229,10 @@ public class SettingsFragment extends Fragment {
             editor.putBoolean("xinput_toggle", cbXinputToggle.isChecked()); // Save xinput toggle state
             editor.putBoolean("touchscreen_toggle", cbXTouchscreenToggle.isChecked()); // Save touchscreen toggle state
             editor.putBoolean("enable_file_provider", cbEnableFileProvider.isChecked());
+
+            // Save gyro settings
+            editor.putBoolean("gyro_enabled", cbGyroEnabled.isChecked());
+            editor.putBoolean("process_gyro_with_left_trigger", cbProcessGyroWithLeftTrigger.isChecked());
 
             if (!wineDebugChannels.isEmpty()) {
                 editor.putString("wine_debug_channels", String.join(",", wineDebugChannels));
@@ -474,5 +499,108 @@ public class SettingsFragment extends Fragment {
             itemList.add(entryName.substring(firstDashIndex + 1));
         }
         spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, itemList));
+    }
+
+    private void showGyroConfigDialog() {
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.gyro_config_dialog, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setView(dialogView);
+        builder.setTitle("Gyroscope Configuration");
+
+        // Initialize dialog UI elements
+        sbGyroXSensitivity = dialogView.findViewById(R.id.SBGyroXSensitivity);
+        sbGyroYSensitivity = dialogView.findViewById(R.id.SBGyroYSensitivity);
+        sbGyroSmoothing = dialogView.findViewById(R.id.SBGyroSmoothing);
+        sbGyroDeadzone = dialogView.findViewById(R.id.SBGyroDeadzone);
+        cbInvertGyroX = dialogView.findViewById(R.id.CBInvertGyroX);
+        cbInvertGyroY = dialogView.findViewById(R.id.CBInvertGyroY);
+        TextView tvGyroXSensitivity = dialogView.findViewById(R.id.TVGyroXSensitivity);
+        TextView tvGyroYSensitivity = dialogView.findViewById(R.id.TVGyroYSensitivity);
+        TextView tvGyroSmoothing = dialogView.findViewById(R.id.TVGyroSmoothing);
+        TextView tvGyroDeadzone = dialogView.findViewById(R.id.TVGyroDeadzone);
+
+        // Load current preferences
+        sbGyroXSensitivity.setProgress((int) (preferences.getFloat("gyro_x_sensitivity", 1.0f) * 100));
+        sbGyroYSensitivity.setProgress((int) (preferences.getFloat("gyro_y_sensitivity", 1.0f) * 100));
+        sbGyroSmoothing.setProgress((int) (preferences.getFloat("gyro_smoothing", 0.9f) * 100));
+        sbGyroDeadzone.setProgress((int) (preferences.getFloat("gyro_deadzone", 0.05f) * 100));
+        cbInvertGyroX.setChecked(preferences.getBoolean("invert_gyro_x", false));
+        cbInvertGyroY.setChecked(preferences.getBoolean("invert_gyro_y", false));
+
+        // Update text views for SeekBars
+        tvGyroXSensitivity.setText("X Sensitivity: " + sbGyroXSensitivity.getProgress() + "%");
+        tvGyroYSensitivity.setText("Y Sensitivity: " + sbGyroYSensitivity.getProgress() + "%");
+        tvGyroSmoothing.setText("Smoothing: " + sbGyroSmoothing.getProgress() + "%");
+        tvGyroDeadzone.setText("Deadzone: " + sbGyroDeadzone.getProgress() + "%");
+
+        // Listeners for SeekBars
+        sbGyroXSensitivity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvGyroXSensitivity.setText("X Sensitivity: " + progress + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        sbGyroYSensitivity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvGyroYSensitivity.setText("Y Sensitivity: " + progress + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        sbGyroSmoothing.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvGyroSmoothing.setText("Smoothing: " + progress + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        sbGyroDeadzone.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvGyroDeadzone.setText("Deadzone: " + progress + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // Set up the dialog buttons
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putFloat("gyro_x_sensitivity", sbGyroXSensitivity.getProgress() / 100.0f);
+            editor.putFloat("gyro_y_sensitivity", sbGyroYSensitivity.getProgress() / 100.0f);
+            editor.putFloat("gyro_smoothing", sbGyroSmoothing.getProgress() / 100.0f);
+            editor.putFloat("gyro_deadzone", sbGyroDeadzone.getProgress() / 100.0f);
+            editor.putBoolean("invert_gyro_x", cbInvertGyroX.isChecked());
+            editor.putBoolean("invert_gyro_y", cbInvertGyroY.isChecked());
+            editor.apply();
+        });
+
+        builder.setNegativeButton("Cancel", null);
+
+        // Show the dialog
+        builder.create().show();
     }
 }
