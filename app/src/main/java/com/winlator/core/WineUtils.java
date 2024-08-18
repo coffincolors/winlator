@@ -179,11 +179,9 @@ public abstract class WineUtils {
         final String[] xinputLibs = {"dinput", "dinput8", "xinput1_1", "xinput1_2", "xinput1_3", "xinput1_4", "xinput9_1_0", "xinputuap"};
         final String dllOverridesKey = "Software\\Wine\\DllOverrides";
 
-        boolean isMainWineVersion = WineInfo.isMainWineVersion(wineInfo.identifier());
-
         try (WineRegistryEditor registryEditor = new WineRegistryEditor(userRegFile)) {
             for (String name : direct3dLibs) registryEditor.setStringValue(dllOverridesKey, name, "native,builtin");
-            for (String name : xinputLibs) registryEditor.setStringValue(dllOverridesKey, name, isMainWineVersion ? "builtin,native" : "native,builtin");
+            for (String name : xinputLibs) registryEditor.setStringValue(dllOverridesKey, name, "builtin,native");
 
             registryEditor.removeKey("Software\\Winlator\\WFM\\ContextMenu\\7-Zip");
             registryEditor.setStringValue("Software\\Winlator\\WFM\\ContextMenu\\7-Zip", "Open Archive", "Z:\\opt\\apps\\7-Zip\\7zFM.exe \"%FILE%\"");

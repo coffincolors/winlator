@@ -18,6 +18,9 @@
         android:layout_gravity="start"
         android:id="@+id/NavigationView"
         android:background="#ffffff"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:pointerIcon="arrow"
         app:headerLayout="@layout/main_menu_header"
         app:itemIconTint="@color/colorAccent"
         app:menu="@menu/xserver_menu"/>

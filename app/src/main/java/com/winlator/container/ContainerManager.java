@@ -4,6 +4,8 @@ import android.content.Context;
 import android.os.Handler;
 
 import com.winlator.R;
+import com.winlator.contents.ContentProfile;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.Callback;
 import com.winlator.core.FileUtils;
 import com.winlator.core.OnExtractFileListener;
@@ -59,7 +61,7 @@ public class ContainerManager {
                 }
             }
         }
-        catch (JSONException e) {}
+        catch (JSONException | NullPointerException e) {}
     }
 
     public void activateContainer(Container container) {
@@ -144,7 +146,7 @@ public class ContainerManager {
 
         Container dstContainer = new Container(id, this);
         dstContainer.setRootDir(dstDir);
-        dstContainer.setName(srcContainer.getName()+" ("+context.getString(R.string.copy)+")");
+        dstContainer.setName(srcContainer.getName()+" ("+context.getString(R.string._copy)+")");
         dstContainer.setScreenSize(srcContainer.getScreenSize());
         dstContainer.setEnvVars(srcContainer.getEnvVars());
         dstContainer.setCPUList(srcContainer.getCPUList());
@@ -161,6 +163,8 @@ public class ContainerManager {
         dstContainer.setBox86Preset(srcContainer.getBox86Preset());
         dstContainer.setBox64Preset(srcContainer.getBox64Preset());
         dstContainer.setDesktopTheme(srcContainer.getDesktopTheme());
+        dstContainer.setRcfileId(srcContainer.getRCFileId());
+        dstContainer.setWineVersion(srcContainer.getWineVersion());
         dstContainer.saveData();
 
         maxContainerId++;
@@ -229,11 +233,23 @@ public class ContainerManager {
             return result;
         }
         else {
-            File installedWineDir = ImageFs.find(context).getInstalledWineDir();
-            WineInfo wineInfo = WineInfo.fromIdentifier(context, wineVersion);
-            String suffix = wineInfo.fullVersion()+"-"+wineInfo.getArch();
-            File file = new File(installedWineDir, "container-pattern-"+suffix+".tzst");
-            return TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, file, containerDir, onExtractFileListener);
+//            File installedWineDir = ImageFs.find(context).getInstalledWineDir();
+//            WineInfo wineInfo = WineInfo.fromIdentifier(context, wineVersion);
+//            String suffix = wineInfo.fullVersion()+"-"+wineInfo.getArch();
+//            File file = new File(installedWineDir, "container-pattern-"+suffix+".tzst");
+//            return TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, file, containerDir, onExtractFileListener);
+            ContentsManager contentsManager = new ContentsManager(context);
+            contentsManager.syncContents();
+            ContentProfile profile = contentsManager.getProfileByEntryName(wineVersion);
+            if (profile == null)
+                return false;
+            File file = ContentsManager.getSourceFile(context, profile, profile.winePrefixPack);
+            String suffix = FileUtils.getFileSuffix(file);
+            if (suffix.equals("xz") || suffix.equals("txz"))
+                return TarCompressorUtils.extract(TarCompressorUtils.Type.XZ, file, containerDir, onExtractFileListener);
+            else if (suffix.equals("zst") || suffix.equals("tzst"))
+                return TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, file, containerDir, onExtractFileListener);
+            return false;
         }
     }
 

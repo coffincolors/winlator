@@ -1,5 +1,6 @@
 package com.winlator.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -7,10 +8,12 @@ import android.graphics.drawable.StateListDrawable;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.MotionEvent;
+import android.view.PointerIcon;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.winlator.R;
 import com.winlator.core.AppUtils;
 import com.winlator.math.Mathf;
 import com.winlator.math.XForm;
@@ -43,12 +46,20 @@ public class TouchpadView extends View {
     private final XServer xServer;
     private Runnable fourFingersTapCallback;
     private final float[] xform = XForm.getInstance();
+    private boolean simTouchScreen = false;
+    private boolean continueClick = true;
+    private int lastTouchedPosX;
+    private int lastTouchedPosY;
+    private static final Byte CLICK_DELAYED_TIME = 50;
+    private static final Byte EFFECTIVE_TOUCH_DISTANCE = 20;
+    private float resolutionScale;
 
     private SharedPreferences preferences;
 
 
     // Flag to control touchpad vs touchscreen mode
 
+    @SuppressLint("ResourceType")
     public TouchpadView(Context context, XServer xServer) {
         super(context);
         this.xServer = xServer;
@@ -57,6 +68,7 @@ public class TouchpadView extends View {
         setClickable(true);
         setFocusable(true);
         setFocusableInTouchMode(false);
+        setPointerIcon(PointerIcon.load(getResources(), R.drawable.hidden_pointer_arrow));
         updateXform(AppUtils.getScreenWidth(), AppUtils.getScreenHeight(), xServer.screenInfo.width, xServer.screenInfo.height);
         // Initialize SharedPreferences here
         this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -78,6 +90,7 @@ public class TouchpadView extends View {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         updateXform(w, h, xServer.screenInfo.width, xServer.screenInfo.height);
+        resolutionScale = 1000.0f / Math.min(xServer.screenInfo.width, xServer.screenInfo.height);
     }
 
     private void updateXform(int outerWidth, int outerHeight, int innerWidth, int innerHeight) {
@@ -237,6 +250,24 @@ public class TouchpadView extends View {
                 scrolling = false;
                 fingers[pointerId] = new Finger(event.getX(actionIndex), event.getY(actionIndex));
                 numFingers++;
+                if (simTouchScreen) {
+                    final Runnable clickDelay = () -> {
+                        if (continueClick) {
+                            xServer.injectPointerMove(lastTouchedPosX, lastTouchedPosY);
+                            xServer.injectPointerButtonPress(Pointer.Button.BUTTON_LEFT);
+                        }
+                    };
+                    if (pointerId == 0) {
+                        continueClick = true;
+                        if (Math.hypot(fingers[0].x - lastTouchedPosX, fingers[0].y - lastTouchedPosY) * resolutionScale > EFFECTIVE_TOUCH_DISTANCE) {
+                            lastTouchedPosX = fingers[0].x;
+                            lastTouchedPosY = fingers[0].y;
+                        }
+                        postDelayed(clickDelay, CLICK_DELAYED_TIME);
+                    } else if (pointerId == 1) {
+                        continueClick = System.currentTimeMillis() - fingers[0].touchTime > CLICK_DELAYED_TIME;
+                    }
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (event.isFromSource(InputDevice.SOURCE_MOUSE)) {
@@ -351,7 +382,14 @@ public class TouchpadView extends View {
     private void handleFingerUp(Finger finger1) {
         switch (numFingers) {
             case 1:
-                if (finger1.isTap()) pressPointerButtonLeft(finger1);
+                if (simTouchScreen) {
+                    final Runnable clickDelay = () -> {
+                        if (continueClick)
+                            xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
+                    };
+                    postDelayed(clickDelay, CLICK_DELAYED_TIME);
+                }
+                else if (finger1.isTap()) pressPointerButtonLeft(finger1);
                 break;
             case 2:
                 Finger finger2 = findSecondFinger(finger1);
@@ -405,7 +443,11 @@ public class TouchpadView extends View {
             int dx = finger1.deltaX();
             int dy = finger1.deltaY();
 
-            if (xServer.isRelativeMouseMovement()) {
+            if (simTouchScreen) {
+                if (System.currentTimeMillis() - finger1.touchTime > CLICK_DELAYED_TIME)
+                    xServer.injectPointerMove(finger1.x, finger1.y);
+            }
+            else if (xServer.isRelativeMouseMovement()) {
                 WinHandler winHandler = xServer.getWinHandler();
                 winHandler.mouseEvent(MouseEventFlags.MOVE, dx, dy, 0);
             }
@@ -547,5 +589,13 @@ public class TouchpadView extends View {
         stateListDrawable.addState(new int[]{}, defaultDrawable);
 
         return stateListDrawable;
+    }
+
+    public void setSimTouchScreen(boolean simTouchScreen) {
+        this.simTouchScreen = simTouchScreen;
+    }
+
+    public boolean isSimTouchScreen() {
+        return simTouchScreen;
     }
 }

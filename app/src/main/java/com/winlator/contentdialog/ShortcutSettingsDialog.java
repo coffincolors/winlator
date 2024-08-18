@@ -1,6 +1,7 @@
 package com.winlator.contentdialog;
 
 import android.content.Context;
+import android.graphics.drawable.Icon;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -13,7 +14,9 @@ import com.winlator.ContainerDetailFragment;
 import com.winlator.R;
 import com.winlator.ShortcutsFragment;
 import com.winlator.box86_64.Box86_64PresetManager;
+import com.winlator.box86_64.rc.RCManager;
 import com.winlator.container.Shortcut;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.AppUtils;
 import com.winlator.core.EnvVars;
 import com.winlator.core.StringUtils;
@@ -58,6 +61,10 @@ public class ShortcutSettingsDialog extends ContentDialog {
         final Spinner sGraphicsDriver = findViewById(R.id.SGraphicsDriver);
         final Spinner sDXWrapper = findViewById(R.id.SDXWrapper);
 
+        ContentsManager contentsManager = new ContentsManager(context);
+        contentsManager.syncContents();
+        ContainerDetailFragment.updateGraphicsDriverSpinner(context, contentsManager, sGraphicsDriver);
+
         final View vDXWrapperConfig = findViewById(R.id.BTDXWrapperConfig);
         vDXWrapperConfig.setTag(shortcut.getExtra("dxwrapperConfig", shortcut.container.getDXWrapperConfig()));
 
@@ -86,11 +93,22 @@ public class ShortcutSettingsDialog extends ContentDialog {
         final Spinner sBox64Preset = findViewById(R.id.SBox64Preset);
         Box86_64PresetManager.loadSpinner("box64", sBox64Preset, shortcut.getExtra("box64Preset", shortcut.container.getBox64Preset()));
 
+        final Spinner sRCFile = findViewById(R.id.SRCFile);
+        final int[] rcfileIds = {0};
+        RCManager manager = new RCManager(context);
+        String rcfileId = shortcut.getExtra("rcfileId", String.valueOf(shortcut.container.getRCFileId()));
+        RCManager.loadRCFileSpinner(manager, Integer.parseInt(rcfileId), sRCFile, id -> {
+            rcfileIds[0] = id;
+        });
+
         final Spinner sControlsProfile = findViewById(R.id.SControlsProfile);
         loadControlsProfileSpinner(sControlsProfile, shortcut.getExtra("controlsProfile", "0"));
 
         final Spinner sDInputMapperType = findViewById(R.id.SDInputMapperType);
         sDInputMapperType.setSelection(Byte.parseByte(shortcut.getExtra("dinputMapperType", String.valueOf(WinHandler.DINPUT_MAPPER_TYPE_XINPUT))));
+
+        final CheckBox cbSimulateTouchScreen = findViewById(R.id.CBSimulateTouchScreen);
+        cbSimulateTouchScreen.setChecked(shortcut.getExtra("simTouchScreen", "0").equals("1"));
 
         ContainerDetailFragment.createWinComponentsTab(getContentView(), shortcut.getExtra("wincomponents", shortcut.container.getWinComponents()));
         final EnvVarsView envVarsView = createEnvVarsTab();
@@ -142,11 +160,14 @@ public class ShortcutSettingsDialog extends ContentDialog {
                 shortcut.putExtra("box86Preset", !box86Preset.equals(shortcut.container.getBox86Preset()) ? box86Preset : null);
                 shortcut.putExtra("box64Preset", !box64Preset.equals(shortcut.container.getBox64Preset()) ? box64Preset : null);
 
+                shortcut.putExtra("rcfileId", rcfileIds[0] != shortcut.container.getRCFileId() ? Integer.toString(rcfileIds[0]) : null);
+
                 int dinputMapperType = sDInputMapperType.getSelectedItemPosition();
                 ArrayList<ControlsProfile> profiles = inputControlsManager.getProfiles(true);
                 int controlsProfile = sControlsProfile.getSelectedItemPosition() > 0 ? profiles.get(sControlsProfile.getSelectedItemPosition()-1).id : 0;
                 shortcut.putExtra("controlsProfile", controlsProfile > 0 ? String.valueOf(controlsProfile) : null);
                 shortcut.putExtra("dinputMapperType", dinputMapperType != WinHandler.DINPUT_MAPPER_TYPE_XINPUT ? String.valueOf(dinputMapperType) : null);
+                shortcut.putExtra("simTouchScreen", cbSimulateTouchScreen.isChecked() ? "1" : "0");
                 shortcut.saveData();
             }
         });
@@ -154,15 +175,17 @@ public class ShortcutSettingsDialog extends ContentDialog {
 
     private void renameShortcut(String newName) {
         File parent = shortcut.file.getParentFile();
-        File newFile = new File(parent, newName+".desktop");
-        if (!newFile.isFile()) shortcut.file.renameTo(newFile);
+        File newDesktopFile = new File(parent, newName+".desktop");
+        if (!newDesktopFile.isFile()) shortcut.file.renameTo(newDesktopFile);
 
         File linkFile = new File(parent, shortcut.name+".lnk");
         if (linkFile.isFile()) {
-            newFile = new File(parent, newName+".lnk");
-            if (!newFile.isFile()) linkFile.renameTo(newFile);
+            File newLinkFile = new File(parent, newName+".lnk");
+            if (!newLinkFile.isFile()) linkFile.renameTo(newLinkFile);
         }
         fragment.loadShortcutsList();
+        fragment.updateShortcutOnScreen(newName, newName, shortcut.container.id, newDesktopFile.getAbsolutePath(),
+                Icon.createWithBitmap(shortcut.icon), shortcut.getExtra("uuid"));
     }
 
     private EnvVarsView createEnvVarsTab() {

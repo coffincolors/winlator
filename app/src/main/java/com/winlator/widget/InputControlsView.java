@@ -1,5 +1,6 @@
 package com.winlator.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,10 +15,12 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.PointerIcon;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.winlator.R;
 import com.winlator.inputcontrols.Binding;
 import com.winlator.inputcontrols.ControlElement;
 import com.winlator.inputcontrols.ControlsProfile;
@@ -56,12 +59,14 @@ public class InputControlsView extends View {
     private final PointF mouseMoveOffset = new PointF();
     private boolean showTouchscreenControls = true;
 
+    @SuppressLint("ResourceType")
     public InputControlsView(Context context) {
         super(context);
         setClickable(true);
         setFocusable(true);
         setFocusableInTouchMode(true);
         setBackgroundColor(0x00000000);
+        setPointerIcon(PointerIcon.load(getResources(), R.drawable.hidden_pointer_arrow));
         setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
     }
 

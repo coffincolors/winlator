@@ -2,6 +2,7 @@ package com.winlator.core;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
@@ -358,6 +359,39 @@ public abstract class FileUtils {
             return Files.readSymbolicLink(file.toPath()).toString();
         }
         catch (IOException e) {
+            return "";
+        }
+    }
+
+    public static String readAssetsFile(Context context, String fileName) {
+        try {
+            String l;
+            AssetManager assetManager = context.getAssets();
+            InputStream is = assetManager.open(fileName);
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder();
+
+            while ((l = reader.readLine()) != null) {
+                sb.append(l);
+            }
+
+            reader.close();
+            return sb.toString();
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public static String getFileSuffix(File file) {
+        return getFileSuffix(file.getAbsolutePath());
+    }
+
+    public static String getFileSuffix(String path) {
+        try {
+            int lastDotIndex = path.lastIndexOf('.');
+            return path.substring(lastDotIndex + 1);
+        } catch (Exception e) {
             return "";
         }
     }

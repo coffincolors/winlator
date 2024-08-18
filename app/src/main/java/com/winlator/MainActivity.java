@@ -131,9 +131,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (requestCode == PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 ImageFsInstaller.installIfNeeded(this);
-            } else {
-                finish();
             }
+            else finish();
         }
     }
 
@@ -185,7 +184,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
 
-        show(new ContainersFragment());
+        if (fragmentManager.getBackStackEntryCount() > 0)
+            fragmentManager.popBackStack();
+        else
+            show(new ContainersFragment());
     }
 
     public void setOpenFileCallback(Callback<Uri> openFileCallback) {
@@ -267,6 +269,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.main_menu_input_controls:
                 show(new InputControlsFragment(selectedProfileId));
                 break;
+            case R.id.main_menu_box_rc:
+                show(new Box86_64RCFragment());
+                break;
+            case R.id.main_menu_contents:
+                show(new ContentsFragment());
+                break;
             case R.id.main_menu_saves:
                 show(new SavesFragment());
                 break;
@@ -326,6 +334,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
+        catch (PackageManager.NameNotFoundException e) {}
 
         dialog.show();
     }

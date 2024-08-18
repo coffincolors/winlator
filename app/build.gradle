@@ -9,21 +9,19 @@ buildscript {
 }
 
 apply plugin: 'com.android.application'
+plugins {
+    alias(libs.plugins.android.application)
+}
 
 android {
-    namespace 'com.winlator'
-    compileSdk 31
+    compileSdk 30
 
     defaultConfig {
         applicationId 'com.winlator'
         minSdkVersion 26
         targetSdkVersion 28
-        versionCode 16
-        versionName "7.1.1-glibcmod"
-
-        ndk {
-            abiFilters 'arm64-v8a', 'armeabi-v7a'
-        }
+        versionCode 18
+        versionName "7.1.2-glibc"
     }
 
     buildTypes {
@@ -37,7 +35,10 @@ android {
         checkReleaseBuilds false
     }
 
-    ndkVersion '22.1.7171670'
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
 
     externalNativeBuild {
         cmake {
@@ -45,14 +46,18 @@ android {
             path 'src/main/cpp/CMakeLists.txt'
         }
     }
-
-    repositories {
-        google()
-        mavenCentral()
-    }
 }
 
 dependencies {
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.preference
+    implementation libs.xz
+    implementation libs.commons.compress
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+    implementation(libs.zstd.jni) { artifact { type = 'aar' } }
     implementation 'androidx.appcompat:appcompat:1.4.0'
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'com.google.android.material:material:1.4.0'

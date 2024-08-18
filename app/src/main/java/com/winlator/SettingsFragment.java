@@ -34,6 +34,8 @@ import com.winlator.box86_64.Box86_64PresetManager;
 import com.winlator.container.Container;
 import com.winlator.container.ContainerManager;
 import com.winlator.contentdialog.ContentDialog;
+import com.winlator.contents.ContentProfile;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.AppUtils;
 import com.winlator.core.ArrayUtils;
 import com.winlator.core.Callback;
@@ -45,6 +47,7 @@ import com.winlator.core.WineInfo;
 import com.winlator.core.WineUtils;
 import com.winlator.inputcontrols.ExternalController;
 import com.winlator.xenvironment.ImageFs;
+import com.winlator.xenvironment.ImageFsInstaller;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -122,6 +125,11 @@ public class SettingsFragment extends Fragment {
 
         final Spinner sBox64Version = view.findViewById(R.id.SBox64Version);
         String box64Version = preferences.getString("box64_version", DefaultVersion.BOX64);
+
+        ContentsManager contentsManager = new ContentsManager(context);
+        contentsManager.syncContents();
+        loadBox64VersionSpinner(context, contentsManager, sBox64Version);
+
         if (!AppUtils.setSpinnerSelectionFromIdentifier(sBox64Version, box64Version)) {
             AppUtils.setSpinnerSelectionFromIdentifier(sBox64Version, DefaultVersion.BOX64);
         }
@@ -170,10 +178,18 @@ public class SettingsFragment extends Fragment {
         cbUseGlibc.setChecked(preferences.getBoolean("use_glibc", true));
         cbUseGlibc.setEnabled(false);
 
+        final CheckBox cbEnableFileProvider = view.findViewById(R.id.CBEnableFileProvider);
+        cbEnableFileProvider.setChecked(preferences.getBoolean("enable_file_provider", false));
+        cbEnableFileProvider.setOnClickListener(v -> AppUtils.showToast(context, R.string.take_effect_next_startup));
+
         loadInstalledWineList(view);
 
         view.findViewById(R.id.BTSelectWineFile).setOnClickListener((v) -> {
             ContentDialog.alert(context, R.string.msg_warning_install_wine, this::selectWineFileForInstall);
+        });
+
+        view.findViewById(R.id.BTReInstallImagefs).setOnClickListener(v -> {
+            ContentDialog.confirm(context, R.string.do_you_want_to_reinstall_imagefs, () -> ImageFsInstaller.installFromAssets((MainActivity) getActivity()));
         });
 
         view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
@@ -191,12 +207,14 @@ public class SettingsFragment extends Fragment {
             editor.putBoolean("cursor_lock", cbCursorLock.isChecked()); // Save cursor lock state
             editor.putBoolean("xinput_toggle", cbXinputToggle.isChecked()); // Save xinput toggle state
             editor.putBoolean("touchscreen_toggle", cbXTouchscreenToggle.isChecked()); // Save touchscreen toggle state
+            editor.putBoolean("enable_file_provider", cbEnableFileProvider.isChecked());
 
             if (!wineDebugChannels.isEmpty()) {
                 editor.putString("wine_debug_channels", String.join(",", wineDebugChannels));
             } else if (preferences.contains("wine_debug_channels")) {
                 editor.remove("wine_debug_channels");
             }
+            else if (preferences.contains("wine_debug_channels")) editor.remove("wine_debug_channels");
 
             if (editor.commit()) {
                 NavigationView navigationView = getActivity().findViewById(R.id.NavigationView);
@@ -445,5 +463,16 @@ public class SettingsFragment extends Fragment {
         editor.remove("current_box86_version");
         editor.remove("current_box64_version");
         editor.apply();
+    }
+
+    public static void loadBox64VersionSpinner(Context context, ContentsManager manager, Spinner spinner) {
+        String[] originalItems = context.getResources().getStringArray(R.array.box64_version_entries);
+        List<String> itemList = new ArrayList<>(Arrays.asList(originalItems));
+        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_BOX64)) {
+            String entryName = ContentsManager.getEntryName(profile);
+            int firstDashIndex = entryName.indexOf('-');
+            itemList.add(entryName.substring(firstDashIndex + 1));
+        }
+        spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, itemList));
     }
 }

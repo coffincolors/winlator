@@ -23,7 +23,7 @@
             android:id="@+id/LLAsync"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <TextView
@@ -33,11 +33,13 @@
                 android:layout_weight="1"
                 android:text="@string/enabled_async" />
 
-            <androidx.appcompat.widget.SwitchCompat
+            <ToggleButton
                 android:id="@+id/SWAsync"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center" />
+                android:layout_width="64dp"
+                android:layout_height="32dp"
+                android:background="@drawable/toggle_button_selector"
+                android:textOn=""
+                android:textOff="" />
 
         </LinearLayout>
 
@@ -45,8 +47,8 @@
             android:id="@+id/LLAsyncCache"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="2dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:orientation="horizontal">
 
             <TextView
@@ -56,11 +58,13 @@
                 android:layout_weight="1"
                 android:text="@string/enabled_async_cache" />
 
-            <androidx.appcompat.widget.SwitchCompat
+            <ToggleButton
                 android:id="@+id/SWAsyncCache"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center" />
+                android:layout_width="64dp"
+                android:layout_height="32dp"
+                android:background="@drawable/toggle_button_selector"
+                android:textOn=""
+                android:textOff="" />
 
         </LinearLayout>
 
