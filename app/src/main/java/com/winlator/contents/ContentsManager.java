@@ -1,7 +1,9 @@
 package com.winlator.contents;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -32,6 +34,8 @@ public class ContentsManager {
     public static final String[] BOX64_TRUST_FILES = {"${localbin}/box64"};
     private Map<String, String> dirTemplateMap;
     private Map<ContentProfile.ContentType, List<String>> trustedFilesMap;
+
+    private SharedPreferences preferences;
 
     public enum InstallFailedReason {
         ERROR_NOSPACE,
@@ -72,7 +76,36 @@ public class ContentsManager {
 
     public ContentsManager(Context context) {
         this.context = context;
+        this.preferences = context.getSharedPreferences("contents_manager_prefs", Context.MODE_PRIVATE);
     }
+
+    // Method to check if the graphics driver is installed
+    public boolean isGraphicsDriverInstalled() {
+        List<ContentProfile> profiles = profilesMap.get(ContentProfile.ContentType.CONTENT_TYPE_TURNIP);
+        if (profiles != null && !profiles.isEmpty()) {
+            Log.d("ContentsManager", "A turnip driver is installed.");
+            return true;
+        }
+
+        Log.d("ContentsManager", "No turnip driver is installed.");
+        return false;
+    }
+
+
+    // Method to mark the graphics driver as installed
+    public void setGraphicsDriverInstalled(String driverVersion, boolean installed) {
+        preferences.edit().putBoolean("graphics_driver_installed_" + driverVersion, installed).apply();
+    }
+
+    // Call this method after the content installation is successful
+    public void markGraphicsDriverInstalled(String driverVersion) {
+        // Normalize the version string by stripping out the "Turnip-" prefix if it exists
+        if (driverVersion.startsWith("Turnip-")) {
+            driverVersion = driverVersion.replace("Turnip-", "");
+        }
+        setGraphicsDriverInstalled(driverVersion, true);
+    }
+
 
     public interface OnInstallFinishedCallback {
         void onFailed(InstallFailedReason reason, Exception e);

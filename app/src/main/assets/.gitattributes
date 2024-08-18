@@ -1,2 +1,0 @@
-*.txz filter=lfs diff=lfs merge=lfs -text
-*.tzst filter=lfs diff=lfs merge=lfs -text

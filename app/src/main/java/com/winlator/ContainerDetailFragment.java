@@ -139,7 +139,7 @@ public class ContainerDetailFragment extends Fragment {
             etName.setText(getString(R.string.container) + "-" + manager.getNextContainerId());
 //            graphicsDriverVersion = DefaultVersion.TURNIP;  // Default to the latest Turnip version for new containers
         }
-        else etName.setText(getString(R.string.container)+"-"+manager.getNextContainerId());
+
 
         final ArrayList<WineInfo> wineInfos = WineUtils.getInstalledWineInfos(context);
         final Spinner sWineVersion = view.findViewById(R.id.SWineVersion);
@@ -492,7 +492,9 @@ public class ContainerDetailFragment extends Fragment {
     // New method: Adds support for the GraphicsDriverConfigDialog
     public void loadGraphicsDriverSpinner(final Spinner sGraphicsDriver, final Spinner sDXWrapper, final View vGraphicsDriverConfig, String selectedGraphicsDriver, String selectedDXWrapper) {
         final Context context = sGraphicsDriver.getContext();
-        final String[] dxwrapperEntries = context.getResources().getStringArray(R.array.dxwrapper_entries);
+
+        // Update the spinner with the available graphics driver options
+        updateGraphicsDriverSpinner(context, contentsManager, sGraphicsDriver);
 
         Runnable update = () -> {
             String graphicsDriver = StringUtils.parseIdentifier(sGraphicsDriver.getSelectedItem());
@@ -500,7 +502,7 @@ public class ContainerDetailFragment extends Fragment {
 
             // Update the DXWrapper spinner
             ArrayList<String> items = new ArrayList<>();
-            for (String value : dxwrapperEntries) {
+            for (String value : context.getResources().getStringArray(R.array.dxwrapper_entries)) {
                 if (isTurnip || (!value.equals("DXVK") && !value.equals("VKD3D"))) {
                     items.add(value);
                 }
@@ -508,18 +510,12 @@ public class ContainerDetailFragment extends Fragment {
             sDXWrapper.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, items.toArray(new String[0])));
             AppUtils.setSpinnerSelectionFromIdentifier(sDXWrapper, selectedDXWrapper);
 
-            // Update the gear icon for the graphics driver
+            // Show or hide the graphics driver configuration button
             if (isTurnip) {
-                vGraphicsDriverConfig.setOnClickListener((v) -> {
-                    if (container != null) {
-                        showGraphicsDriverConfigDialog(vGraphicsDriverConfig);
-                    } else {
-                        Toast.makeText(context, "Please save this container before attempting to change the driver version", Toast.LENGTH_LONG).show();
-                    }
-                });
+                vGraphicsDriverConfig.setOnClickListener((v) -> showGraphicsDriverConfigDialog(vGraphicsDriverConfig));
                 vGraphicsDriverConfig.setVisibility(View.VISIBLE);
             } else {
-                vGraphicsDriverConfig.setVisibility(View.GONE);  // VirGL doesn't allow version selection
+                vGraphicsDriverConfig.setVisibility(View.GONE);
             }
         };
 
@@ -533,9 +529,11 @@ public class ContainerDetailFragment extends Fragment {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
+        // Set the spinner's initial selection
         AppUtils.setSpinnerSelectionFromIdentifier(sGraphicsDriver, selectedGraphicsDriver);
         update.run();
     }
+
 
 
 
@@ -559,6 +557,7 @@ public class ContainerDetailFragment extends Fragment {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
+
 
     public static String getWinComponents(View view) {
         ViewGroup parent = view.findViewById(R.id.LLTabWinComponents);
@@ -690,10 +689,17 @@ public class ContainerDetailFragment extends Fragment {
     public static void updateGraphicsDriverSpinner(Context context, ContentsManager manager, Spinner spinner) {
         String[] originalItems = context.getResources().getStringArray(R.array.graphics_driver_entries);
         List<String> itemList = new ArrayList<>(Arrays.asList(originalItems));
-        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_TURNIP))
+
+        // Add Turnip graphics driver versions to the list
+        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_TURNIP)) {
             itemList.add(ContentsManager.getEntryName(profile));
-        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_VIRGL))
+        }
+        // Add VirGL graphics driver versions to the list
+        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_VIRGL)) {
             itemList.add(ContentsManager.getEntryName(profile));
+        }
+
+        // Set the adapter with the combined list
         spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, itemList));
     }
 }

@@ -19,8 +19,8 @@
         <item>1920x1080 (16:9)</item>
     </string-array>
     <string-array name="graphics_driver_entries">
-        <item>Turnip-24.1.0</item>
-        <item>VirGL-23.1.9</item>
+        <item>Turnip</item>
+        <item>VirGL</item>
     </string-array>
     <string-array name="graphics_driver_version_entries">
         <item>24.3.0</item>
@@ -109,6 +109,6 @@
     </string-array>
     <string-array name="vkd3d_version_entries">
         <item>2.12</item>
-        <item>2.13</item>>
+        <item>2.13</item>
     </string-array>
 </resources>

@@ -334,7 +334,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        catch (PackageManager.NameNotFoundException e) {}
 
         dialog.show();
     }

@@ -339,6 +339,7 @@
     <string name="name_required">Name is required</string>
     <string name="exporting_save">Exporting save...</string>
     <string name="importing_save">Importing save...</string>
+    <string name="_copy">copy</string>
 
 
 </resources>

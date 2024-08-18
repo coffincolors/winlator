@@ -5,16 +5,18 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.1.2'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0' // Make sure this matches your project’s Kotlin version
     }
 }
 
-apply plugin: 'com.android.application'
 plugins {
-    alias(libs.plugins.android.application)
+    id 'com.android.application'
+
 }
 
 android {
-    compileSdk 30
+    namespace 'com.winlator'
+    compileSdk 31
 
     defaultConfig {
         applicationId 'com.winlator'
@@ -40,6 +42,8 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
+    ndkVersion '27.0.12077973'
+
     externalNativeBuild {
         cmake {
             version '3.22.1'
@@ -48,16 +52,11 @@ android {
     }
 }
 
+task prepareKotlinBuildScriptModel {
+
+}
+
 dependencies {
-    implementation libs.appcompat
-    implementation libs.material
-    implementation libs.preference
-    implementation libs.xz
-    implementation libs.commons.compress
-    testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
-    androidTestImplementation libs.espresso.core
-    implementation(libs.zstd.jni) { artifact { type = 'aar' } }
     implementation 'androidx.appcompat:appcompat:1.4.0'
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'com.google.android.material:material:1.4.0'

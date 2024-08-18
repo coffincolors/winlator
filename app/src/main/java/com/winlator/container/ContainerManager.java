@@ -1,7 +1,9 @@
 package com.winlator.container;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.os.Handler;
+import android.util.Log;
 
 import com.winlator.R;
 import com.winlator.contents.ContentProfile;
@@ -18,6 +20,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.concurrent.Executors;
@@ -253,13 +259,45 @@ public class ContainerManager {
         }
     }
 
-    public boolean extractGraphicsDriverFiles(String driverVersion, File containerDir, OnExtractFileListener onExtractFileListener) {
-        File installedDriverDir = ImageFs.find(context).getInstalledWineDir();  // Reusing getInstalledWineDir method
-        String fileName = "turnip-" + driverVersion + ".tzst";  // Assuming the driver files are named in this manner
-        File file = new File(installedDriverDir, fileName);
 
-        // Extract the files into the container directory
-        return TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, file, containerDir, onExtractFileListener);
+    public boolean extractGraphicsDriverFiles(String driverVersion, File containerDir, OnExtractFileListener onExtractFileListener) {
+        // Log the start of the extraction process
+        Log.d("GraphicsDriverExtraction", "Starting extraction for driver version: " + driverVersion);
+
+        // Access the AssetManager to get the graphics driver from assets
+        AssetManager assetManager = context.getAssets();
+        String fileName = "graphics_driver/turnip-" + driverVersion + ".tzst";
+
+        try (InputStream inputStream = assetManager.open(fileName)) {
+            Log.d("GraphicsDriverExtraction", "Driver file found in assets: " + fileName);
+
+            // Define the destination file path in the container directory
+            File destinationFile = new File(containerDir, "turnip-" + driverVersion + ".tzst");
+
+            // Copy the asset file to the destination
+            try (OutputStream outputStream = new FileOutputStream(destinationFile)) {
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = inputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, length);
+                }
+            }
+
+            // Log the extraction result
+            boolean result = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, destinationFile, containerDir, onExtractFileListener);
+
+            if (result) {
+                Log.d("GraphicsDriverExtraction", "Extraction successful for driver version: " + driverVersion);
+            } else {
+                Log.e("GraphicsDriverExtraction", "Extraction failed for driver version: " + driverVersion);
+            }
+
+            return result;
+        } catch (IOException e) {
+            Log.e("GraphicsDriverExtraction", "Driver file not found in assets: " + fileName, e);
+            return false;
+        }
     }
+
 
 }

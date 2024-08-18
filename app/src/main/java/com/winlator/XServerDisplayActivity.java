@@ -1,11 +1,15 @@
 package com.winlator;
 
+import static java.security.AccessController.getContext;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -88,8 +92,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 public class XServerDisplayActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -723,82 +733,187 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     }
 
     private void extractGraphicsDriverFiles() {
-        String cacheId = graphicsDriver;
-        String selectedDriverVersion = container.getGraphicsDriverVersion(); // Fetch the selected version
+        File rootDir = imageFs.getRootDir();  // Target the root directory of imagefs
+        String driverVersion = container.getGraphicsDriverVersion();  // Get the current version
 
-        if (graphicsDriver.equals("turnip")) {
-            cacheId += "-" + selectedDriverVersion + "-" + DefaultVersion.ZINK; // Use selected driver version
-        } else if (graphicsDriver.equals("virgl")) {
-            cacheId += "-" + DefaultVersion.VIRGL;
-        }
+        Log.d("GraphicsDriverExtraction", "Starting extraction for driver version: " + driverVersion);
 
-        boolean changed = !cacheId.equals(container.getExtra("graphicsDriver"));
-        String cacheId = container.getExtra("graphicsDriver");
-        boolean changed = !cacheId.equals(graphicsDriver);
-        File rootDir = imageFs.getRootDir();
+        // Normalize the version string by stripping out any "Turnip-" prefix
+        String normalizedDriverVersion = driverVersion.startsWith("Turnip-") ? driverVersion.replace("Turnip-", "") : driverVersion;
 
-        if (changed) {
-            FileUtils.delete(new File(imageFs.getLib32Dir(), "libvulkan_freedreno.so"));
-            FileUtils.delete(new File(imageFs.getLib64Dir(), "libvulkan_freedreno.so"));
-            FileUtils.delete(new File(imageFs.getLib64Dir(), "libGL.so.1"));
-            container.putExtra("graphicsDriver", graphicsDriver);
-            container.saveData();
-        }
+        Log.d("GraphicsDriverExtraction", "Normalized driver version for extraction: " + normalizedDriverVersion);
 
-        if (graphicsDriver.startsWith("turnip")) {
-            if (dxwrapper.equals("dxvk"))
-                DXVKConfigDialog.setEnvVars(this, dxwrapperConfig, envVars);
-            else if (dxwrapper.equals("vkd3d"))
-                VKD3DConfigDialog.setEnvVars(this, dxwrapperConfig, envVars);
+        // Ensure we account for case sensitivity in folder names
+        File contentsDir = new File(getFilesDir(), "contents");
+        File turnipDir = new File(contentsDir, "Turnip/" + normalizedDriverVersion + "/turnip");  // Adjusted to "Turnip"
+        File zinkDir = new File(contentsDir, "Turnip/" + normalizedDriverVersion + "/zink");  // Adjusted to "Turnip"
 
-            envVars.put("GALLIUM_DRIVER", "zink");
-            envVars.put("TU_OVERRIDE_HEAP_SIZE", "4096");
-            if (!envVars.has("MESA_VK_WSI_PRESENT_MODE")) envVars.put("MESA_VK_WSI_PRESENT_MODE", "mailbox");
-            envVars.put("vblank_mode", "0");
+        // Add logs to confirm what directories are being checked
+        Log.d("GraphicsDriverExtraction", "Checking for Turnip directory: " + turnipDir.getAbsolutePath());
+        Log.d("GraphicsDriverExtraction", "Checking for Zink directory: " + zinkDir.getAbsolutePath());
 
-            if (!GPUInformation.isAdreno6xx(this)) {
-                EnvVars userEnvVars = new EnvVars(container.getEnvVars());
-                String tuDebug = userEnvVars.get("TU_DEBUG");
-                if (!tuDebug.contains("sysmem")) userEnvVars.put("TU_DEBUG", (!tuDebug.isEmpty() ? tuDebug+"," : "")+"sysmem");
-                container.setEnvVars(userEnvVars.toString());
-            }
+        // Check if the contents directory has the necessary driver files
+        if (turnipDir.exists() && turnipDir.isDirectory()) {
+            Log.d("GraphicsDriverExtraction", "Driver directory found in contents: " + turnipDir.getAbsolutePath());
 
-            boolean useDRI3 = preferences.getBoolean("use_dri3", true);
-            if (!useDRI3) {
-                envVars.put("MESA_VK_WSI_PRESENT_MODE", "immediate");
-                envVars.put("MESA_VK_WSI_DEBUG", "sw");
-            }
-
-            if (changed) {
-                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/turnip-" + selectedDriverVersion + ".tzst", rootDir); // Use selected driver version
-                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/zink-" + DefaultVersion.ZINK + ".tzst", rootDir);
-                ContentProfile profile = contentsManager.getProfileByEntryName(graphicsDriver);
-                if (profile != null) {
-                    contentsManager.applyContent(profile);
-                } else {
-                    TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/turnip-" + DefaultVersion.TURNIP + ".tzst", rootDir);
-                    TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/zink-" + DefaultVersion.ZINK + ".tzst", rootDir);
+            // Copy the contents from the contents/Turnip/... directory to the appropriate lib directory
+            File libDir = new File(rootDir, "lib");
+            try {
+                copyDirectory(turnipDir, libDir);  // Copy contents of 'turnip' folder
+                if (zinkDir.exists() && zinkDir.isDirectory()) {
+                    copyDirectory(zinkDir, libDir);  // Copy contents of 'zink' folder if exists
                 }
+
+                Log.d("GraphicsDriverExtraction", "Driver successfully installed from contents manager: " + driverVersion);
+                contentsManager.markGraphicsDriverInstalled(driverVersion);  // Mark as installed
+                return;  // Exit as we have handled the contents driver case
+            } catch (IOException e) {
+                Log.e("GraphicsDriverExtraction", "Failed to copy driver files from contents manager: " + e.getMessage(), e);
+                return;
             }
-        } else if (graphicsDriver.equals("virgl")) {
+        } else {
+            Log.d("GraphicsDriverExtraction", "Driver directory not found in contents: " + turnipDir.getAbsolutePath());
         }
-        else if (graphicsDriver.startsWith("virgl")) {
-            envVars.put("GALLIUM_DRIVER", "virpipe");
-            envVars.put("VIRGL_NO_READBACK", "true");
-            envVars.put("VIRGL_SERVER_PATH", rootDir + UnixSocketConfig.VIRGL_SERVER_PATH);
-            envVars.put("MESA_EXTENSION_OVERRIDE", "-GL_EXT_vertex_array_bgra");
-            envVars.put("MESA_GL_VERSION_OVERRIDE", "3.1");
-            envVars.put("vblank_mode", "0");
-            if (changed) TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-" + DefaultVersion.VIRGL + ".tzst", rootDir);
-            if (changed) {
-                ContentProfile profile = contentsManager.getProfileByEntryName(graphicsDriver);
-                if (profile != null)
-                    contentsManager.applyContent(profile);
-                else
-                    TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-" + DefaultVersion.VIRGL + ".tzst", rootDir);
+
+        // Fallback to asset-based extraction if contents manager did not install the driver
+        try {
+            AssetManager assetManager = getAssets();
+            String driverFileName = "turnip-" + normalizedDriverVersion + ".tzst";
+            InputStream inputStream = assetManager.open("graphics_driver/" + driverFileName);
+
+            Log.d("GraphicsDriverExtraction", "Driver file found in assets: graphics_driver/" + driverFileName);
+
+            // Create a temporary file in the root directory
+            File tempFile = new File(rootDir, "temp_turnip_driver_" + normalizedDriverVersion + ".tzst");
+
+            // Copy the InputStream to the temporary file
+            copyAssetToFile(inputStream, tempFile);
+
+            // Proceed with extraction from the temporary file
+            boolean result = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, tempFile, rootDir, null);
+
+            // Delete the temporary file after extraction
+            tempFile.delete();
+
+            if (result) {
+                Log.d("GraphicsDriverExtraction", "Extraction successful for driver version: " + normalizedDriverVersion);
+                contentsManager.markGraphicsDriverInstalled(driverVersion);  // Mark as installed
+            } else {
+                Log.e("GraphicsDriverExtraction", "Extraction failed for driver version: " + normalizedDriverVersion);
+            }
+
+        } catch (IOException e) {
+            Log.e("GraphicsDriverExtraction", "Driver file not found in assets: graphics_driver/" + normalizedDriverVersion + ".tzst", e);
+        }
+    }
+
+
+    private void copyDirectory(File sourceDir, File destinationDir) throws IOException {
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs();
+        }
+
+        File[] files = sourceDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                File destFile = new File(destinationDir, file.getName());
+                if (file.isDirectory()) {
+                    copyDirectory(file, destFile);
+                } else {
+                    copyFile(file, destFile);
+                }
             }
         }
     }
+
+    private void copyFile(File sourceFile, File destFile) throws IOException {
+        try (InputStream inputStream = new FileInputStream(sourceFile);
+             OutputStream outputStream = new FileOutputStream(destFile)) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+        }
+    }
+
+
+
+    private void copyAssetToFile(InputStream inputStream, File destinationFile) throws IOException {
+        try (OutputStream outputStream = new FileOutputStream(destinationFile)) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+        }
+    }
+
+
+
+
+    private String createCacheIdForDriver(String driver) {
+        if (driver.equals("turnip")) {
+            return driver + "-" + DefaultVersion.TURNIP + "-" + DefaultVersion.ZINK;
+        } else if (driver.equals("virgl")) {
+            return driver + "-" + DefaultVersion.VIRGL;
+        }
+        return driver;
+    }
+
+    private void clearOldDriverFiles() {
+        FileUtils.delete(new File(imageFs.getLib32Dir(), "libvulkan_freedreno.so"));
+        FileUtils.delete(new File(imageFs.getLib64Dir(), "libvulkan_freedreno.so"));
+        FileUtils.delete(new File(imageFs.getLib32Dir(), "libGL.so.1.7.0"));
+        FileUtils.delete(new File(imageFs.getLib64Dir(), "libGL.so.1.7.0"));
+    }
+
+    private void configureTurnipDriver() {
+        if (dxwrapper.equals("dxvk")) {
+            DXVKConfigDialog.setEnvVars(this, dxwrapperConfig, envVars);
+        } else if (dxwrapper.equals("vkd3d")) {
+            VKD3DConfigDialog.setEnvVars(this, dxwrapperConfig, envVars);
+        }
+
+        envVars.put("GALLIUM_DRIVER", "zink");
+        envVars.put("TU_OVERRIDE_HEAP_SIZE", "4096");
+        if (!envVars.has("MESA_VK_WSI_PRESENT_MODE")) envVars.put("MESA_VK_WSI_PRESENT_MODE", "mailbox");
+        envVars.put("vblank_mode", "0");
+
+        if (!GPUInformation.isAdreno6xx(this)) {
+            EnvVars userEnvVars = new EnvVars(container.getEnvVars());
+            String tuDebug = userEnvVars.get("TU_DEBUG");
+            if (!tuDebug.contains("sysmem")) {
+                userEnvVars.put("TU_DEBUG", (!tuDebug.isEmpty() ? tuDebug + "," : "") + "sysmem");
+            }
+            container.setEnvVars(userEnvVars.toString());
+        }
+
+        boolean useDRI3 = preferences.getBoolean("use_dri3", true);
+        if (!useDRI3) {
+            envVars.put("MESA_VK_WSI_PRESENT_MODE", "immediate");
+            envVars.put("MESA_VK_WSI_DEBUG", "sw");
+        }
+    }
+
+    private void extractTurnipDriverFiles(File rootDir) {
+        TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/turnip-" + DefaultVersion.TURNIP + ".tzst", rootDir);
+        TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/zink-" + DefaultVersion.ZINK + ".tzst", rootDir);
+    }
+
+    private void configureVirGLDriver() {
+        envVars.put("GALLIUM_DRIVER", "virpipe");
+        envVars.put("VIRGL_NO_READBACK", "true");
+        envVars.put("VIRGL_SERVER_PATH", UnixSocketConfig.VIRGL_SERVER_PATH);
+        envVars.put("MESA_EXTENSION_OVERRIDE", "-GL_EXT_vertex_array_bgra");
+        envVars.put("MESA_GL_VERSION_OVERRIDE", "3.1");
+        envVars.put("vblank_mode", "0");
+    }
+
+    private void extractVirGLDriverFiles(File rootDir) {
+        TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-" + DefaultVersion.VIRGL + ".tzst", rootDir);
+    }
+
 
     private void showTouchpadHelpDialog() {
         ContentDialog dialog = new ContentDialog(this, R.layout.touchpad_help_dialog);
