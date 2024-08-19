@@ -1,8 +1,12 @@
 package com.winlator.winhandler;
 
+import static com.winlator.inputcontrols.ExternalController.isGameController;
+
 import android.content.SharedPreferences;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
@@ -481,29 +485,53 @@ public class WinHandler {
 
     public boolean onGenericMotionEvent(MotionEvent event) {
         boolean handled = false;
-        if (currentController != null && currentController.getDeviceId() == event.getDeviceId()) {
-            handled = currentController.updateStateFromMotionEvent(event);
-            if (handled) sendGamepadState();
+
+        if (isGameController(event.getDeviceId())) {
+            if (currentController != null && currentController.getDeviceId() == event.getDeviceId()) {
+                handled = currentController.updateStateFromMotionEvent(event);
+                if (handled) sendGamepadState();
+            }
         }
+
         return handled;
     }
 
     public boolean onKeyEvent(KeyEvent event) {
         boolean handled = false;
-        if (currentController != null && currentController.getDeviceId() == event.getDeviceId() && event.getRepeatCount() == 0) {
-            int action = event.getAction();
 
-            if (action == KeyEvent.ACTION_DOWN) {
-                handled = currentController.updateStateFromKeyEvent(event);
-            }
-            else if (action == KeyEvent.ACTION_UP) {
-                handled = currentController.updateStateFromKeyEvent(event);
-            }
+        if (isGameController(event.getDeviceId())) {
+            if (currentController != null && currentController.getDeviceId() == event.getDeviceId() && event.getRepeatCount() == 0) {
+                int action = event.getAction();
 
-            if (handled) sendGamepadState();
+                if (action == KeyEvent.ACTION_DOWN) {
+                    handled = currentController.updateStateFromKeyEvent(event);
+                } else if (action == KeyEvent.ACTION_UP) {
+                    handled = currentController.updateStateFromKeyEvent(event);
+                }
+
+                if (handled) sendGamepadState();
+            }
         }
+
         return handled;
     }
+
+    private boolean isGameController(int deviceId) {
+        InputDevice device = InputDevice.getDevice(deviceId);
+
+        // Get device name, vendor ID, and product ID
+        String deviceName = device.getName();
+        int vendorId = device.getVendorId();
+        int productId = device.getProductId();
+
+
+        // Check if the device is a gamepad
+        int sources = device.getSources();
+        boolean isGamepad = (sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD;
+
+        return isGamepad;
+    }
+
 
     public byte getDInputMapperType() {
         return dinputMapperType;
