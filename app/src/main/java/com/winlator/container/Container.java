@@ -43,7 +43,7 @@ public class Container {
     private String wineVersion = WineInfo.MAIN_WINE_VERSION.identifier();
     private boolean showFPS;
     private boolean wow64Mode = true;
-    private byte startupSelection = STARTUP_SELECTION_ESSENTIAL;
+    private byte startupSelection = STARTUP_SELECTION_AGGRESSIVE;
     private String cpuList;
     private String cpuListWoW64;
     private String desktopTheme = WineThemeManager.DEFAULT_DESKTOP_THEME;
@@ -53,7 +53,7 @@ public class Container {
     private JSONObject extraData;
     private int rcfileId = 0;
 
-    private String graphicsDriverVersion = "24.3.0.2"; // Default version or fallback
+    private String graphicsDriverVersion = "24.3.0"; // Default version or fallback
 
     private final ContainerManager containerManager;
 

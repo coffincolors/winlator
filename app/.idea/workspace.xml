@@ -57,6 +57,11 @@
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/custom_toast.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/debug_toolbar.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
@@ -123,6 +128,11 @@
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/shortcut_list_item.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/shortcut_properties_dialog.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
@@ -199,31 +209,100 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="modified xserverdisplayactivity to handle turnip installations for selections that were added via content manager">
-      <change afterPath="$PROJECT_DIR$/src/main/res/layout/gyro_config_dialog.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/box64_env_vars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.8.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.0.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.1.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/rcfiles/box86_64rc-1.rcp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/box86_env_vars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/common_dlls.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/container_pattern.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dexopt/baseline.prof" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dexopt/baseline.profm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/bilinear.glsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/catmull-rom-bilinear.glsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/fsr.glsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/fsr.glsl.pass1" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/jinc2-dedither.glsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/lanczos2-sharp.glsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/nearest-neighbor.glsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/ddraw.ini" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/ddraw.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/d8vk-1.0.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-0.40.1.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-0.96.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-1.10.3.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-1.5.5.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-1.7.1.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.2.116.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.3.1.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4-gplasync.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-async-1.10.3.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.12.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.13.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/gpu_cards.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.0.9.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.1.0.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.2.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/virgl-23.1.9.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/zink-22.2.5.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/0.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/10.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/11.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/12.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/13.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/14.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/15.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/16.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/5.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/6.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/7.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/8.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/9.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/profiles/controls-1.icp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/profiles/controls-2.icp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/inputcontrols/profiles/controls-3.icp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/pulseaudio.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/direct3d.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/directmusic.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/directplay.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/directshow.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/directsound.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/vcrun2010.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/wincomponents.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/wmdecoder.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/wine_debug_channels.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/wine_startmenu.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/restore/RestoreActivity.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/shortcut_properties_dialog.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.8.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.8.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.0.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.0.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/container_pattern.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/container_pattern.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/ddraw.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/ddraw.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/d8vk-1.0.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/d8vk-1.0.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.3.1.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.3.1.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4-gplasync.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4-gplasync.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.12.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.12.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.13.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.13.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/virgl-23.1.9.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/virgl-23.1.9.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/zink-22.2.5.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/zink-22.2.5.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/imagefs.txz" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/imagefs.txz" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/imagefs_patches.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/imagefs_patches.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/pulseaudio.tzst" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/pulseaudio.tzst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wine_startmenu.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/assets/wine_startmenu.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/cpp/winlator/drawable.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/cpp/winlator/drawable.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/cpp/winlator/gpu_image.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/cpp/winlator/gpu_image.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/cpp/winlator/sysvshared_memory.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/cpp/winlator/sysvshared_memory.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ContainerDetailFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ContainerDetailFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/SavesFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/SavesFragment.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/SettingsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/SettingsFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ShortcutsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ShortcutsFragment.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/container/Container.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/container/Container.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/core/DefaultVersion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/core/DefaultVersion.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/core/FileUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/core/FileUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/winhandler/WinHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/winhandler/WinHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/core/TarCompressorUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/core/TarCompressorUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/GPUImage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/GPUImage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/sysvshm/SysVSharedMemory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/sysvshm/SysVSharedMemory.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/res/layout/settings_fragment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/settings_fragment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/menu/shortcut_popup_menu.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/menu/shortcut_popup_menu.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/values/arrays.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/arrays.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../gradle.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -259,9 +338,9 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="layoutResourceFile" />
         <option value="resourceFile" />
         <option value="Class" />
+        <option value="layoutResourceFile" />
       </list>
     </option>
   </component>
@@ -292,11 +371,17 @@
   "keyToString": {
     "ASKED_ADD_EXTERNAL_FILES": "true",
     "Android App.app.executor": "Run",
+    "DEBUGGABLE_DEVICE": "samsung-sm_s928u-192.168.68.55:43625",
+    "DEBUGGABLE_PROCESS": "com.winlator",
+    "DEBUGGER_ID": "Auto",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "SHOW_ALL_PROCESSES": "false",
+    "cf.advertisement.text.has.clang-format": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
+    "com.google.services.firebase.aqiPopupShown": "true",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/res/layout",
@@ -428,5 +513,18 @@
     <MESSAGE value="Cmod test commit" />
     <MESSAGE value="modified xserverdisplayactivity to handle turnip installations for selections that were added via content manager" />
     <option name="LAST_COMMIT_MESSAGE" value="modified xserverdisplayactivity to handle turnip installations for selections that were added via content manager" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="OCSymbolicBreakpointType">
+          <properties>
+            <option name="moduleName" value="libart.so" />
+            <option name="symbolPattern" value="art_sigbus_fault" />
+          </properties>
+          <option name="timeStamp" value="2" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

@@ -403,7 +403,8 @@ public class SavesFragment extends Fragment {
                     }
 
                     // Compress the temp directory itself, which now contains the JSON file and save directory
-                    TarCompressorUtils.compress(TarCompressorUtils.Type.XZ, tempExportDir, exportFile);
+                    TarCompressorUtils.compress(TarCompressorUtils.Type.XZ, tempExportDir, exportFile, 3, null);
+
 
                     // Clean up the temporary directory
                     FileUtils.delete(tempExportDir);

@@ -48,7 +48,7 @@
         </activity>
 
         <activity android:name="com.winlator.XServerDisplayActivity"
-            android:exported="false"
+            android:exported="true"
             android:theme="@style/AppThemeFullscreen"
             android:launchMode="singleTask"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|density|navigation"
@@ -129,5 +129,12 @@
                 <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
             </intent-filter>
         </provider>
+
+        <activity
+            android:name=".restore.RestoreActivity"
+            android:process=":restore_process"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:exported="true" />
+
     </application>
 </manifest>

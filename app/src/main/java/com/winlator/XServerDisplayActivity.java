@@ -95,9 +95,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -146,6 +148,15 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private Sensor gyroSensor;
     private ExternalController controller;
 
+    // Playtime stats tracking
+    private long startTime;
+    private SharedPreferences playtimePrefs;
+    private String shortcutName;
+    private Handler handler;
+    private Runnable savePlaytimeRunnable;
+    private static final long SAVE_INTERVAL_MS = 1000;
+
+
     private final SensorEventListener gyroListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
@@ -173,10 +184,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         final PreloaderDialog preloaderDialog = new PreloaderDialog(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        // Initialize and SensorManager
+        // Initialize SensorManager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-
-        // Get the gyroscope sensor
         gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
         boolean gyroEnabled = preferences.getBoolean("gyro_enabled", true);
@@ -185,6 +194,28 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             // Register the sensor event listener
             sensorManager.registerListener(gyroListener, gyroSensor, SensorManager.SENSOR_DELAY_GAME);
         }
+
+        // Initialize playtime tracking
+        playtimePrefs = getSharedPreferences("playtime_stats", MODE_PRIVATE);
+        shortcutName = getIntent().getStringExtra("shortcut_name");
+
+        // Increment play count at the start of a session
+        incrementPlayCount();
+
+        // Record the start time
+        startTime = System.currentTimeMillis();
+
+        // Initialize handler for periodic saving
+        handler = new Handler(Looper.getMainLooper());
+        savePlaytimeRunnable = new Runnable() {
+            @Override
+            public void run() {
+                savePlaytimeData();
+                handler.postDelayed(this, SAVE_INTERVAL_MS);
+            }
+        };
+        handler.postDelayed(savePlaytimeRunnable, SAVE_INTERVAL_MS);
+
 
         contentsManager = new ContentsManager(this);
         contentsManager.syncContents();
@@ -216,26 +247,37 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         String screenSize = Container.DEFAULT_SCREEN_SIZE;
         if (!isGenerateWineprefix()) {
             containerManager = new ContainerManager(this);
-            container = containerManager.getContainerById(getIntent().getIntExtra("container_id", 0));
+
+            // Log shortcut_path
+            String shortcutPath = getIntent().getStringExtra("shortcut_path");
+            Log.d("XServerDisplayActivity", "Shortcut Path: " + shortcutPath);
+
+            // Determine container ID
+            int containerId = getIntent().getIntExtra("container_id", 0);
+
+            // If container_id is 0, read from the .desktop file
+            if (containerId == 0 && shortcutPath != null && !shortcutPath.isEmpty()) {
+                File shortcutFile = new File(shortcutPath);
+                containerId = parseContainerIdFromDesktopFile(shortcutFile);
+                Log.d("XServerDisplayActivity", "Parsed Container ID from .desktop file: " + containerId);
+            }
+
+            // Log the final container_id
+            Log.d("XServerDisplayActivity", "Final Container ID: " + containerId);
+
+            // Retrieve the container and check if it's null
+            container = containerManager.getContainerById(containerId);
+
+            if (container == null) {
+                Log.e("XServerDisplayActivity", "Failed to retrieve container with ID: " + containerId);
+                finish();  // Gracefully exit the activity to avoid crashing
+                return;
+            }
+
             containerManager.activateContainer(container);
 
-//            boolean wineprefixNeedsUpdate = container.getExtra("wineprefixNeedsUpdate").equals("t");
-//            if (wineprefixNeedsUpdate) {
-//                preloaderDialog.show(R.string.updating_system_files);
-//                WineUtils.updateWineprefix(this, (status) -> {
-//                    if (status == 0) {
-//                        container.putExtra("wineprefixNeedsUpdate", null);
-//                        container.putExtra("wincomponents", null);
-//                        container.saveData();
-//                        AppUtils.restartActivity(this);
-//                    }
-//                    else finish();
-//                });
-//                return;
-//            }
-
-            taskAffinityMask = (short)ProcessHelper.getAffinityMask(container.getCPUList(true));
-            taskAffinityMaskWoW64 = (short)ProcessHelper.getAffinityMask(container.getCPUListWoW64(true));
+            taskAffinityMask = (short) ProcessHelper.getAffinityMask(container.getCPUList(true));
+            taskAffinityMaskWoW64 = (short) ProcessHelper.getAffinityMask(container.getCPUListWoW64(true));
             firstTimeBoot = container.getExtra("appVersion").isEmpty();
 
             String wineVersion = container.getWineVersion();
@@ -243,8 +285,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
             if (wineInfo != WineInfo.MAIN_WINE_VERSION) imageFs.setWinePath(wineInfo.path);
 
-            String shortcutPath = getIntent().getStringExtra("shortcut_path");
-            if (shortcutPath != null && !shortcutPath.isEmpty()) shortcut = new Shortcut(container, new File(shortcutPath));
+            if (shortcutPath != null && !shortcutPath.isEmpty()) {
+                shortcut = new Shortcut(container, new File(shortcutPath));
+            }
 
             graphicsDriver = container.getGraphicsDriver();
             audioDriver = container.getAudioDriver();
@@ -263,7 +306,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 if (!dinputMapperType.isEmpty()) winHandler.setDInputMapperType(Byte.parseByte(dinputMapperType));
             }
 
-            if (dxwrapper.equals("dxvk") || dxwrapper.equals("vkd3d")) this.dxwrapperConfig = DXVKConfigDialog.parseConfig(dxwrapperConfig);
+            if (dxwrapper.equals("dxvk") || dxwrapper.equals("vkd3d")) {
+                this.dxwrapperConfig = DXVKConfigDialog.parseConfig(dxwrapperConfig);
+            }
 
             if (!wineInfo.isWin64()) {
                 onExtractFileListener = (file, size) -> {
@@ -319,6 +364,28 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             setupXEnvironment();
         });
     }
+
+    // Method to parse container_id from .desktop file
+    private int parseContainerIdFromDesktopFile(File desktopFile) {
+        int containerId = 0;
+        if (desktopFile.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(desktopFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("container_id:")) {
+                        containerId = Integer.parseInt(line.split(":")[1].trim());
+                        break;
+                    }
+                }
+            } catch (IOException | NumberFormatException e) {
+                Log.e("XServerDisplayActivity", "Error parsing container_id from .desktop file", e);
+            }
+        }
+        return containerId;
+    }
+
+
+
 
     private void handleCapturedPointer(MotionEvent event) {
 
@@ -388,6 +455,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         }
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
@@ -402,6 +470,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             xServerView.onResume();
             environment.onResume();
         }
+        startTime = System.currentTimeMillis();
+        handler.postDelayed(savePlaytimeRunnable, SAVE_INTERVAL_MS);
+
     }
 
     @Override
@@ -418,16 +489,56 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             environment.onPause();
             xServerView.onPause();
         }
+
+        savePlaytimeData();
+        handler.removeCallbacks(savePlaytimeRunnable);
+    }
+
+    private void savePlaytimeData() {
+        long endTime = System.currentTimeMillis();
+        long playtime = endTime - startTime;
+
+        // Ensure that playtime is not negative
+        if (playtime < 0) {
+            playtime = 0;
+        }
+
+        SharedPreferences.Editor editor = playtimePrefs.edit();
+        String playtimeKey = shortcutName + "_playtime";
+
+        // Accumulate the playtime into totalPlaytime
+        long totalPlaytime = playtimePrefs.getLong(playtimeKey, 0) + playtime;
+        editor.putLong(playtimeKey, totalPlaytime);
+        editor.apply();
+
+        // Reset startTime to the current time for the next interval
+        startTime = System.currentTimeMillis();
+    }
+
+
+    private void incrementPlayCount() {
+        SharedPreferences.Editor editor = playtimePrefs.edit();
+        String playCountKey = shortcutName + "_play_count";
+        int playCount = playtimePrefs.getInt(playCountKey, 0) + 1;
+        editor.putInt(playCountKey, playCount);
+        editor.apply();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Unregister sensor listener to avoid memory leaks
-        sensorManager.unregisterListener(gyroListener);
-        if (environment != null) environment.stopEnvironmentComponents();
-        winHandler.stop();
+
+        savePlaytimeData(); // Save on destroy
+        handler.removeCallbacks(savePlaytimeRunnable);
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        savePlaytimeData();
+        handler.removeCallbacks(savePlaytimeRunnable);
+    }
+
 
     @Override
     public void onBackPressed() {

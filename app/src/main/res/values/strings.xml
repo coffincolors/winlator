@@ -340,6 +340,8 @@
     <string name="exporting_save">Exporting save...</string>
     <string name="importing_save">Importing save...</string>
     <string name="_copy">copy</string>
+    <string name="backing_up_data">Backing up data...</string>
+    <string name="restoring_data">Restoring data...</string>
 
 
 </resources>

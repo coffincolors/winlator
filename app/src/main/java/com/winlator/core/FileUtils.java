@@ -434,4 +434,36 @@ public abstract class FileUtils {
             return "";
         }
     }
+
+    public static File getFileFromUri(Context context, Uri uri) {
+        Log.d(TAG, "getFileFromUri called with URI: " + uri.toString());
+
+        // Try to get the file path using the SAF method first
+        String filePath = getFilePathFromUriUsingSAF(context, uri);
+        if (filePath != null) {
+            File file = new File(filePath);
+            if (file.exists()) {
+                return file;
+            }
+        }
+
+        // If the SAF method fails, try to open the URI directly
+        try {
+            InputStream inputStream = context.getContentResolver().openInputStream(uri);
+            if (inputStream != null) {
+                // Create a temporary file to store the contents
+                File tempFile = File.createTempFile("restore_", ".tmp", context.getCacheDir());
+                try (FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+                    StreamUtils.copy(inputStream, outputStream);
+                }
+                return tempFile;
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to open URI: " + uri.toString(), e);
+        }
+
+        // If all else fails, return null
+        return null;
+    }
+
 }

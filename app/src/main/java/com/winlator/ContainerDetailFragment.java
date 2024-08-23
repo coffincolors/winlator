@@ -186,7 +186,7 @@ public class ContainerDetailFragment extends Fragment {
 
         final Spinner sStartupSelection = view.findViewById(R.id.SStartupSelection);
         byte previousStartupSelection = isEditMode() ? container.getStartupSelection() : -1;
-        sStartupSelection.setSelection(previousStartupSelection != -1 ? previousStartupSelection : Container.STARTUP_SELECTION_ESSENTIAL);
+        sStartupSelection.setSelection(previousStartupSelection != -1 ? previousStartupSelection : Container.STARTUP_SELECTION_AGGRESSIVE);
 
         final Spinner sBox86Preset = view.findViewById(R.id.SBox86Preset);
         Box86_64PresetManager.loadSpinner("box86", sBox86Preset, isEditMode() ? container.getBox86Preset() : preferences.getString("box86_preset", Box86_64Preset.COMPATIBILITY));
@@ -703,9 +703,9 @@ public class ContainerDetailFragment extends Fragment {
         List<String> itemList = new ArrayList<>(Arrays.asList(originalItems));
 
         // Add Turnip graphics driver versions to the list
-        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_TURNIP)) {
-            itemList.add(ContentsManager.getEntryName(profile));
-        }
+//        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_TURNIP)) {
+//            itemList.add(ContentsManager.getEntryName(profile));
+//        }
         // Add VirGL graphics driver versions to the list
         for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_VIRGL)) {
             itemList.add(ContentsManager.getEntryName(profile));

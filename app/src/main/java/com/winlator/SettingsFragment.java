@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,9 +47,11 @@ import com.winlator.core.DefaultVersion;
 import com.winlator.core.FileUtils;
 import com.winlator.core.PreloaderDialog;
 import com.winlator.core.StringUtils;
+import com.winlator.core.TarCompressorUtils;
 import com.winlator.core.WineInfo;
 import com.winlator.core.WineUtils;
 import com.winlator.inputcontrols.ExternalController;
+import com.winlator.restore.RestoreActivity;
 import com.winlator.xenvironment.ImageFs;
 import com.winlator.xenvironment.ImageFsInstaller;
 
@@ -55,9 +59,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class SettingsFragment extends Fragment {
@@ -81,6 +87,7 @@ public class SettingsFragment extends Fragment {
     private CheckBox cbInvertGyroX;
     private CheckBox cbInvertGyroY;
 
+    private boolean isRestoreAction = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -99,18 +106,7 @@ public class SettingsFragment extends Fragment {
         ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(R.string.settings);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == MainActivity.OPEN_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            try {
-                if (selectWineFileCallback != null && data != null) selectWineFileCallback.call(data.getData());
-            }
-            catch (Exception e) {
-                AppUtils.showToast(getContext(), R.string.unable_to_import_profile);
-            }
-            selectWineFileCallback = null;
-        }
-    }
+
 
     @Nullable
     @Override
@@ -211,6 +207,18 @@ public class SettingsFragment extends Fragment {
 
         view.findViewById(R.id.BTReInstallImagefs).setOnClickListener(v -> {
             ContentDialog.confirm(context, R.string.do_you_want_to_reinstall_imagefs, () -> ImageFsInstaller.installFromAssets((MainActivity) getActivity()));
+        });
+
+        // Add backup button
+        Button btnBackupData = view.findViewById(R.id.BTBackupData);
+        btnBackupData.setOnClickListener(v -> {
+            showBackupConfirmationDialog();
+        });
+
+        // Add restore button
+        Button btnRestoreData = view.findViewById(R.id.BTRestoreData);
+        btnRestoreData.setOnClickListener(v -> {
+            selectBackupFileForRestore();
         });
 
         view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
@@ -603,4 +611,129 @@ public class SettingsFragment extends Fragment {
         // Show the dialog
         builder.create().show();
     }
+
+    private void showBackupConfirmationDialog() {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Backup Data")
+                .setMessage("Do you want to create a backup of the app's data directory?")
+                .setPositiveButton("Yes", (dialog, which) -> backupAppData())
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void backupAppData() {
+        File dataDir = getContext().getFilesDir().getParentFile(); // App's data directory
+        File backupFile = new File(Environment.getExternalStorageDirectory(), "app_data_backup.tar");
+
+        preloaderDialog.showOnUiThread(R.string.backing_up_data);
+
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        ExecutorService compressionExecutor = Executors.newFixedThreadPool(availableProcessors);
+
+        compressionExecutor.execute(() -> {
+            try {
+                TarCompressorUtils.archive(new File[]{dataDir}, backupFile, file -> {
+                    // Exclude the problematic directory
+                    String excludePath = "imagefs/tmp/.sysvshm";
+                    return !file.getAbsolutePath().contains(excludePath);
+                });
+                getActivity().runOnUiThread(() -> {
+                    preloaderDialog.closeOnUiThread();
+                    AppUtils.showToast(getContext(), "Backup completed: " + backupFile.getPath());
+                });
+            } catch (Exception e) {
+                getActivity().runOnUiThread(() -> {
+                    preloaderDialog.closeOnUiThread();
+                    AppUtils.showToast(getContext(), "Backup failed.");
+                });
+            }
+        });
+    }
+
+
+
+    private void selectBackupFileForRestore() {
+        isRestoreAction = true; // Set the flag to indicate a restore operation
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        startActivityForResult(intent, MainActivity.OPEN_FILE_REQUEST_CODE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == MainActivity.OPEN_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
+            Uri uri = data.getData();
+
+            // Handle restoring data from backup
+            if (uri != null) {
+                if (isRestoreAction) {
+                    restoreAppData(uri);
+                    isRestoreAction = false;  // Reset the flag
+                } else {
+                    try {
+                        if (selectWineFileCallback != null) {
+                            selectWineFileCallback.call(uri);
+                        }
+                    } catch (Exception e) {
+                        AppUtils.showToast(getContext(), R.string.unable_to_import_profile);
+                    } finally {
+                        selectWineFileCallback = null;
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    private void restoreAppData(Uri backupUri) {
+        if (getActivity() != null) {  // Ensure the activity is not null
+            Intent intent = new Intent(getActivity(), RestoreActivity.class);
+            intent.setData(backupUri);
+            startActivity(intent);
+            getActivity().finish(); // Close the main activity
+        }
+    }
+
+
+    private void moveFiles(File sourceDir, File targetDir) throws IOException {
+        File[] files = sourceDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                File targetFile = new File(targetDir, file.getName());
+                if (file.isDirectory()) {
+                    if (!targetFile.exists()) {
+                        targetFile.mkdirs();
+                    }
+                    moveFiles(file, targetFile); // Recursively move directory contents
+                } else {
+                    if (!file.renameTo(targetFile)) {
+                        throw new IOException("Failed to move file: " + file.getAbsolutePath());
+                    }
+                }
+            }
+        }
+        // Clear the temporary directory after moving
+        FileUtils.clear(sourceDir);
+    }
+
+
+    private void onRestoreSuccess() {
+        getActivity().runOnUiThread(() -> {
+            preloaderDialog.closeOnUiThread();
+            AppUtils.showToast(getContext(), "Data restored successfully.");
+            AppUtils.restartApplication(getActivity());  // Restart the app to apply changes
+        });
+    }
+
+    private void onRestoreFailed() {
+        getActivity().runOnUiThread(() -> {
+            preloaderDialog.closeOnUiThread();
+            AppUtils.showToast(getContext(), "Data restore failed.");
+        });
+    }
+
 }

@@ -382,6 +382,23 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
                         android:text="@string/reinstall_imagefs" />
+
+                    <Button
+                        style="@style/ButtonPositive"
+                        android:id="@+id/BTBackupData"
+                        android:layout_width="240dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="Backup Data" />
+
+                    <Button
+                        style="@style/ButtonPositive"
+                        android:id="@+id/BTRestoreData"
+                        android:layout_width="240dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="Restore Data" />
+
                 </LinearLayout>
 
                 <TextView
