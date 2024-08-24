@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingLeft="16dp">
+
+    <ImageButton
+        android:id="@+id/BTVarMenu"
+        style="@style/ListMenuButton"
+        android:layout_gravity="center"
+        android:layout_marginStart="20dp"
+        android:src="@drawable/icon_menu" />
+
+    <EditText
+        android:id="@+id/ETKey"
+        style="@style/EditText"
+        android:layout_width="0dp"
+        android:layout_gravity="center"
+        android:layout_marginEnd="5dp"
+        android:layout_weight="2" />
+
+    <ImageButton
+        android:id="@+id/BTValueMenu"
+        style="@style/ListMenuButton"
+        android:layout_gravity="center"
+        android:src="@drawable/icon_menu" />
+
+    <EditText
+        android:id="@+id/ETValue"
+        style="@style/EditText"
+        android:layout_width="0dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="5dp"
+        android:layout_weight="1" />
+
+    <ImageButton
+        android:id="@+id/BTRemoveVar"
+        style="@style/ListMenuButton"
+        android:layout_gravity="center"
+        android:src="@drawable/icon_remove" />
+</LinearLayout>

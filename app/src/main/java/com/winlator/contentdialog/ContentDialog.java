@@ -131,9 +131,24 @@ public class ContentDialog extends Dialog {
         dialog.show();
     }
 
+    public static void alert(Context context, String msg, Runnable callback) {
+        ContentDialog dialog = new ContentDialog(context);
+        dialog.setMessage(msg);
+        dialog.setOnConfirmCallback(callback);
+        dialog.findViewById(R.id.BTCancel).setVisibility(View.GONE);
+        dialog.show();
+    }
+
     public static void confirm(Context context, int msgResId, Runnable callback) {
         ContentDialog dialog = new ContentDialog(context);
         dialog.setMessage(msgResId);
+        dialog.setOnConfirmCallback(callback);
+        dialog.show();
+    }
+
+    public static void confirm(Context context, String msg, Runnable callback) {
+        ContentDialog dialog = new ContentDialog(context);
+        dialog.setMessage(msg);
         dialog.setOnConfirmCallback(callback);
         dialog.show();
     }
@@ -174,6 +189,24 @@ public class ContentDialog extends Dialog {
             callback.call(result);
         });
 
+        dialog.show();
+    }
+
+    public static void showSingleChoiceList(Context context, int titleResId, final String[] items, Callback<Integer> callback) {
+        ContentDialog dialog = new ContentDialog(context);
+        dialog.getContentView().findViewById(R.id.BTConfirm).setVisibility(View.GONE);
+
+        final ListView listView = dialog.findViewById(R.id.ListView);
+        listView.getLayoutParams().width = AppUtils.getPreferredDialogWidth(context);
+        listView.setChoiceMode(ListView.CHOICE_MODE_NONE);
+        listView.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_list_item_single_choice, items));
+        listView.setVisibility(View.VISIBLE);
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            callback.call(position);
+            dialog.dismiss();
+        });
+
+        dialog.setTitle(titleResId);
         dialog.show();
     }
 }

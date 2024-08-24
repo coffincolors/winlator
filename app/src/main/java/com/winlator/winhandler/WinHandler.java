@@ -1,12 +1,8 @@
 package com.winlator.winhandler;
 
-import static com.winlator.inputcontrols.ExternalController.isGameController;
-
 import android.content.SharedPreferences;
-import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
@@ -74,6 +70,7 @@ public class WinHandler {
     private float smoothGyroX = 0;
     private float smoothGyroY = 0;
 
+    private boolean processGyroWithLeftTrigger = false;
     public void setGyroSensitivityX(float sensitivity) {
         this.gyroSensitivityX = sensitivity;
     }
@@ -98,30 +95,50 @@ public class WinHandler {
         this.gyroDeadzone = deadzone;
     }
 
+    private boolean isLeftTriggerPressed() {
+        return currentController != null && currentController.state.triggerL > 0.5f; // Assuming 0.5f is the threshold for pressed
+    }
 
     public void updateGyroData(float rawGyroX, float rawGyroY) {
-        // Apply deadzone
-        if (Math.abs(rawGyroX) < gyroDeadzone) rawGyroX = 0;
-        if (Math.abs(rawGyroY) < gyroDeadzone) rawGyroY = 0;
+        boolean shouldProcessGyro = true;
+															
+															
 
-        // Apply inversion
-        if (invertGyroX) rawGyroX = -rawGyroX;
-        if (invertGyroY) rawGyroY = -rawGyroY;
+        // Check if processing gyro data only when the left trigger is held
+        if (processGyroWithLeftTrigger) {
+            // Ensure currentController and its state are valid
+            if (currentController != null && currentController.state != null) {
+                // Check if the left trigger is pressed (threshold can be adjusted as needed)
+                shouldProcessGyro = currentController.state.triggerL > 0.5f; // Assuming 0.5f is the threshold for "pressed"
+            } else {
+                shouldProcessGyro = false;  // Default to not processing if controller or state is invalid
+            }
+        }
 
-        // Apply sensitivity
-        rawGyroX *= gyroSensitivityX;
-        rawGyroY *= gyroSensitivityY;
+        if (shouldProcessGyro) {
+            // Apply deadzone
+            if (Math.abs(rawGyroX) < gyroDeadzone) rawGyroX = 0;
+            if (Math.abs(rawGyroY) < gyroDeadzone) rawGyroY = 0;
 
-        // Apply smoothing
-        smoothGyroX = smoothGyroX * smoothingFactor + rawGyroX * (1 - smoothingFactor);
-        smoothGyroY = smoothGyroY * smoothingFactor + rawGyroY * (1 - smoothingFactor);
+            // Apply inversion
+            if (invertGyroX) rawGyroX = -rawGyroX;
+            if (invertGyroY) rawGyroY = -rawGyroY;
 
-        // Update the gyro data
-        this.gyroX = smoothGyroX;
-        this.gyroY = smoothGyroY;
+            // Apply sensitivity
+            rawGyroX *= gyroSensitivityX;
+            rawGyroY *= gyroSensitivityY;
 
-        // Send the updated gamepad state
-        sendGamepadState();
+            // Apply smoothing
+            smoothGyroX = smoothGyroX * smoothingFactor + rawGyroX * (1 - smoothingFactor);
+            smoothGyroY = smoothGyroY * smoothingFactor + rawGyroY * (1 - smoothingFactor);
+
+            // Update the gyro data
+            this.gyroX = smoothGyroX;
+            this.gyroY = smoothGyroY;
+
+            // Send the updated gamepad state
+            sendGamepadState();
+        }
     }
 
     private boolean sendPacket(int port) {
@@ -314,6 +331,7 @@ public class WinHandler {
                 setInvertGyroY(preferences.getBoolean("invert_gyro_y", false));
                 setGyroDeadzone(preferences.getFloat("gyro_deadzone", 0.05f));
 
+                processGyroWithLeftTrigger = preferences.getBoolean("process_gyro_with_left_trigger", false);
                 synchronized (actions) {
                     actions.notify();
                 }
@@ -485,53 +503,29 @@ public class WinHandler {
 
     public boolean onGenericMotionEvent(MotionEvent event) {
         boolean handled = false;
-
-        if (isGameController(event.getDeviceId())) {
-            if (currentController != null && currentController.getDeviceId() == event.getDeviceId()) {
-                handled = currentController.updateStateFromMotionEvent(event);
-                if (handled) sendGamepadState();
-            }
+        if (currentController != null && currentController.getDeviceId() == event.getDeviceId()) {
+            handled = currentController.updateStateFromMotionEvent(event);
+            if (handled) sendGamepadState();
         }
-
         return handled;
     }
 
     public boolean onKeyEvent(KeyEvent event) {
         boolean handled = false;
+        if (currentController != null && currentController.getDeviceId() == event.getDeviceId() && event.getRepeatCount() == 0) {
+            int action = event.getAction();
 
-        if (isGameController(event.getDeviceId())) {
-            if (currentController != null && currentController.getDeviceId() == event.getDeviceId() && event.getRepeatCount() == 0) {
-                int action = event.getAction();
-
-                if (action == KeyEvent.ACTION_DOWN) {
-                    handled = currentController.updateStateFromKeyEvent(event);
-                } else if (action == KeyEvent.ACTION_UP) {
-                    handled = currentController.updateStateFromKeyEvent(event);
-                }
-
-                if (handled) sendGamepadState();
+            if (action == KeyEvent.ACTION_DOWN) {
+                handled = currentController.updateStateFromKeyEvent(event);
             }
-        }
+            else if (action == KeyEvent.ACTION_UP) {
+                handled = currentController.updateStateFromKeyEvent(event);
+            }
 
+            if (handled) sendGamepadState();
+        }
         return handled;
     }
-
-    private boolean isGameController(int deviceId) {
-        InputDevice device = InputDevice.getDevice(deviceId);
-
-        // Get device name, vendor ID, and product ID
-        String deviceName = device.getName();
-        int vendorId = device.getVendorId();
-        int productId = device.getProductId();
-
-
-        // Check if the device is a gamepad
-        int sources = device.getSources();
-        boolean isGamepad = (sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD;
-
-        return isGamepad;
-    }
-
 
     public byte getDInputMapperType() {
         return dinputMapperType;

@@ -36,6 +36,8 @@ import com.winlator.box86_64.Box86_64PresetManager;
 import com.winlator.container.Container;
 import com.winlator.container.ContainerManager;
 import com.winlator.contentdialog.ContentDialog;
+import com.winlator.contents.ContentProfile;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.AppUtils;
 import com.winlator.core.ArrayUtils;
 import com.winlator.core.Callback;
@@ -127,6 +129,9 @@ public class SettingsFragment extends Fragment {
         cbGyroEnabled = view.findViewById(R.id.CBGyroEnabled);
         cbGyroEnabled.setChecked(preferences.getBoolean("gyro_enabled", false));
 
+        CheckBox cbProcessGyroWithLeftTrigger = view.findViewById(R.id.CBProcessGyroWithLeftTrigger);
+        cbProcessGyroWithLeftTrigger.setChecked(preferences.getBoolean("process_gyro_with_left_trigger", false));
+
         // Initialize version spinners
         final Spinner sBox86Version = view.findViewById(R.id.SBox86Version);
         String box86Version = preferences.getString("box86_version", DefaultVersion.BOX86);
@@ -136,6 +141,11 @@ public class SettingsFragment extends Fragment {
 
         final Spinner sBox64Version = view.findViewById(R.id.SBox64Version);
         String box64Version = preferences.getString("box64_version", DefaultVersion.BOX64);
+
+        ContentsManager contentsManager = new ContentsManager(context);
+        contentsManager.syncContents();
+        loadBox64VersionSpinner(context, contentsManager, sBox64Version);
+
         if (!AppUtils.setSpinnerSelectionFromIdentifier(sBox64Version, box64Version)) {
             AppUtils.setSpinnerSelectionFromIdentifier(sBox64Version, DefaultVersion.BOX64);
         }
@@ -184,6 +194,10 @@ public class SettingsFragment extends Fragment {
             ((RadioButton) (rgTriggerMode.findViewById(triggerRbIds.get(triggerMode)))).setChecked(true);
         }
 
+        final CheckBox cbEnableFileProvider = view.findViewById(R.id.CBEnableFileProvider);
+        cbEnableFileProvider.setChecked(preferences.getBoolean("enable_file_provider", false));
+        cbEnableFileProvider.setOnClickListener(v -> AppUtils.showToast(context, R.string.take_effect_next_startup));
+
         // Load installed Wine list
         loadInstalledWineList(view);
 
@@ -207,10 +221,11 @@ public class SettingsFragment extends Fragment {
             editor.putBoolean("cursor_lock", cbCursorLock.isChecked());
             editor.putBoolean("xinput_toggle", cbXinputToggle.isChecked());
             editor.putBoolean("touchscreen_toggle", cbXTouchscreenToggle.isChecked());
+            editor.putBoolean("enable_file_provider", cbEnableFileProvider.isChecked());
 
             // Save gyro settings
             editor.putBoolean("gyro_enabled", cbGyroEnabled.isChecked());
-
+            editor.putBoolean("process_gyro_with_left_trigger", cbProcessGyroWithLeftTrigger.isChecked());
             if (!wineDebugChannels.isEmpty()) {
                 editor.putString("wine_debug_channels", String.join(",", wineDebugChannels));
             } else if (preferences.contains("wine_debug_channels")) {
@@ -465,6 +480,17 @@ public class SettingsFragment extends Fragment {
         editor.remove("current_box86_version");
         editor.remove("current_box64_version");
         editor.apply();
+    }
+
+    public static void loadBox64VersionSpinner(Context context, ContentsManager manager, Spinner spinner) {
+        String[] originalItems = context.getResources().getStringArray(R.array.box64_version_entries);
+        List<String> itemList = new ArrayList<>(Arrays.asList(originalItems));
+        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_BOX64)) {
+            String entryName = ContentsManager.getEntryName(profile);
+            int firstDashIndex = entryName.indexOf('-');
+            itemList.add(entryName.substring(firstDashIndex + 1));
+        }
+        spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, itemList));
     }
 
     private void showGyroConfigDialog() {

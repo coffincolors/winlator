@@ -27,6 +27,8 @@ public class ExternalController {
     public static final byte IDX_BUTTON_R2 = 11;
     public static final byte TRIGGER_AS_BUTTON = 0;
     public static final byte TRIGGER_AS_AXIS = 1;
+	public static final byte TRIGGER_AS_BOTH = 2;
+	
     private String name;
     private String id;
     private int deviceId = -1;
@@ -157,7 +159,8 @@ public class ExternalController {
 
     public boolean updateStateFromMotionEvent(MotionEvent event) {
         if (isJoystickDevice(event)) {
-            processTriggerButton(event);
+            if (triggerMode == TRIGGER_AS_AXIS)											   
+				processTriggerButton(event);
             int historySize = event.getHistorySize();
             for (int i = 0; i < historySize; i++) processJoystickInput(event, i);
             processJoystickInput(event, -1);

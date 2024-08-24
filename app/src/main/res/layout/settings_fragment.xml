@@ -233,6 +233,13 @@
                         android:text="Enable Right-Stick Gyroscope (Experimental)"
                         android:layout_marginTop="8dp" />
 
+                    <CheckBox
+                        android:id="@+id/CBProcessGyroWithLeftTrigger"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Process Motion Only When Left Trigger is Held (Requires Axis Trigger Mode)"
+                        android:layout_marginTop="8dp" />
+
                     <Button
                         android:id="@+id/BTConfigureGyro"
                         android:layout_width="wrap_content"
@@ -331,7 +338,23 @@
                     style="@style/FieldSetLabel"
                     android:text="@string/game_controller" />
             </FrameLayout>
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
+                <LinearLayout style="@style/FieldSet">
+
+                    <CheckBox
+                        android:id="@+id/CBEnableFileProvider"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/enable_file_provider" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/FieldSetLabel"
+                    android:text="@string/experimental" />
+            </FrameLayout>
         </LinearLayout>
     </ScrollView>
 

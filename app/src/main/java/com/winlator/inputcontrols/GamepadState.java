@@ -34,6 +34,8 @@ public class GamepadState {
         buffer.putShort((short)(thumbLY * Short.MAX_VALUE));
         buffer.putShort((short)(thumbRX * Short.MAX_VALUE));
         buffer.putShort((short)(thumbRY * Short.MAX_VALUE));
+        buffer.put((byte)(triggerL * 255));
+        buffer.put((byte)(triggerR * 255));										   							   
     }
 
     public void setPressed(int buttonIdx, boolean pressed) {

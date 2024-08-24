@@ -1,16 +1,23 @@
 package com.winlator;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.PictureInPictureParams;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
+import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.util.Rational;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,6 +35,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.navigation.NavigationView;
+import com.winlator.box86_64.rc.RCFile;
+import com.winlator.box86_64.rc.RCManager;
 import com.winlator.container.Container;
 import com.winlator.container.ContainerManager;
 import com.winlator.container.Shortcut;
@@ -35,6 +44,8 @@ import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.DXVKConfigDialog;
 import com.winlator.contentdialog.DebugDialog;
 import com.winlator.contentdialog.VKD3DConfigDialog;
+import com.winlator.contents.ContentProfile;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.AppUtils;
 import com.winlator.core.DefaultVersion;
 import com.winlator.core.EnvVars;
@@ -85,10 +96,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
+
 
 public class XServerDisplayActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private XServerView xServerView;
@@ -123,11 +142,21 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private boolean pointerCaptureRequested = false; // Flag to track if pointer capture was requested
 
     private final float[] xform = XForm.getInstance();
+    private ContentsManager contentsManager;
+    private boolean navigationFocused = false;
 
     // Inside the XServerDisplayActivity class
     private SensorManager sensorManager;
     private Sensor gyroSensor;
     private ExternalController controller;
+
+    // Playtime stats tracking
+    private long startTime;
+    private SharedPreferences playtimePrefs;
+    private String shortcutName;
+    private Handler handler;
+    private Runnable savePlaytimeRunnable;
+    private static final long SAVE_INTERVAL_MS = 1000;
 
     private final SensorEventListener gyroListener = new SensorEventListener() {
         @Override
@@ -169,6 +198,31 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             sensorManager.registerListener(gyroListener, gyroSensor, SensorManager.SENSOR_DELAY_GAME);
         }
 
+        // Initialize playtime tracking
+        playtimePrefs = getSharedPreferences("playtime_stats", MODE_PRIVATE);
+        shortcutName = getIntent().getStringExtra("shortcut_name");
+
+        // Increment play count at the start of a session
+        incrementPlayCount();
+
+        // Record the start time
+        startTime = System.currentTimeMillis();
+
+        // Initialize handler for periodic saving
+        handler = new Handler(Looper.getMainLooper());
+        savePlaytimeRunnable = new Runnable() {
+            @Override
+            public void run() {
+                savePlaytimeData();
+                handler.postDelayed(this, SAVE_INTERVAL_MS);
+            }
+        };
+        handler.postDelayed(savePlaytimeRunnable, SAVE_INTERVAL_MS);
+
+
+        contentsManager = new ContentsManager(this);
+        contentsManager.syncContents();
+
         drawerLayout = findViewById(R.id.DrawerLayout);
         drawerLayout.setOnApplyWindowInsetsListener((view, windowInsets) -> windowInsets.replaceSystemWindowInsets(0, 0, 0, 0));
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -187,22 +241,34 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         String screenSize = Container.DEFAULT_SCREEN_SIZE;
         if (!isGenerateWineprefix()) {
             containerManager = new ContainerManager(this);
-            container = containerManager.getContainerById(getIntent().getIntExtra("container_id", 0));
-            containerManager.activateContainer(container);
 
-            boolean wineprefixNeedsUpdate = container.getExtra("wineprefixNeedsUpdate").equals("t");
-            if (wineprefixNeedsUpdate) {
-                preloaderDialog.show(R.string.updating_system_files);
-                WineUtils.updateWineprefix(this, (status) -> {
-                    if (status == 0) {
-                        container.putExtra("wineprefixNeedsUpdate", null);
-                        container.putExtra("wincomponents", null);
-                        container.saveData();
-                        AppUtils.restartActivity(this);
-                    } else finish();
-                });
+            // Log shortcut_path
+            String shortcutPath = getIntent().getStringExtra("shortcut_path");
+            Log.d("XServerDisplayActivity", "Shortcut Path: " + shortcutPath);
+
+            // Determine container ID
+            int containerId = getIntent().getIntExtra("container_id", 0);
+
+            // If container_id is 0, read from the .desktop file
+            if (containerId == 0 && shortcutPath != null && !shortcutPath.isEmpty()) {
+                File shortcutFile = new File(shortcutPath);
+                containerId = parseContainerIdFromDesktopFile(shortcutFile);
+                Log.d("XServerDisplayActivity", "Parsed Container ID from .desktop file: " + containerId);
+            }
+
+            // Log the final container_id
+            Log.d("XServerDisplayActivity", "Final Container ID: " + containerId);
+
+            // Retrieve the container and check if it's null
+            container = containerManager.getContainerById(containerId);
+
+            if (container == null) {
+                Log.e("XServerDisplayActivity", "Failed to retrieve container with ID: " + containerId);
+                finish();  // Gracefully exit the activity to avoid crashing
                 return;
             }
+
+            containerManager.activateContainer(container);
 
             taskAffinityMask = (short) ProcessHelper.getAffinityMask(container.getCPUList(true));
             taskAffinityMaskWoW64 = (short) ProcessHelper.getAffinityMask(container.getCPUListWoW64(true));
@@ -213,9 +279,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
             if (wineInfo != WineInfo.MAIN_WINE_VERSION) imageFs.setWinePath(wineInfo.path);
 
-            String shortcutPath = getIntent().getStringExtra("shortcut_path");
-            if (shortcutPath != null && !shortcutPath.isEmpty())
+            if (shortcutPath != null && !shortcutPath.isEmpty()) {
                 shortcut = new Shortcut(container, new File(shortcutPath));
+            }
 
             graphicsDriver = container.getGraphicsDriver();
             audioDriver = container.getAudioDriver();
@@ -294,6 +360,25 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             }
             setupXEnvironment();
         });
+    }
+
+    // Method to parse container_id from .desktop file
+    private int parseContainerIdFromDesktopFile(File desktopFile) {
+        int containerId = 0;
+        if (desktopFile.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(desktopFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("container_id:")) {
+                        containerId = Integer.parseInt(line.split(":")[1].trim());
+                        break;
+                    }
+                }
+            } catch (IOException | NumberFormatException e) {
+                Log.e("XServerDisplayActivity", "Error parsing container_id from .desktop file", e);
+            }
+        }
+        return containerId;
     }
 
     // Inside XServerDisplayActivity class
@@ -380,6 +465,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             xServerView.onResume();
             environment.onResume();
         }
+        startTime = System.currentTimeMillis();
+        handler.postDelayed(savePlaytimeRunnable, SAVE_INTERVAL_MS);
     }
 
     @Override
@@ -396,6 +483,39 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             environment.onPause();
             xServerView.onPause();
         }
+
+        savePlaytimeData();
+        handler.removeCallbacks(savePlaytimeRunnable);
+    }
+
+    private void savePlaytimeData() {
+        long endTime = System.currentTimeMillis();
+        long playtime = endTime - startTime;
+
+        // Ensure that playtime is not negative
+        if (playtime < 0) {
+            playtime = 0;
+        }
+
+        SharedPreferences.Editor editor = playtimePrefs.edit();
+        String playtimeKey = shortcutName + "_playtime";
+
+        // Accumulate the playtime into totalPlaytime
+        long totalPlaytime = playtimePrefs.getLong(playtimeKey, 0) + playtime;
+        editor.putLong(playtimeKey, totalPlaytime);
+        editor.apply();
+
+        // Reset startTime to the current time for the next interval
+        startTime = System.currentTimeMillis();
+    }
+
+
+    private void incrementPlayCount() {
+        SharedPreferences.Editor editor = playtimePrefs.edit();
+        String playCountKey = shortcutName + "_play_count";
+        int playCount = playtimePrefs.getInt(playCountKey, 0) + 1;
+        editor.putInt(playCountKey, playCount);
+        editor.apply();
     }
 
     @Override
@@ -405,6 +525,16 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         sensorManager.unregisterListener(gyroListener);
         if (environment != null) environment.stopEnvironmentComponents();
         winHandler.stop();
+
+        savePlaytimeData(); // Save on destroy
+        handler.removeCallbacks(savePlaytimeRunnable);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        savePlaytimeData();
+        handler.removeCallbacks(savePlaytimeRunnable);
     }
 
 
@@ -464,9 +594,14 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             case R.id.main_menu_exit:
                 exit();
                 break;
+            case R.id.main_menu_pip: // This is the new case
+                enterPIPMode();
+                drawerLayout.closeDrawers();
+                break;
         }
         return true;
     }
+
 
 
     @Override
@@ -617,6 +752,16 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             environment.addComponent(new VirGLRendererComponent(xServer, UnixSocketConfig.createSocket(rootPath, UnixSocketConfig.VIRGL_SERVER_PATH)));
         }
 
+        RCManager manager = new RCManager(this);
+        manager.loadRCFiles();
+        int rcfileId = shortcut == null ? container.getRCFileId() :
+                Integer.parseInt(shortcut.getExtra("rcfileId", String.valueOf(container.getRCFileId())));
+        RCFile rcfile = manager.getRcfile(rcfileId);
+        File file = new File(container.getRootDir(), ".box64rc");
+        String str = rcfile == null ? "" : rcfile.generateBox86_64rc();
+        FileUtils.writeString(file, str);
+        envVars.put("BOX64_RCFILE", file.getAbsolutePath());
+
         guestProgramLauncherComponent.setEnvVars(envVars);
         guestProgramLauncherComponent.setTerminationCallback((status) -> exit());
         environment.addComponent(guestProgramLauncherComponent);
@@ -758,6 +903,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private void extractGraphicsDriverFiles() {
         String cacheId = graphicsDriver;
         String selectedDriverVersion = container.getGraphicsDriverVersion(); // Fetch the selected version
+
+        // Adjust cacheId based on graphics driver
         if (graphicsDriver.equals("turnip")) {
             cacheId += "-" + DefaultVersion.TURNIP + "-" + DefaultVersion.ZINK;
         } else if (graphicsDriver.equals("virgl")) {
@@ -765,7 +912,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         }
 
         boolean changed = !cacheId.equals(container.getExtra("graphicsDriver"));
-        File rootDir = imageFs.getRootDir();
+        File rootDir = imageFs.getRootDir(); // Target the root directory of imagefs
 
         if (changed) {
             FileUtils.delete(new File(imageFs.getLib32Dir(), "libvulkan_freedreno.so"));
@@ -777,10 +924,11 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         }
 
         if (graphicsDriver.equals("turnip")) {
-            if (dxwrapper.equals("dxvk"))
+            if (dxwrapper.equals("dxvk")) {
                 DXVKConfigDialog.setEnvVars(this, dxwrapperConfig, envVars);
-            else if (dxwrapper.equals("vkd3d"))
+            } else if (dxwrapper.equals("vkd3d")) {
                 VKD3DConfigDialog.setEnvVars(this, dxwrapperConfig, envVars);
+            }
 
             envVars.put("GALLIUM_DRIVER", "zink");
             envVars.put("TU_OVERRIDE_HEAP_SIZE", "4096");
@@ -790,8 +938,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             if (!GPUInformation.isAdreno6xx(this)) {
                 EnvVars userEnvVars = new EnvVars(container.getEnvVars());
                 String tuDebug = userEnvVars.get("TU_DEBUG");
-                if (!tuDebug.contains("sysmem"))
-                    userEnvVars.put("TU_DEBUG", (!tuDebug.isEmpty() ? tuDebug + "," : "") + "sysmem");
+                if (!tuDebug.contains("sysmem")) userEnvVars.put("TU_DEBUG", (!tuDebug.isEmpty() ? tuDebug + "," : "") + "sysmem");
                 container.setEnvVars(userEnvVars.toString());
             }
 
@@ -801,9 +948,76 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 envVars.put("MESA_VK_WSI_DEBUG", "sw");
             }
 
-            if (changed) {
-                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/turnip-" + DefaultVersion.TURNIP + ".tzst", rootDir);
-                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/zink-" + DefaultVersion.ZINK + ".tzst", rootDir);
+            Log.d("GraphicsDriverExtraction", "Starting extraction for driver version: " + selectedDriverVersion);
+            String normalizedDriverVersion = selectedDriverVersion.startsWith("Turnip-") ? selectedDriverVersion.replace("Turnip-", "") : selectedDriverVersion;
+            Log.d("GraphicsDriverExtraction", "Normalized driver version for extraction: " + normalizedDriverVersion);
+
+            File contentsDir = new File(getFilesDir(), "contents");
+            File turnipDir = new File(contentsDir, "Turnip/" + normalizedDriverVersion + "/turnip");
+            File zinkDir = new File(contentsDir, "Turnip/" + normalizedDriverVersion + "/zink");
+
+            Log.d("GraphicsDriverExtraction", "Checking for Turnip directory: " + turnipDir.getAbsolutePath());
+            Log.d("GraphicsDriverExtraction", "Checking for Zink directory: " + zinkDir.getAbsolutePath());
+
+            if (turnipDir.exists() && turnipDir.isDirectory()) {
+                Log.d("GraphicsDriverExtraction", "Driver directory found in contents: " + turnipDir.getAbsolutePath());
+                File libDir = new File(rootDir, "lib/aarch64-linux-gnu"); // Set the target directory to lib/aarch64-linux-gnu
+                libDir.mkdirs(); // Ensure the target directory exists
+
+                try {
+                    File icdTargetDir = new File(rootDir, "usr/share/vulkan/icd.d"); // Define the target directory for the JSON file
+                    icdTargetDir.mkdirs(); // Ensure the target directory exists
+
+                    // Copy each file individually to handle the special case
+                    for (File file : turnipDir.listFiles()) {
+                        if (file.isFile()) {
+                            if (file.getName().equals("freedreno_icd.aarch64.json")) {
+                                // Move the specific JSON file to its dedicated directory
+                                File targetFile = new File(icdTargetDir, file.getName());
+                                FileUtils.copy(file, targetFile);
+                                Log.d("GraphicsDriverExtraction", "Moved " + file.getName() + " to " + icdTargetDir.getAbsolutePath());
+                            } else {
+                                // Copy other files to the lib directory
+                                File targetFile = new File(libDir, file.getName());
+                                FileUtils.copy(file, targetFile);
+                            }
+                        }
+                    }
+
+                    if (zinkDir.exists() && zinkDir.isDirectory()) {
+                        copyDirectory(zinkDir, libDir); // Copy contents of 'zink' folder if exists
+                    }
+                    Log.d("GraphicsDriverExtraction", "Driver successfully installed from contents manager: " + selectedDriverVersion);
+                    contentsManager.markGraphicsDriverInstalled(selectedDriverVersion); // Mark as installed
+                    return; // Exit as we have handled the contents driver case
+                } catch (IOException e) {
+                    Log.e("GraphicsDriverExtraction", "Failed to copy driver files from contents manager: " + e.getMessage(), e);
+                    return;
+                }
+            } else {
+                Log.d("GraphicsDriverExtraction", "Driver directory not found in contents: " + turnipDir.getAbsolutePath());
+            }
+
+            try {
+                AssetManager assetManager = getAssets();
+                String driverFileName = "turnip-" + normalizedDriverVersion + ".tzst";
+                InputStream inputStream = assetManager.open("graphics_driver/" + driverFileName);
+                Log.d("GraphicsDriverExtraction", "Driver file found in assets: graphics_driver/" + driverFileName);
+
+                File tempFile = new File(rootDir, "temp_turnip_driver_" + normalizedDriverVersion + ".tzst");
+                copyAssetToFile(inputStream, tempFile);
+
+                boolean result = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, tempFile, new File(rootDir, "lib/aarch64-linux-gnu"), null); // Extract directly into the target lib directory
+                tempFile.delete();
+
+                if (result) {
+                    Log.d("GraphicsDriverExtraction", "Extraction successful for driver version: " + normalizedDriverVersion);
+                    contentsManager.markGraphicsDriverInstalled(selectedDriverVersion); // Mark as installed
+                } else {
+                    Log.e("GraphicsDriverExtraction", "Extraction failed for driver version: " + normalizedDriverVersion);
+                }
+            } catch (IOException e) {
+                Log.e("GraphicsDriverExtraction", "Driver file not found in assets: graphics_driver/" + normalizedDriverVersion + ".tzst", e);
             }
         } else if (graphicsDriver.equals("virgl")) {
             envVars.put("GALLIUM_DRIVER", "virpipe");
@@ -812,8 +1026,53 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             envVars.put("MESA_EXTENSION_OVERRIDE", "-GL_EXT_vertex_array_bgra");
             envVars.put("MESA_GL_VERSION_OVERRIDE", "3.1");
             envVars.put("vblank_mode", "0");
-            if (changed)
-                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-" + DefaultVersion.VIRGL + ".tzst", rootDir);
+
+            if (changed) {
+                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-" + DefaultVersion.VIRGL + ".tzst", new File(rootDir, "lib/aarch64-linux-gnu")); // Extract into the specified lib directory
+            }
+        }
+    }
+
+
+
+    private void copyDirectory(File sourceDir, File destinationDir) throws IOException {
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs();
+        }
+
+        File[] files = sourceDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                File destFile = new File(destinationDir, file.getName());
+                if (file.isDirectory()) {
+                    copyDirectory(file, destFile);
+                } else {
+                    copyFile(file, destFile);
+                }
+            }
+        }
+    }
+
+    private void copyFile(File sourceFile, File destFile) throws IOException {
+        try (InputStream inputStream = new FileInputStream(sourceFile);
+             OutputStream outputStream = new FileOutputStream(destFile)) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+        }
+    }
+
+
+
+    private void copyAssetToFile(InputStream inputStream, File destinationFile) throws IOException {
+        try (OutputStream outputStream = new FileOutputStream(destinationFile)) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
         }
     }
 
@@ -965,12 +1224,22 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             default:
                 if (dxwrapper.startsWith("dxvk")) {
                     restoreOriginalDllFiles("d3d12.dll", "d3d12core.dll", "ddraw.dll");
-                    TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/" + dxwrapper + ".tzst", windowsDir, onExtractFileListener);
-                    // d8vk merged into dxvk since dxvk-2.4, so we don't need to extract d8vk after that
-                    if (compareVersion(StringUtils.parseNumber(dxwrapper), "2.4") < 0)
-                        TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/d8vk-" + DefaultVersion.D8VK + ".tzst", windowsDir, onExtractFileListener);
-                } else if (dxwrapper.startsWith("vkd3d"))
-                    TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/" + dxwrapper + ".tzst", windowsDir, onExtractFileListener);
+                    ContentProfile profile = contentsManager.getProfileByEntryName(dxwrapper);
+                    if (profile != null)
+                        contentsManager.applyContent(profile);
+                    else {
+                        TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/" + dxwrapper + ".tzst", windowsDir, onExtractFileListener);
+                        // d8vk merged into dxvk since dxvk-2.4, so we don't need to extract d8vk after that
+                        if (compareVersion(StringUtils.parseNumber(dxwrapper), "2.4") < 0)
+                            TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/d8vk-" + DefaultVersion.D8VK + ".tzst", windowsDir, onExtractFileListener);
+                    }
+                } else if (dxwrapper.startsWith("vkd3d")) {
+                    ContentProfile profile = contentsManager.getProfileByEntryName(dxwrapper);
+                    if (profile != null)
+                        contentsManager.applyContent(profile);
+                    else
+                        TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/" + dxwrapper + ".tzst", windowsDir, onExtractFileListener);
+                }
                 break;
         }
 
@@ -1190,4 +1459,89 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             runOnUiThread(() -> frameRating.setVisibility(View.GONE));
         }
     }
+
+    private void enterPIPMode() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            PictureInPictureParams.Builder pipBuilder = new PictureInPictureParams.Builder();
+            Rational aspectRatio = new Rational(this.getXServer().screenInfo.width, this.getXServer().screenInfo.height);
+            pipBuilder.setAspectRatio(aspectRatio);
+            enterPictureInPictureMode(pipBuilder.build());
+
+            // Get the PIP window bounds
+            Rect pipBounds = getPIPWindowBounds();
+
+
+        } else {
+            AppUtils.showToast(this, "Picture-in-Picture mode is not supported on this device.");
+        }
+    }
+
+
+
+
+
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+
+        if (isInPictureInPictureMode) {
+            // Get the updated PIP window bounds
+            Rect pipBounds = getPIPWindowBounds();
+
+
+        } else {
+            // Restore the viewport for full screen mode
+            //adjustViewportForPIP(false, null);
+        }
+
+        xServerView.requestRender();
+    }
+
+
+
+    private Rect getPIPWindowBounds() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            try {
+                PictureInPictureParams params = (PictureInPictureParams) this.getClass()
+                        .getMethod("getPictureInPictureParams")
+                        .invoke(this);
+
+                if (params != null) {
+                    Rational aspectRatio = params.getAspectRatio();
+                    if (aspectRatio != null) {
+                        // Calculate PIP bounds based on aspect ratio and screen dimensions
+                        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+                        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+
+                        int pipWidth = screenWidth;
+                        int pipHeight = (int) (pipWidth / aspectRatio.floatValue());
+
+                        // Ensure the PIP window is centered
+                        int offsetX = (screenWidth - pipWidth) / 2;
+                        int offsetY = (screenHeight - pipHeight) / 2;
+
+                        return new Rect(offsetX, offsetY, offsetX + pipWidth, offsetY + pipHeight);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Fallback to default size if no other method works
+        int defaultWidth = getResources().getDisplayMetrics().widthPixels / 2;
+        int defaultHeight = getResources().getDisplayMetrics().heightPixels / 2;
+        int defaultOffsetX = (getResources().getDisplayMetrics().widthPixels - defaultWidth) / 2;
+        int defaultOffsetY = (getResources().getDisplayMetrics().heightPixels - defaultHeight) / 2;
+
+        return new Rect(defaultOffsetX, defaultOffsetY, defaultOffsetX + defaultWidth, defaultOffsetY + defaultHeight);
+    }
+
+
+
+
+
+
+
 }

@@ -20,6 +20,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
 
 
@@ -43,9 +45,10 @@
         </activity>
 
         <activity android:name="com.winlator.XServerDisplayActivity"
-            android:exported="false"
+            android:exported="true"
             android:theme="@style/AppThemeFullscreen"
             android:launchMode="singleTask"
+            android:supportsPictureInPicture="true"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|density|navigation"
             android:screenOrientation="sensorLandscape" />
 
@@ -59,6 +62,7 @@
             android:process=":vr_process"
             android:theme="@style/AppThemeFullscreen">
             <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
                 <category android:name="com.oculus.intent.category.VR" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
@@ -79,6 +83,17 @@
             android:theme="@style/AppTheme"
             android:exported="false"
             android:screenOrientation="sensor" />
+
+        <provider
+            android:name=".core.WinlatorCmodFilesProvider"
+            android:authorities="com.winlator.core.WinlatorCmodFilesProvider"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS">
+            <intent-filter>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+            </intent-filter>
+        </provider>
 
         <receiver
             android:name=".ShortcutBroadcastReceiver"
