@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.PictureInPictureParams;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.hardware.Sensor;
@@ -98,12 +97,8 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
@@ -938,7 +933,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             if (!GPUInformation.isAdreno6xx(this)) {
                 EnvVars userEnvVars = new EnvVars(container.getEnvVars());
                 String tuDebug = userEnvVars.get("TU_DEBUG");
-                if (!tuDebug.contains("sysmem")) userEnvVars.put("TU_DEBUG", (!tuDebug.isEmpty() ? tuDebug + "," : "") + "sysmem");
+                if (!tuDebug.contains("sysmem"))
+                    userEnvVars.put("TU_DEBUG", (!tuDebug.isEmpty() ? tuDebug + "," : "") + "sysmem");
                 container.setEnvVars(userEnvVars.toString());
             }
 
@@ -948,76 +944,61 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 envVars.put("MESA_VK_WSI_DEBUG", "sw");
             }
 
-            Log.d("GraphicsDriverExtraction", "Starting extraction for driver version: " + selectedDriverVersion);
-            String normalizedDriverVersion = selectedDriverVersion.startsWith("Turnip-") ? selectedDriverVersion.replace("Turnip-", "") : selectedDriverVersion;
-            Log.d("GraphicsDriverExtraction", "Normalized driver version for extraction: " + normalizedDriverVersion);
+            boolean extractionSucceeded = false;
+            if (changed) {
+                extractionSucceeded = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/turnip-" + DefaultVersion.TURNIP + ".tzst", rootDir) &&
+                        TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/zink-" + DefaultVersion.ZINK + ".tzst", rootDir);
 
-            File contentsDir = new File(getFilesDir(), "contents");
-            File turnipDir = new File(contentsDir, "Turnip/" + normalizedDriverVersion + "/turnip");
-            File zinkDir = new File(contentsDir, "Turnip/" + normalizedDriverVersion + "/zink");
+                if (extractionSucceeded) {
+                    Log.d("GraphicsDriverExtraction", "Extraction from .tzst files succeeded.");
+                } else {
+                    Log.e("GraphicsDriverExtraction", "Extraction from .tzst files failed, will attempt to use the contents directory.");
+                }
+            }
 
-            Log.d("GraphicsDriverExtraction", "Checking for Turnip directory: " + turnipDir.getAbsolutePath());
-            Log.d("GraphicsDriverExtraction", "Checking for Zink directory: " + zinkDir.getAbsolutePath());
+            if (!extractionSucceeded) {
+                // Parse version string for the actual version number, removing "Turnip-"
+                String normalizedVersion = selectedDriverVersion.replaceFirst("Turnip-", "");
+                File contentsDir = new File(getFilesDir(), "contents");
+                File turnipDir = new File(contentsDir, "Turnip/" + normalizedVersion + "/turnip");
+                File zinkDir = new File(contentsDir, "Turnip/" + normalizedVersion + "/zink");
 
-            if (turnipDir.exists() && turnipDir.isDirectory()) {
-                Log.d("GraphicsDriverExtraction", "Driver directory found in contents: " + turnipDir.getAbsolutePath());
-                File libDir = new File(rootDir, "lib/aarch64-linux-gnu"); // Set the target directory to lib/aarch64-linux-gnu
-                libDir.mkdirs(); // Ensure the target directory exists
+                Log.d("GraphicsDriverExtraction", "Checking for Turnip directory: " + turnipDir.getAbsolutePath());
+                Log.d("GraphicsDriverExtraction", "Checking for Zink directory: " + zinkDir.getAbsolutePath());
 
-                try {
+                if (turnipDir.exists() && turnipDir.isDirectory()) {
+                    Log.d("GraphicsDriverExtraction", "Driver directory found in contents: " + turnipDir.getAbsolutePath());
+                    File libDir = new File(rootDir, "lib/aarch64-linux-gnu");
+                    libDir.mkdirs(); // Ensure the target directory exists
+
                     File icdTargetDir = new File(rootDir, "usr/share/vulkan/icd.d"); // Define the target directory for the JSON file
                     icdTargetDir.mkdirs(); // Ensure the target directory exists
 
-                    // Copy each file individually to handle the special case
+                    // Use FileUtils.copy to handle file and directory copying
                     for (File file : turnipDir.listFiles()) {
                         if (file.isFile()) {
                             if (file.getName().equals("freedreno_icd.aarch64.json")) {
-                                // Move the specific JSON file to its dedicated directory
                                 File targetFile = new File(icdTargetDir, file.getName());
                                 FileUtils.copy(file, targetFile);
                                 Log.d("GraphicsDriverExtraction", "Moved " + file.getName() + " to " + icdTargetDir.getAbsolutePath());
                             } else {
-                                // Copy other files to the lib directory
                                 File targetFile = new File(libDir, file.getName());
                                 FileUtils.copy(file, targetFile);
                             }
+                        } else if (file.isDirectory()) {
+                            File targetDir = new File(libDir, file.getName());
+                            FileUtils.copy(file, targetDir);
                         }
                     }
 
                     if (zinkDir.exists() && zinkDir.isDirectory()) {
-                        copyDirectory(zinkDir, libDir); // Copy contents of 'zink' folder if exists
+                        FileUtils.copy(zinkDir, libDir); // Copy contents of 'zink' folder if exists
                     }
                     Log.d("GraphicsDriverExtraction", "Driver successfully installed from contents manager: " + selectedDriverVersion);
                     contentsManager.markGraphicsDriverInstalled(selectedDriverVersion); // Mark as installed
-                    return; // Exit as we have handled the contents driver case
-                } catch (IOException e) {
-                    Log.e("GraphicsDriverExtraction", "Failed to copy driver files from contents manager: " + e.getMessage(), e);
-                    return;
-                }
-            } else {
-                Log.d("GraphicsDriverExtraction", "Driver directory not found in contents: " + turnipDir.getAbsolutePath());
-            }
-
-            try {
-                AssetManager assetManager = getAssets();
-                String driverFileName = "turnip-" + normalizedDriverVersion + ".tzst";
-                InputStream inputStream = assetManager.open("graphics_driver/" + driverFileName);
-                Log.d("GraphicsDriverExtraction", "Driver file found in assets: graphics_driver/" + driverFileName);
-
-                File tempFile = new File(rootDir, "temp_turnip_driver_" + normalizedDriverVersion + ".tzst");
-                copyAssetToFile(inputStream, tempFile);
-
-                boolean result = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, tempFile, new File(rootDir, "lib/aarch64-linux-gnu"), null); // Extract directly into the target lib directory
-                tempFile.delete();
-
-                if (result) {
-                    Log.d("GraphicsDriverExtraction", "Extraction successful for driver version: " + normalizedDriverVersion);
-                    contentsManager.markGraphicsDriverInstalled(selectedDriverVersion); // Mark as installed
                 } else {
-                    Log.e("GraphicsDriverExtraction", "Extraction failed for driver version: " + normalizedDriverVersion);
+                    Log.d("GraphicsDriverExtraction", "Driver directory not found in contents: " + turnipDir.getAbsolutePath());
                 }
-            } catch (IOException e) {
-                Log.e("GraphicsDriverExtraction", "Driver file not found in assets: graphics_driver/" + normalizedDriverVersion + ".tzst", e);
             }
         } else if (graphicsDriver.equals("virgl")) {
             envVars.put("GALLIUM_DRIVER", "virpipe");
@@ -1026,55 +1007,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             envVars.put("MESA_EXTENSION_OVERRIDE", "-GL_EXT_vertex_array_bgra");
             envVars.put("MESA_GL_VERSION_OVERRIDE", "3.1");
             envVars.put("vblank_mode", "0");
-
-            if (changed) {
-                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-" + DefaultVersion.VIRGL + ".tzst", new File(rootDir, "lib/aarch64-linux-gnu")); // Extract into the specified lib directory
-            }
+            if (changed)
+                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-" + DefaultVersion.VIRGL + ".tzst", rootDir);
         }
     }
 
 
 
-    private void copyDirectory(File sourceDir, File destinationDir) throws IOException {
-        if (!destinationDir.exists()) {
-            destinationDir.mkdirs();
-        }
-
-        File[] files = sourceDir.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                File destFile = new File(destinationDir, file.getName());
-                if (file.isDirectory()) {
-                    copyDirectory(file, destFile);
-                } else {
-                    copyFile(file, destFile);
-                }
-            }
-        }
-    }
-
-    private void copyFile(File sourceFile, File destFile) throws IOException {
-        try (InputStream inputStream = new FileInputStream(sourceFile);
-             OutputStream outputStream = new FileOutputStream(destFile)) {
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = inputStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
-            }
-        }
-    }
-
-
-
-    private void copyAssetToFile(InputStream inputStream, File destinationFile) throws IOException {
-        try (OutputStream outputStream = new FileOutputStream(destinationFile)) {
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = inputStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
-            }
-        }
-    }
 
     private void showTouchpadHelpDialog() {
         ContentDialog dialog = new ContentDialog(this, R.layout.touchpad_help_dialog);
