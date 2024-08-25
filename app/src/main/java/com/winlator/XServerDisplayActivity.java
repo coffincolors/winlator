@@ -1135,6 +1135,18 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         }));
     }
 
+    private String normalizeDXVKVersion(String versionString) {
+        // Remove suffixes like (Async) or (Default)
+        String cleanVersion = versionString.replaceAll("\\s*\\([^)]*\\)", "").trim();
+        // Check if "dxvk-" is already present, if not, add it
+        if (!cleanVersion.startsWith("dxvk-")) {
+            cleanVersion = "dxvk-" + cleanVersion;
+        }
+        return cleanVersion;
+    }
+
+
+
     private void extractDXWrapperFiles(String dxwrapper) {
         final String[] dlls = {"d3d10.dll", "d3d10_1.dll", "d3d10core.dll", "d3d11.dll", "d3d12.dll", "d3d12core.dll", "d3d8.dll", "d3d9.dll", "dxgi.dll", "ddraw.dll"};
         if (firstTimeBoot && !dxwrapper.equals("vkd3d")) cloneOriginalDllFiles(dlls);
@@ -1157,32 +1169,36 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 break;
             case "vkd3d":
                 String[] dxvkVersions = getResources().getStringArray(R.array.dxvk_version_entries);
-                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/dxvk-" + (dxvkVersions[dxvkVersions.length - 1]) + ".tzst", windowsDir, onExtractFileListener);
+                String latestVersion = normalizeDXVKVersion(dxvkVersions[dxvkVersions.length - 1]); // Use the new helper method
+                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/" + latestVersion + ".tzst", windowsDir, onExtractFileListener);
                 TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/vkd3d-" + DefaultVersion.VKD3D + ".tzst", windowsDir, onExtractFileListener);
                 break;
             default:
                 if (dxwrapper.startsWith("dxvk")) {
                     restoreOriginalDllFiles("d3d12.dll", "d3d12core.dll", "ddraw.dll");
                     ContentProfile profile = contentsManager.getProfileByEntryName(dxwrapper);
-                    if (profile != null)
+                    if (profile != null) {
                         contentsManager.applyContent(profile);
-                    else {
-                        TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/" + dxwrapper + ".tzst", windowsDir, onExtractFileListener);
+                    } else {
+                        String parsedDxwrapper = normalizeDXVKVersion(dxwrapper); // Use the new helper method
+                        TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/" + parsedDxwrapper + ".tzst", windowsDir, onExtractFileListener);
                         // d8vk merged into dxvk since dxvk-2.4, so we don't need to extract d8vk after that
-                        if (compareVersion(StringUtils.parseNumber(dxwrapper), "2.4") < 0)
+                        if (compareVersion(StringUtils.parseNumber(parsedDxwrapper), "2.4") < 0) {
                             TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/d8vk-" + DefaultVersion.D8VK + ".tzst", windowsDir, onExtractFileListener);
+                        }
                     }
                 } else if (dxwrapper.startsWith("vkd3d")) {
                     ContentProfile profile = contentsManager.getProfileByEntryName(dxwrapper);
-                    if (profile != null)
+                    if (profile != null) {
                         contentsManager.applyContent(profile);
-                    else
+                    } else {
                         TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "dxwrapper/" + dxwrapper + ".tzst", windowsDir, onExtractFileListener);
+                    }
                 }
                 break;
         }
-
     }
+
 
     private static int compareVersion(String varA, String varB) {
         final String[] levelsA = varA.split("\\.");
