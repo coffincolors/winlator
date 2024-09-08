@@ -1,7 +1,8 @@
 package com.winlator;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -49,6 +50,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ShortcutsFragment extends Fragment {
@@ -104,6 +106,50 @@ public class ShortcutsFragment extends Fragment {
         if (shortcuts.isEmpty()) emptyTextView.setVisibility(View.VISIBLE);
     }
 
+    private ShortcutInfo buildScreenShortCut(String shortLabel, String longLabel, int containerId, String shortcutPath, Icon icon, String uuid) {
+        Intent intent = new Intent(getActivity(), XServerDisplayActivity.class);
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.putExtra("container_id", containerId);
+        intent.putExtra("shortcut_path", shortcutPath);
+
+        return new ShortcutInfo.Builder(getActivity(), uuid)
+                .setShortLabel(shortLabel)
+                .setLongLabel(longLabel)
+                .setIcon(icon)
+                .setIntent(intent)
+                .build();
+    }
+
+    private void addShortcutToScreen(Shortcut shortcut) {
+        ShortcutManager shortcutManager = getSystemService(requireContext(), ShortcutManager.class);
+        if (shortcutManager != null && shortcutManager.isRequestPinShortcutSupported())
+            shortcutManager.requestPinShortcut(buildScreenShortCut(shortcut.name, shortcut.name, shortcut.container.id,
+                    shortcut.file.getPath(), Icon.createWithBitmap(shortcut.icon), shortcut.getExtra("uuid")), null);
+    }
+
+    public static void disableShortcutOnScreen(Context context, Shortcut shortcut) {
+        ShortcutManager shortcutManager = getSystemService(context, ShortcutManager.class);
+        try {
+            shortcutManager.disableShortcuts(Collections.singletonList(shortcut.getExtra("uuid")),
+                    context.getString(R.string.shortcut_not_available));
+        } catch (Exception e) {}
+    }
+
+
+
+    public void updateShortcutOnScreen(String shortLabel, String longLabel, int containerId, String shortcutPath, Icon icon, String uuid) {
+        ShortcutManager shortcutManager = getSystemService(requireContext(), ShortcutManager.class);
+        try {
+            for (ShortcutInfo shortcutInfo : shortcutManager.getPinnedShortcuts()) {
+                if (shortcutInfo.getId().equals(uuid)) {
+                    shortcutManager.updateShortcuts(Collections.singletonList(
+                            buildScreenShortCut(shortLabel, longLabel, containerId, shortcutPath, icon, uuid)));
+                    break;
+                }
+            }
+        } catch (Exception e) {}
+    }
+
     private class ShortcutsAdapter extends RecyclerView.Adapter<ShortcutsAdapter.ViewHolder> {
         private final List<Shortcut> data;
 
@@ -124,6 +170,8 @@ public class ShortcutsFragment extends Fragment {
             }
         }
 
+
+
         public ShortcutsAdapter(List<Shortcut> data) {
             this.data = data;
         }
@@ -132,6 +180,13 @@ public class ShortcutsFragment extends Fragment {
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.shortcut_list_item, parent, false));
+        }
+
+        @Override
+        public void onViewRecycled(@NonNull ViewHolder holder) {
+            holder.menuButton.setOnClickListener(null);
+            holder.innerArea.setOnClickListener(null);
+            super.onViewRecycled(holder);
         }
 
         @Override
@@ -159,13 +214,17 @@ public class ShortcutsFragment extends Fragment {
                 int itemId = menuItem.getItemId();
                 if (itemId == R.id.shortcut_settings) {
                     (new ShortcutSettingsDialog(ShortcutsFragment.this, shortcut)).show();
-                } else if (itemId == R.id.shortcut_remove) {
+                }
+                else if (itemId == R.id.shortcut_remove) {
                     ContentDialog.confirm(context, R.string.do_you_want_to_remove_this_shortcut, () -> {
                         if (shortcut.file.delete() && shortcut.iconFile != null) shortcut.iconFile.delete();
+                        disableShortcutOnScreen(requireContext(), shortcut);
                         loadShortcutsList();
                     });
-                } else if (itemId == R.id.shortcut_add_to_homescreen) {
-                    addToHomescreen(context, shortcut);
+                }                 else if (itemId == R.id.shortcut_add_to_home_screen) {
+                    if (shortcut.getExtra("uuid").equals(""))
+                        shortcut.genUUID();
+                    addShortcutToScreen(shortcut);
                 }
                 else if (itemId == R.id.shortcut_export_to_frontend) {
                     exportShortcutToFrontend(shortcut);
@@ -321,12 +380,16 @@ public class ShortcutsFragment extends Fragment {
             else XrActivity.openIntent(activity, shortcut.container.id, shortcut.file.getPath());
         }
 
+
+
         private void exportShortcutToFrontend(Shortcut shortcut) {
             // Create the directory if it doesn't exist
             File frontendDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Winlator/Frontend");
             if (!frontendDir.exists()) {
                 frontendDir.mkdirs();
             }
+
+            String packageName = requireContext().getPackageName();
 
             // Check for FRONTEND_INSTRUCTIONS.txt
             File instructionsFile = new File(frontendDir, "FRONTEND_INSTRUCTIONS.txt");
@@ -353,7 +416,7 @@ public class ShortcutsFragment extends Fragment {
                     writer.write("Expand Advanced:\n");
                     writer.write("File handling: Default\n");
                     writer.write("Use custom launch: True\n");
-                    writer.write("am start command: am start -n com.cmodded.winlator/com.winlator.XServerDisplayActivity -e shortcut_path {file_path}\n\n");
+                    writer.write("am start command: am start -n " + packageName + "/com.winlator.XServerDisplayActivity -e shortcut_path {file_path}\n\n");
                     writer.write("4. Click Save\n");
                     writer.write("5. Scan the folder for your game\n");
                     writer.write("6. Launch your game!\n");
@@ -364,7 +427,7 @@ public class ShortcutsFragment extends Fragment {
                 }
             }
 
-            String packageName = requireContext().getPackageName();
+
 
             // Check for metadata.pegasus.txt
             File metadataFile = new File(frontendDir, "metadata.pegasus.txt");
@@ -408,7 +471,7 @@ public class ShortcutsFragment extends Fragment {
                 }
 
                 // If no container_id was found, add it
-                if (!containerIdFound) {
+                if (        !containerIdFound) {
                     lines.add("container_id:" + shortcut.container.id);
                 }
 

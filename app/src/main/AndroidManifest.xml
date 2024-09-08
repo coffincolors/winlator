@@ -25,6 +25,7 @@
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
 
 
+
     <application
         android:icon="@mipmap/ic_launcher"
         android:appCategory="game"
@@ -94,6 +95,12 @@
                 <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
             </intent-filter>
         </provider>
+
+        <activity
+            android:name=".restore.RestoreActivity"
+            android:process=":restore_process"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:exported="true" />
 
         <receiver
             android:name=".ShortcutBroadcastReceiver"

@@ -30,8 +30,12 @@ import java.util.concurrent.Executors;
 public class WinHandler {
     private static final short SERVER_PORT = 7947;
     private static final short CLIENT_PORT = 7946;
-    public static final byte DINPUT_MAPPER_TYPE_STANDARD = 0;
-    public static final byte DINPUT_MAPPER_TYPE_XINPUT = 1;
+    public static final byte FLAG_DINPUT_MAPPER_STANDARD = 0x01;
+    public static final byte FLAG_DINPUT_MAPPER_XINPUT = 0x02;
+    public static final byte FLAG_INPUT_TYPE_XINPUT = 0x04;
+    public static final byte FLAG_INPUT_TYPE_DINPUT = 0x08;
+    public static final byte DEFAULT_INPUT_TYPE = FLAG_INPUT_TYPE_XINPUT;
+    public static final byte INPUT_TYPE_MIXED = 2;
     private DatagramSocket socket;
     private final ByteBuffer sendData = ByteBuffer.allocate(64).order(ByteOrder.LITTLE_ENDIAN);
     private final ByteBuffer receiveData = ByteBuffer.allocate(64).order(ByteOrder.LITTLE_ENDIAN);
@@ -43,11 +47,11 @@ public class WinHandler {
     private OnGetProcessInfoListener onGetProcessInfoListener;
     private ExternalController currentController;
     private InetAddress localhost;
-    private byte dinputMapperType = DINPUT_MAPPER_TYPE_XINPUT;
+    private byte inputType = DEFAULT_INPUT_TYPE;
     private final XServerDisplayActivity activity;
     private final List<Integer> gamepadClients = new CopyOnWriteArrayList<>();
     private SharedPreferences preferences;
-    private byte triggerMode;
+    private byte triggerType;
 
     private boolean xinputDisabled; // Used for exclusive mouse control
 
@@ -98,6 +102,8 @@ public class WinHandler {
     private boolean isLeftTriggerPressed() {
         return currentController != null && currentController.state.triggerL > 0.5f; // Assuming 0.5f is the threshold for pressed
     }
+
+
 
     public void updateGyroData(float rawGyroX, float rawGyroY) {
         boolean shouldProcessGyro = true;
@@ -320,7 +326,7 @@ public class WinHandler {
                 preferences = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
 
                 // Load and apply trigger mode and xinput toggle settings
-                triggerMode = (byte) preferences.getInt("trigger_mode", ExternalController.TRIGGER_AS_AXIS);
+                triggerType = (byte) preferences.getInt("trigger_type", ExternalController.TRIGGER_IS_AXIS);
                 xinputDisabled = preferences.getBoolean("xinput_toggle", false);
 
                 // Load and apply gyro settings
@@ -364,7 +370,7 @@ public class WinHandler {
                 if (!useVirtualGamepad && (currentController == null || !currentController.isConnected())) {
                     currentController = ExternalController.getController(0);
                     if (currentController != null)
-                        currentController.setTriggerMode(triggerMode);
+                        currentController.setTriggerType(triggerType);
                 }
 
                 final boolean enabled = currentController != null || useVirtualGamepad;
@@ -381,7 +387,7 @@ public class WinHandler {
 
                     if (enabled) {
                         sendData.putInt(!useVirtualGamepad ? currentController.getDeviceId() : profile.id);
-                        sendData.put(dinputMapperType);
+                        sendData.put(inputType);
                         byte[] bytes = (useVirtualGamepad ? profile.getName() : currentController.getName()).getBytes();
                         sendData.putInt(bytes.length);
                         sendData.put(bytes);
@@ -527,12 +533,12 @@ public class WinHandler {
         return handled;
     }
 
-    public byte getDInputMapperType() {
-        return dinputMapperType;
+    public byte getInputType() {
+        return inputType;
     }
 
-    public void setDInputMapperType(byte dinputMapperType) {
-        this.dinputMapperType = dinputMapperType;
+    public void setInputType(byte inputType) {
+        this.inputType = inputType;
     }
 
     public ExternalController getCurrentController() {

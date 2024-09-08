@@ -44,7 +44,11 @@
                         style="@style/ComboBox"
                         android:layout_width="match_parent"
                         android:id="@+id/SScreenSize"
-                        android:entries="@array/screen_size_entries" />
+                        android:entries="@array/screen_size_entries"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:clickable="true"
+                        android:spinnerMode="dialog" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -101,6 +105,13 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <Switch
+                android:id="@+id/SWContentProfile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/select_content_profile_wine" />
+
+
             <LinearLayout
                 android:id="@+id/LLWineVersion"
                 android:layout_width="match_parent"
@@ -108,10 +119,14 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
+
                 <TextView
+                    android:id="@+id/TVWineVersion"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/wine_version" />
+                    android:visibility="gone"
+                    android:text="Wine Version: "/>
+
 
                 <Spinner
                     style="@style/ComboBox"
@@ -190,12 +205,15 @@
                 android:id="@+id/SAudioDriver"
                 android:entries="@array/audio_driver_entries" />
 
+
             <CheckBox
                 android:id="@+id/CBShowFPS"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/show_fps"
                 android:layout_marginTop="8dp" />
+
+
 
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/TabLayout"
@@ -316,7 +334,11 @@
                         <Spinner
                             style="@style/ComboBox"
                             android:id="@+id/SGPUName"
-                            android:layout_width="match_parent" />
+                            android:layout_width="match_parent"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:clickable="true"
+                            android:spinnerMode="dialog" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -560,6 +582,74 @@
                     <TextView
                         style="@style/FieldSetLabel"
                         android:text="@string/system" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <LinearLayout style="@style/FieldSet">
+
+                        <LinearLayout
+                            android:id="@+id/LLDinputMapperType"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/directinput_mapper_type" />
+
+                            <Spinner
+                                style="@style/ComboBox"
+                                android:id="@+id/SDInputType"
+                                android:layout_width="match_parent"
+                                android:entries="@array/dinput_mapper_type_entries" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="8dp">
+
+                            <CheckBox
+                                android:id="@+id/CBEnableXInput"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="@string/enable_xinput_for_wine_game" />
+
+                            <ImageView
+                                android:id="@+id/BTXInputHelp"
+                                style="@style/HelpButton"
+                                android:layout_gravity="center" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="8dp">
+
+                            <CheckBox
+                                android:id="@+id/CBEnableDInput"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/enable_dinput_for_wine_game" />
+
+                            <ImageView
+                                android:id="@+id/BTDInputHelp"
+                                style="@style/HelpButton"
+                                android:layout_gravity="center" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        style="@style/FieldSetLabel"
+                        android:text="@string/game_controller" />
                 </FrameLayout>
 
                 <TextView

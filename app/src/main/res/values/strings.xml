@@ -289,7 +289,7 @@
     <string name="add_to_homescreen">Add to Homescreen</string>
     <string name="as_button">As Button</string>
     <string name="as_axis">As Axis</string>
-    <string name="trigger_mode">Trigger Mode</string>
+    <string name="trigger_type">Trigger Type</string>
     <string name="both">Both</string>
     <string name="game_controller">Game Controller</string>
     <string name="add_save">Add Save</string>
@@ -328,6 +328,30 @@
     <string name="name_required">Name is required</string>
     <string name="exporting_save">Exporting save...</string>
     <string name="importing_save">Importing save...</string>
-
-
+    <string name="select_content_profile_wine">Use Wine installed via Contents Manager:</string>
+    <string name="wine_version_label">Wine Version: %s</string>
+    <string name="enable_dinput_for_wine_game">Enable DInput for Games in Wine</string>
+    <string name="enable_xinput_for_wine_game">Enable XInput for Games in Wine</string>
+    <string name="dinput_legacy">Legacy (Old Gamepads)</string>
+    <string name="dinput_modern">Modern (Xinput like)</string>
+    <string name="mixed">Mixed</string>
+    <string name="help_xinput"><![CDATA[
+        If your game utilizes the <i><b>XInput API</b></i> for game controller support, please enable this option.<br/><br/>
+        This option will affect both <i><b>virtual</b></i> (provided by Input Controls) and <i><b>physical</b></i> game controllers.
+    ]]></string>
+    <string name="help_dinput"><![CDATA[
+        If your game utilizes the <i><b>DInput API</b></i> for game controller support, please enable this option.<br/><br/>
+        This option will affect both <i><b>virtual</b></i> (provided by Input Controls) and <i><b>physical</b></i> game controllers.
+    ]]></string>
+    <string name="enable_xinput_and_dinput_same_time">Some games may support both APIs. Enabling both XInput and DInput simultaneously in such games may cause control issues, as seen in titles like The Binding of Isaac and the Resident Evil series.</string>
+    <string name="toggle_orientation">Toggle Orientation</string>
+    <string name="_copy">copy</string>
+    <string name="backing_up_data">Backing up data...</string>
+    <string name="restoring_data">Restoring data...</string>
+    <string name="help_trigger_mode"><![CDATA[
+        This option depends on the <i><b>Physical Controller</b></i> you are using.<br/><br/>
+        <i><b>Is Axis</b></i>: Check this if the trigger on your controller is linear (with a range of motion).<br/><br/>
+        <i><b>Is Button</b></i>: Check this If the trigger on your controller is a button (similar to a switch).<br/><br/>
+        <i><b>Note</b></i>: For linear triggers, using <i><b>Is Button</b></i> will result in the loss of linear data when mapping.<br/>
+    ]]></string>
 </resources>

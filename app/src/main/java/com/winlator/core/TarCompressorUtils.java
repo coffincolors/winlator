@@ -2,6 +2,7 @@ package com.winlator.core;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
@@ -27,6 +28,12 @@ import java.io.OutputStream;
 public abstract class TarCompressorUtils {
     public enum Type {XZ, ZSTD}
 
+    // Interface to define the exclusion filter
+    public interface ExclusionFilter {
+        boolean shouldInclude(File file);
+    }
+
+
     private static void addFile(ArchiveOutputStream tar, File file, String entryName) {
         try {
             tar.putArchiveEntry(tar.createArchiveEntry(file, entryName));
@@ -48,50 +55,57 @@ public abstract class TarCompressorUtils {
         catch (Exception e) {}
     }
 
-    private static void addDirectory(ArchiveOutputStream tar, File folder, String basePath) throws IOException {
+    private static void addDirectory(ArchiveOutputStream tar, File folder, String basePath, ExclusionFilter filter) throws IOException {
         File[] files = folder.listFiles();
         if (files == null) return;
         for (File file : files) {
-            if (FileUtils.isSymlink(file)) {
-                addLinkFile(tar, file, basePath+file.getName());
+            if (filter != null && !filter.shouldInclude(file)) {
+                continue; // Skip files that should be excluded
             }
-            else if (file.isDirectory()) {
-                String entryName = basePath+file.getName() + "/";
+            if (FileUtils.isSymlink(file)) {
+                addLinkFile(tar, file, basePath + file.getName());
+            } else if (file.isDirectory()) {
+                String entryName = basePath + file.getName() + "/";
                 tar.putArchiveEntry(tar.createArchiveEntry(folder, entryName));
                 tar.closeArchiveEntry();
-                addDirectory(tar, file, entryName);
+                addDirectory(tar, file, entryName, filter);
+            } else {
+                addFile(tar, file, basePath + file.getName());
             }
-            else addFile(tar, file, basePath+file.getName());
         }
     }
 
-    public static void compress(Type type, File file, File destination) {
-        compress(type, file, destination, 3);
-    }
-
     public static void compress(Type type, File file, File destination, int level) {
-        compress(type, new File[]{file}, destination, level);
+        compress(type, new File[]{file}, destination, level, null);
     }
 
-    public static void compress(Type type, File[] files, File destination, int level) {
+    public static void compress(Type type, File file, File destination, int level, ExclusionFilter filter) {
+        compress(type, new File[]{file}, destination, level, filter);
+    }
+
+    public static void compress(Type type, File[] files, File destination, int level, ExclusionFilter filter) {
         try (OutputStream outStream = getCompressorOutputStream(type, destination, level);
              TarArchiveOutputStream tar = new TarArchiveOutputStream(outStream)) {
             tar.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
             for (File file : files) {
+                if (filter != null && !filter.shouldInclude(file)) {
+                    continue; // Skip files that should be excluded
+                }
                 if (FileUtils.isSymlink(file)) {
                     addLinkFile(tar, file, file.getName());
-                }
-                else if (file.isDirectory()) {
+                } else if (file.isDirectory()) {
                     String basePath = file.getName() + "/";
                     tar.putArchiveEntry(tar.createArchiveEntry(file, basePath));
                     tar.closeArchiveEntry();
-                    addDirectory(tar, file, basePath);
+                    addDirectory(tar, file, basePath, filter);
+                } else {
+                    addFile(tar, file, file.getName());
                 }
-                else addFile(tar, file, file.getName());
             }
             tar.finish();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        catch (IOException e) {}
     }
 
     public static boolean extract(Type type, Context context, String assetFile, File destination) {
@@ -168,6 +182,7 @@ public abstract class TarCompressorUtils {
             return true;
         }
         catch (IOException e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -191,4 +206,92 @@ public abstract class TarCompressorUtils {
         }
         return null;
     }
+
+    public static void archive(File[] files, File destination, ExclusionFilter filter) {
+        try (OutputStream outStream = new BufferedOutputStream(new FileOutputStream(destination), StreamUtils.BUFFER_SIZE);
+             TarArchiveOutputStream tar = new TarArchiveOutputStream(outStream)) {
+            tar.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
+            for (File file : files) {
+                if (filter != null && !filter.shouldInclude(file)) {
+                    continue; // Skip files that should be excluded
+                }
+                if (FileUtils.isSymlink(file)) {
+                    addLinkFile(tar, file, file.getName());
+                } else if (file.isDirectory()) {
+                    String basePath = file.getName() + "/";
+                    tar.putArchiveEntry(tar.createArchiveEntry(file, basePath));
+                    tar.closeArchiveEntry();
+                    addDirectory(tar, file, basePath, filter);
+                } else {
+                    addFile(tar, file, file.getName());
+                }
+            }
+            tar.finish();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean extractTar(File source, File destination, OnExtractFileListener onExtractFileListener) {
+        if (source == null || !source.isFile()) return false;
+        try (InputStream inStream = new BufferedInputStream(new FileInputStream(source), StreamUtils.BUFFER_SIZE);
+             TarArchiveInputStream tar = new TarArchiveInputStream(inStream)) {
+            TarArchiveEntry entry;
+            String topLevelDirectory = null;
+            while ((entry = (TarArchiveEntry) tar.getNextEntry()) != null) {
+                if (!tar.canReadEntryData(entry)) continue;
+
+                // Get the top-level directory name
+                String entryName = entry.getName();
+                if (topLevelDirectory == null) {
+                    if (entry.isDirectory()) {
+                        topLevelDirectory = entryName;
+                        continue; // Skip creating the top-level directory
+                    }
+                }
+
+                // Skip the entire tmp directory
+                if (entryName.contains("/tmp/")) {
+                    Log.d("RestoreOp", "Skipping tmp directory: " + entryName);
+                    continue;
+                }
+
+                // Adjust the extraction path to remove the top-level directory
+                String adjustedName = entryName.replaceFirst("^" + topLevelDirectory, "");
+                File file = new File(destination, adjustedName);
+
+                if (onExtractFileListener != null) {
+                    file = onExtractFileListener.onExtractFile(file, entry.getSize());
+                    if (file == null) continue;
+                }
+
+                if (entry.isDirectory()) {
+                    if (!file.isDirectory()) file.mkdirs();
+                } else {
+                    if (entry.isSymbolicLink()) {
+                        FileUtils.symlink(entry.getLinkName(), file.getAbsolutePath());
+                    } else {
+                        try (BufferedOutputStream outStream = new BufferedOutputStream(new FileOutputStream(file), StreamUtils.BUFFER_SIZE)) {
+                            if (!StreamUtils.copy(tar, outStream)) return false;
+                        }
+                    }
+                }
+
+                FileUtils.chmod(file, 0771);
+            }
+            return true;
+        } catch (IOException e) {
+            Log.e("RestoreOp", "Failed to extract tar file", e);
+            return false;
+        }
+    }
+
+
 }
+
+
+
+
+
+
+

@@ -1,5 +1,6 @@
 package com.winlator.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,10 +15,12 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.PointerIcon;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.winlator.R;
 import com.winlator.inputcontrols.Binding;
 import com.winlator.inputcontrols.ControlElement;
 import com.winlator.inputcontrols.ControlsProfile;
@@ -56,12 +59,14 @@ public class InputControlsView extends View {
     private final PointF mouseMoveOffset = new PointF();
     private boolean showTouchscreenControls = true;
 
+    @SuppressLint("ResourceType")
     public InputControlsView(Context context) {
         super(context);
         setClickable(true);
         setFocusable(true);
         setFocusableInTouchMode(true);
         setBackgroundColor(0x00000000);
+        setPointerIcon(PointerIcon.load(getResources(), R.drawable.hidden_pointer_arrow));
         setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
@@ -426,8 +431,13 @@ public class InputControlsView extends View {
             GamepadState state = profile.getGamepadState();
 
             int buttonIdx = binding.ordinal() - Binding.GAMEPAD_BUTTON_A.ordinal();
-            if (buttonIdx <= 11) {
-                state.setPressed(buttonIdx, isActionDown);
+            if (buttonIdx <= ExternalController.IDX_BUTTON_R2) {
+                if (buttonIdx == ExternalController.IDX_BUTTON_L2)
+                    state.triggerL = isActionDown ? 1.0f : 0f;
+                else if (buttonIdx == ExternalController.IDX_BUTTON_R2)
+                    state.triggerR = isActionDown ? 1.0f : 0f;
+                else
+                    state.setPressed(buttonIdx, isActionDown);
             }
             else if (binding == Binding.GAMEPAD_LEFT_THUMB_UP || binding == Binding.GAMEPAD_LEFT_THUMB_DOWN) {
                 state.thumbLY = isActionDown ? offset : 0;
@@ -442,7 +452,7 @@ public class InputControlsView extends View {
                 state.thumbRX = isActionDown ? offset : 0;
             }
             else if (binding == Binding.GAMEPAD_DPAD_UP || binding == Binding.GAMEPAD_DPAD_RIGHT ||
-                     binding == Binding.GAMEPAD_DPAD_DOWN || binding == Binding.GAMEPAD_DPAD_LEFT) {
+                    binding == Binding.GAMEPAD_DPAD_DOWN || binding == Binding.GAMEPAD_DPAD_LEFT) {
                 state.dpad[binding.ordinal() - Binding.GAMEPAD_DPAD_UP.ordinal()] = isActionDown;
             }
 

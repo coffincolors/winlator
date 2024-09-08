@@ -9,6 +9,7 @@ import com.winlator.core.FileUtils;
 import com.winlator.core.KeyValueSet;
 import com.winlator.core.WineInfo;
 import com.winlator.core.WineThemeManager;
+import com.winlator.winhandler.WinHandler;
 import com.winlator.xenvironment.ImageFs;
 
 import org.json.JSONException;
@@ -52,10 +53,11 @@ public class Container {
     private File rootDir;
     private JSONObject extraData;
     private int rcfileId = 0;
+    private int inputType = WinHandler.DEFAULT_INPUT_TYPE;
 
     private String graphicsDriverVersion = "24.3.0"; // Default version or fallback
 
-    private final ContainerManager containerManager;
+    private ContainerManager containerManager;
 
 
     public String getGraphicsDriverVersion() {
@@ -67,6 +69,10 @@ public class Container {
         this.graphicsDriverVersion = graphicsDriverVersion;
     }
 
+    public Container(int id) {
+        this.id = id;
+        this.name = "Container-"+id;
+    }
 
     public Container(int id, ContainerManager containerManager) {
         this.id = id;
@@ -290,6 +296,14 @@ public class Container {
         rcfileId = id;
     }
 
+    public int getInputType() {
+        return inputType;
+    }
+
+    public void setInputType(int inputType) {
+        this.inputType = inputType;
+    }
+
     public Iterable<String[]> drivesIterator() {
         return drivesIterator(drives);
     }
@@ -332,6 +346,7 @@ public class Container {
             data.put("wincomponents", wincomponents);
             data.put("drives", drives);
             data.put("showFPS", showFPS);
+            data.put("inputType", inputType);
             data.put("wow64Mode", wow64Mode);
             data.put("startupSelection", startupSelection);
             data.put("box86Preset", box86Preset);
@@ -390,6 +405,9 @@ public class Container {
                     break;
                 case "showFPS" :
                     setShowFPS(data.getBoolean(key));
+                    break;
+                case "inputType" :
+                    setInputType(data.getInt(key));
                     break;
                 case "wow64Mode" :
                     setWoW64Mode(data.getBoolean(key));

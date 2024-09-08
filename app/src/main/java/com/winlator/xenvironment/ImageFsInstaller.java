@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class ImageFsInstaller {
-    public static final byte LATEST_VERSION = 8;
+    public static final byte LATEST_VERSION = 10;
 
     private static void resetContainerImgVersions(Context context) {
         ContainerManager manager = new ContainerManager(context);
@@ -42,7 +42,7 @@ public abstract class ImageFsInstaller {
         }
     }
 
-    private static void installFromAssets(final MainActivity activity) {
+    public static void installFromAssets(final MainActivity activity) {
         AppUtils.keepScreenOn(activity);
         ImageFs imageFs = ImageFs.find(activity);
         final File rootDir = imageFs.getRootDir();
@@ -98,8 +98,7 @@ public abstract class ImageFsInstaller {
                 for (File file : files) {
                     if (file.isDirectory()) {
                         String name = file.getName();
-                        if (name.equals("home") || name.equals("opt")) {
-                            if (name.equals("opt")) clearOptDir(file);
+                        if (name.equals("home")) {
                             continue;
                         }
                     }

@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.UUID;
 
 public class Shortcut {
     public final Container container;
@@ -121,5 +122,12 @@ public class Shortcut {
         }
 
         FileUtils.writeString(file, content);
+    }
+
+    public void genUUID() {
+        if (getExtra("uuid").equals("")) {
+            putExtra("uuid", UUID.randomUUID().toString());
+            saveData();
+        }
     }
 }

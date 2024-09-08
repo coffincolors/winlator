@@ -9,6 +9,10 @@
         <item android:icon="@drawable/icon_magnifier" android:id="@+id/main_menu_magnifier" android:title="@string/magnifier" />
         <item android:icon="@drawable/icon_debug" android:id="@+id/main_menu_logs" android:title="@string/logs" />
         <item android:id="@+id/main_menu_pip" android:icon="@drawable/ic_picture_in_picture_alt" android:title="Enter PIP Mode"/>
+        <item
+            android:icon="@drawable/icon_reset"
+            android:id="@+id/main_menu_toggle_orientation"
+            android:title="@string/toggle_orientation" />
         <item android:icon="@drawable/icon_help" android:id="@+id/main_menu_touchpad_help" android:title="@string/touchpad_help" />
         <item android:icon="@drawable/icon_exit" android:id="@+id/main_menu_exit" android:title="@string/exit" />
     </group>

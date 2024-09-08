@@ -1,15 +1,19 @@
 package com.winlator.widget;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.os.Handler;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+
+import androidx.preference.PreferenceManager;
 
 import com.winlator.core.AppUtils;
 import com.winlator.math.Mathf;
@@ -19,10 +23,6 @@ import com.winlator.winhandler.MouseEventFlags;
 import com.winlator.winhandler.WinHandler;
 import com.winlator.xserver.Pointer;
 import com.winlator.xserver.XServer;
-
-import android.content.SharedPreferences;
-
-import androidx.preference.PreferenceManager;
 
 public class TouchpadView extends View {
     private static final byte MAX_FINGERS = 4;
@@ -43,6 +43,9 @@ public class TouchpadView extends View {
     private final XServer xServer;
     private Runnable fourFingersTapCallback;
     private final float[] xform = XForm.getInstance();
+
+    private float resolutionScale;
+    private static final int UPDATE_FORM_DELAYED_TIME = 50;
 
     private SharedPreferences preferences;
 
@@ -78,6 +81,7 @@ public class TouchpadView extends View {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         updateXform(w, h, xServer.screenInfo.width, xServer.screenInfo.height);
+        resolutionScale = 1000.0f / Math.min(xServer.screenInfo.width, xServer.screenInfo.height);
     }
 
     private void updateXform(int outerWidth, int outerHeight, int innerWidth, int innerHeight) {
@@ -88,8 +92,8 @@ public class TouchpadView extends View {
         if (!xServer.getRenderer().isFullscreen()) {
             XForm.makeTranslation(xform, -viewTransformation.viewOffsetX, -viewTransformation.viewOffsetY);
             XForm.scale(xform, invAspect, invAspect);
-        }
-        else XForm.makeScale(xform, invAspect, invAspect);
+        } else
+            XForm.makeScale(xform, (float) innerWidth / outerWidth, (float) innerHeight / outerHeight);
     }
 
     private class Finger {
@@ -484,18 +488,20 @@ public class TouchpadView extends View {
                 case MotionEvent.ACTION_BUTTON_PRESS:
                     if (actionButton == MotionEvent.BUTTON_PRIMARY) {
                         xServer.injectPointerButtonPress(Pointer.Button.BUTTON_LEFT);
-                    }
-                    else if (actionButton == MotionEvent.BUTTON_SECONDARY) {
+                    } else if (actionButton == MotionEvent.BUTTON_SECONDARY) {
                         xServer.injectPointerButtonPress(Pointer.Button.BUTTON_RIGHT);
+                    } else if (actionButton == MotionEvent.BUTTON_TERTIARY) {
+                        xServer.injectPointerButtonPress(Pointer.Button.BUTTON_MIDDLE); // Add this line for middle mouse button press
                     }
                     handled = true;
                     break;
                 case MotionEvent.ACTION_BUTTON_RELEASE:
                     if (actionButton == MotionEvent.BUTTON_PRIMARY) {
                         xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
-                    }
-                    else if (actionButton == MotionEvent.BUTTON_SECONDARY) {
+                    } else if (actionButton == MotionEvent.BUTTON_SECONDARY) {
                         xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_RIGHT);
+                    } else if (actionButton == MotionEvent.BUTTON_TERTIARY) {
+                        xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_MIDDLE); // Add this line for middle mouse button release
                     }
                     handled = true;
                     break;
@@ -509,8 +515,7 @@ public class TouchpadView extends View {
                     if (scrollY <= -1.0f) {
                         xServer.injectPointerButtonPress(Pointer.Button.BUTTON_SCROLL_DOWN);
                         xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_SCROLL_DOWN);
-                    }
-                    else if (scrollY >= 1.0f) {
+                    } else if (scrollY >= 1.0f) {
                         xServer.injectPointerButtonPress(Pointer.Button.BUTTON_SCROLL_UP);
                         xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_SCROLL_UP);
                     }
@@ -547,5 +552,10 @@ public class TouchpadView extends View {
         stateListDrawable.addState(new int[]{}, defaultDrawable);
 
         return stateListDrawable;
+    }
+
+    public void toggleFullscreen() {
+        new Handler().postDelayed(() -> updateXform(getWidth(), getHeight(), xServer.screenInfo.width, xServer.screenInfo.height),
+                UPDATE_FORM_DELAYED_TIME);
     }
 }

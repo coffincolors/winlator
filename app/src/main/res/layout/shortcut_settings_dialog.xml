@@ -41,7 +41,8 @@
                     style="@style/ComboBox"
                     android:layout_width="match_parent"
                     android:id="@+id/SScreenSize"
-                    android:entries="@array/screen_size_entries" />
+                    android:entries="@array/screen_size_entries"
+                    android:spinnerMode="dialog" />
             </LinearLayout>
 
             <LinearLayout
@@ -144,6 +145,9 @@
             <ImageButton
                 style="@style/ListMenuButton"
                 android:id="@+id/BTDXWrapperConfig"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="8dp"
                 android:src="@drawable/icon_settings"
                 android:visibility="gone" />
         </LinearLayout>
@@ -312,7 +316,8 @@
                     <Spinner
                         style="@style/ComboBox"
                         android:id="@+id/SControlsProfile"
-                        android:layout_width="match_parent" />
+                        android:layout_width="match_parent"
+                        android:spinnerMode="dialog" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -330,6 +335,75 @@
                     style="@style/FieldSetLabel"
                     android:background="#ffffff"
                     android:text="@string/input_controls" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <LinearLayout style="@style/FieldSet">
+
+                    <LinearLayout
+                        android:id="@+id/LLDinputMapperType"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/directinput_mapper_type" />
+
+                        <Spinner
+                            style="@style/ComboBox"
+                            android:id="@+id/SDInputType"
+                            android:layout_width="match_parent"
+                            android:entries="@array/dinput_mapper_type_entries" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <CheckBox
+                            android:id="@+id/CBEnableXInput"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="@string/enable_xinput_for_wine_game" />
+
+                        <ImageView
+                            android:id="@+id/BTXInputHelp"
+                            style="@style/HelpButton"
+                            android:layout_gravity="center" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <CheckBox
+                            android:id="@+id/CBEnableDInput"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/enable_dinput_for_wine_game" />
+
+                        <ImageView
+                            android:id="@+id/BTDInputHelp"
+                            style="@style/HelpButton"
+                            android:layout_gravity="center" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    style="@style/FieldSetLabel"
+                    android:background="#ffffff"
+                    android:text="@string/game_controller" />
             </FrameLayout>
 
             <FrameLayout

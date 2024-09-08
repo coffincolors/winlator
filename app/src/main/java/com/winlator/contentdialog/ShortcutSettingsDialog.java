@@ -76,6 +76,31 @@ public class ShortcutSettingsDialog extends ContentDialog {
         final Spinner sAudioDriver = findViewById(R.id.SAudioDriver);
         AppUtils.setSpinnerSelectionFromIdentifier(sAudioDriver, shortcut.getExtra("audioDriver", shortcut.container.getAudioDriver()));
 
+        final Runnable showInputWarning = () -> ContentDialog.alert(context, R.string.enable_xinput_and_dinput_same_time, null);
+        final CheckBox cbEnableXInput = findViewById(R.id.CBEnableXInput);
+        final CheckBox cbEnableDInput = findViewById(R.id.CBEnableDInput);
+        final View llDInputType = findViewById(R.id.LLDinputMapperType);
+        final View btHelpXInput = findViewById(R.id.BTXInputHelp);
+        final View btHelpDInput = findViewById(R.id.BTDInputHelp);
+        Spinner SDInputType = findViewById(R.id.SDInputType);
+        final int inputType = Integer.parseInt(shortcut.getExtra("inputType", String.valueOf(shortcut.container.getInputType())));
+        cbEnableXInput.setChecked((inputType & WinHandler.FLAG_INPUT_TYPE_XINPUT) == WinHandler.FLAG_INPUT_TYPE_XINPUT);
+        cbEnableDInput.setChecked((inputType & WinHandler.FLAG_INPUT_TYPE_DINPUT) == WinHandler.FLAG_INPUT_TYPE_DINPUT);
+        cbEnableDInput.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            llDInputType.setVisibility(isChecked?View.VISIBLE:View.GONE);
+            if (isChecked && cbEnableXInput.isChecked())
+                showInputWarning.run();
+        });
+        cbEnableXInput.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked && cbEnableDInput.isChecked())
+                showInputWarning.run();
+        });
+        btHelpXInput.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_xinput));
+        btHelpDInput.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_dinput));
+        SDInputType.setSelection(((inputType & WinHandler.FLAG_DINPUT_MAPPER_STANDARD) == WinHandler.FLAG_DINPUT_MAPPER_STANDARD) ? 0 : 1);
+        llDInputType.setVisibility(cbEnableDInput.isChecked()?View.VISIBLE:View.GONE);
+
+
         final CheckBox cbForceFullscreen = findViewById(R.id.CBForceFullscreen);
         cbForceFullscreen.setChecked(shortcut.getExtra("forceFullscreen", "0").equals("1"));
 
@@ -96,8 +121,6 @@ public class ShortcutSettingsDialog extends ContentDialog {
         final Spinner sControlsProfile = findViewById(R.id.SControlsProfile);
         loadControlsProfileSpinner(sControlsProfile, shortcut.getExtra("controlsProfile", "0"));
 
-        final Spinner sDInputMapperType = findViewById(R.id.SDInputMapperType);
-        sDInputMapperType.setSelection(Byte.parseByte(shortcut.getExtra("dinputMapperType", String.valueOf(WinHandler.DINPUT_MAPPER_TYPE_XINPUT))));
 
         ContainerDetailFragment.createWinComponentsTab(getContentView(), shortcut.getExtra("wincomponents", shortcut.container.getWinComponents()));
         final EnvVarsView envVarsView = createEnvVarsTab();
@@ -128,6 +151,11 @@ public class ShortcutSettingsDialog extends ContentDialog {
                 String audioDriver = StringUtils.parseIdentifier(sAudioDriver.getSelectedItem());
                 String screenSize = ContainerDetailFragment.getScreenSize(getContentView());
 
+                int finalInputType = 0;
+                finalInputType |= cbEnableXInput.isChecked() ? WinHandler.FLAG_INPUT_TYPE_XINPUT : 0;
+                finalInputType |= cbEnableDInput.isChecked() ? WinHandler.FLAG_INPUT_TYPE_DINPUT : 0;
+                finalInputType |= SDInputType.getSelectedItemPosition() == 0 ?  WinHandler.FLAG_DINPUT_MAPPER_STANDARD : WinHandler.FLAG_DINPUT_MAPPER_XINPUT;
+
                 String execArgs = etExecArgs.getText().toString();
                 shortcut.putExtra("execArgs", !execArgs.isEmpty() ? execArgs : null);
                 shortcut.putExtra("screenSize", !screenSize.equals(shortcut.container.getScreenSize()) ? screenSize : null);
@@ -150,27 +178,37 @@ public class ShortcutSettingsDialog extends ContentDialog {
 
                 shortcut.putExtra("rcfileId", rcfileIds[0] != shortcut.container.getRCFileId() ? Integer.toString(rcfileIds[0]) : null);
 
-                int dinputMapperType = sDInputMapperType.getSelectedItemPosition();
+
                 ArrayList<ControlsProfile> profiles = inputControlsManager.getProfiles(true);
                 int controlsProfile = sControlsProfile.getSelectedItemPosition() > 0 ? profiles.get(sControlsProfile.getSelectedItemPosition()-1).id : 0;
                 shortcut.putExtra("controlsProfile", controlsProfile > 0 ? String.valueOf(controlsProfile) : null);
-                shortcut.putExtra("dinputMapperType", dinputMapperType != WinHandler.DINPUT_MAPPER_TYPE_XINPUT ? String.valueOf(dinputMapperType) : null);
+                shortcut.putExtra("inputType", finalInputType == inputType ? null : String.valueOf(finalInputType));
+                shortcut.putExtra("inputType", String.valueOf(finalInputType));
                 shortcut.saveData();
             }
         });
     }
 
+    private void updateExtra(String extraName, String containerValue, String newValue) {
+        String extraValue = shortcut.getExtra(extraName);
+        if (extraValue.isEmpty() && containerValue.equals(newValue))
+            return;
+        shortcut.putExtra(extraName, newValue);
+    }
+
     private void renameShortcut(String newName) {
         File parent = shortcut.file.getParentFile();
-        File newFile = new File(parent, newName+".desktop");
-        if (!newFile.isFile()) shortcut.file.renameTo(newFile);
+        File newDesktopFile = new File(parent, newName+".desktop");
+        if (!newDesktopFile.isFile()) shortcut.file.renameTo(newDesktopFile);
 
         File linkFile = new File(parent, shortcut.name+".lnk");
         if (linkFile.isFile()) {
-            newFile = new File(parent, newName+".lnk");
-            if (!newFile.isFile()) linkFile.renameTo(newFile);
+            File newLinkFile = new File(parent, newName+".lnk");
+            if (!newLinkFile.isFile()) linkFile.renameTo(newLinkFile);
         }
         fragment.loadShortcutsList();
+        fragment.updateShortcutOnScreen(newName, newName, shortcut.container.id, newDesktopFile.getAbsolutePath(),
+                Icon.createWithBitmap(shortcut.icon), shortcut.getExtra("uuid"));
     }
 
     private EnvVarsView createEnvVarsTab() {

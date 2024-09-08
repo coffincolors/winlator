@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,18 +46,24 @@ import com.winlator.core.DefaultVersion;
 import com.winlator.core.FileUtils;
 import com.winlator.core.PreloaderDialog;
 import com.winlator.core.StringUtils;
+import com.winlator.core.TarCompressorUtils;
 import com.winlator.core.WineInfo;
 import com.winlator.core.WineUtils;
 import com.winlator.inputcontrols.ExternalController;
+import com.winlator.restore.RestoreActivity;
 import com.winlator.xenvironment.ImageFs;
+import com.winlator.xenvironment.ImageFsInstaller;
+import com.winlator.xenvironment.components.LinuxCommandExplorer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class SettingsFragment extends Fragment {
@@ -77,6 +84,15 @@ public class SettingsFragment extends Fragment {
     private CheckBox cbInvertGyroX;
     private CheckBox cbInvertGyroY;
 
+    private boolean isRestoreAction = false;
+
+    private LinuxCommandExplorer commandExplorer = null;
+
+    public SettingsFragment() {
+        Context context = getContext();
+        commandExplorer = new LinuxCommandExplorer(context);
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,19 +112,37 @@ public class SettingsFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == MainActivity.OPEN_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            try {
-                if (selectWineFileCallback != null && data != null) selectWineFileCallback.call(data.getData());
-            } catch (Exception e) {
-                AppUtils.showToast(getContext(), R.string.unable_to_import_profile);
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == MainActivity.OPEN_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
+            Uri uri = data.getData();
+
+            if (uri != null) {
+                // Handle restoring data from backup
+                if (isRestoreAction) {
+                    restoreAppData(uri);
+                    isRestoreAction = false;  // Reset the flag
+                }
+                // Handle selecting a Wine file
+                else if (selectWineFileCallback != null) {
+                    try {
+                        selectWineFileCallback.call(uri);
+                    } catch (Exception e) {
+                        AppUtils.showToast(getContext(), R.string.unable_to_import_profile);
+                    } finally {
+                        selectWineFileCallback = null;
+                    }
+                }
             }
-            selectWineFileCallback = null;
         }
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+        commandExplorer.runCommandTests();
+
         View view = inflater.inflate(R.layout.settings_fragment, container, false);
         final Context context = getContext();
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -187,12 +221,15 @@ public class SettingsFragment extends Fragment {
         sbCursorSpeed.setProgress((int) (preferences.getFloat("cursor_speed", 1.0f) * 100));
 
         // Initialize trigger mode RadioGroup
-        final RadioGroup rgTriggerMode = view.findViewById(R.id.RGTriggerMode);
-        List<Integer> triggerRbIds = List.of(R.id.RBTriggerAsButton, R.id.RBTriggerAsAxis, R.id.RBTriggerAsBoth);
-        int triggerMode = preferences.getInt("trigger_mode", ExternalController.TRIGGER_AS_AXIS);
-        if (triggerMode >= 0 && triggerMode < triggerRbIds.size()) {
-            ((RadioButton) (rgTriggerMode.findViewById(triggerRbIds.get(triggerMode)))).setChecked(true);
+        final RadioGroup rgTriggerType = view.findViewById(R.id.RGTriggerType);
+        final View btHelpTriggerMode = view.findViewById(R.id.BTHelpTriggerMode);
+        List<Integer> triggerRbIds = List.of(R.id.RBTriggerIsButton, R.id.RBTriggerIsAxis, R.id.RBTriggerIsMixed);
+        int triggerType = preferences.getInt("trigger_type", ExternalController.TRIGGER_IS_AXIS);
+
+        if (triggerType >= 0 && triggerType < triggerRbIds.size()) {
+            ((RadioButton) (rgTriggerType.findViewById(triggerRbIds.get(triggerType)))).setChecked(true);
         }
+        btHelpTriggerMode.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_trigger_mode));
 
         final CheckBox cbEnableFileProvider = view.findViewById(R.id.CBEnableFileProvider);
         cbEnableFileProvider.setChecked(preferences.getBoolean("enable_file_provider", false));
@@ -206,7 +243,22 @@ public class SettingsFragment extends Fragment {
             ContentDialog.alert(context, R.string.msg_warning_install_wine, this::selectWineFileForInstall);
         });
 
-        // Set up confirmation button
+        view.findViewById(R.id.BTReInstallImagefs).setOnClickListener(v -> {
+            ContentDialog.confirm(context, R.string.do_you_want_to_reinstall_imagefs, () -> ImageFsInstaller.installFromAssets((MainActivity) getActivity()));
+        });
+
+        // Add backup button
+        Button btnBackupData = view.findViewById(R.id.BTBackupData);
+        btnBackupData.setOnClickListener(v -> {
+            showBackupConfirmationDialog();
+        });
+
+        // Add restore button
+        Button btnRestoreData = view.findViewById(R.id.BTRestoreData);
+        btnRestoreData.setOnClickListener(v -> {
+            selectBackupFileForRestore();
+        });
+
         view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
             SharedPreferences.Editor editor = preferences.edit();
             editor.putString("box86_version", StringUtils.parseIdentifier(sBox86Version.getSelectedItem()));
@@ -217,7 +269,7 @@ public class SettingsFragment extends Fragment {
             editor.putFloat("cursor_speed", sbCursorSpeed.getProgress() / 100.0f);
             editor.putBoolean("enable_wine_debug", cbEnableWineDebug.isChecked());
             editor.putBoolean("enable_box86_64_logs", cbEnableBox86_64Logs.isChecked());
-            editor.putInt("trigger_mode", triggerRbIds.indexOf(rgTriggerMode.getCheckedRadioButtonId()));
+            editor.putInt("trigger_type", triggerRbIds.indexOf(rgTriggerType.getCheckedRadioButtonId()));
             editor.putBoolean("cursor_lock", cbCursorLock.isChecked());
             editor.putBoolean("xinput_toggle", cbXinputToggle.isChecked());
             editor.putBoolean("touchscreen_toggle", cbXTouchscreenToggle.isChecked());
@@ -595,4 +647,103 @@ public class SettingsFragment extends Fragment {
         // Show the dialog
         builder.create().show();
     }
+
+    private void showBackupConfirmationDialog() {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Backup Data")
+                .setMessage("Do you want to create a backup of the app's data directory?")
+                .setPositiveButton("Yes", (dialog, which) -> backupAppData())
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void backupAppData() {
+        File dataDir = getContext().getFilesDir().getParentFile(); // App's data directory
+        File backupFile = new File(Environment.getExternalStorageDirectory(), "app_data_backup.tar");
+
+        preloaderDialog.showOnUiThread(R.string.backing_up_data);
+
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        ExecutorService compressionExecutor = Executors.newFixedThreadPool(availableProcessors);
+
+        compressionExecutor.execute(() -> {
+            try {
+                TarCompressorUtils.archive(new File[]{dataDir}, backupFile, file -> {
+                    // Exclude the problematic directory
+                    String excludePath = "imagefs/tmp/.sysvshm";
+                    return !file.getAbsolutePath().contains(excludePath);
+                });
+                getActivity().runOnUiThread(() -> {
+                    preloaderDialog.closeOnUiThread();
+                    AppUtils.showToast(getContext(), "Backup completed: " + backupFile.getPath());
+                });
+            } catch (Exception e) {
+                getActivity().runOnUiThread(() -> {
+                    preloaderDialog.closeOnUiThread();
+                    AppUtils.showToast(getContext(), "Backup failed.");
+                });
+            }
+        });
+    }
+
+
+
+    private void selectBackupFileForRestore() {
+        isRestoreAction = true; // Set the flag to indicate a restore operation
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        startActivityForResult(intent, MainActivity.OPEN_FILE_REQUEST_CODE);
+    }
+
+
+
+    private void restoreAppData(Uri backupUri) {
+        if (getActivity() != null) {  // Ensure the activity is not null
+            Intent intent = new Intent(getActivity(), RestoreActivity.class);
+            intent.setData(backupUri);
+            startActivity(intent);
+            getActivity().finish(); // Close the main activity
+        }
+    }
+
+
+    private void moveFiles(File sourceDir, File targetDir) throws IOException {
+        File[] files = sourceDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                File targetFile = new File(targetDir, file.getName());
+                if (file.isDirectory()) {
+                    if (!targetFile.exists()) {
+                        targetFile.mkdirs();
+                    }
+                    moveFiles(file, targetFile); // Recursively move directory contents
+                } else {
+                    if (!file.renameTo(targetFile)) {
+                        throw new IOException("Failed to move file: " + file.getAbsolutePath());
+                    }
+                }
+            }
+        }
+        // Clear the temporary directory after moving
+        FileUtils.clear(sourceDir);
+    }
+
+
+    private void onRestoreSuccess() {
+        getActivity().runOnUiThread(() -> {
+            preloaderDialog.closeOnUiThread();
+            AppUtils.showToast(getContext(), "Data restored successfully.");
+            AppUtils.restartApplication(getActivity());  // Restart the app to apply changes
+        });
+    }
+
+    private void onRestoreFailed() {
+        getActivity().runOnUiThread(() -> {
+            preloaderDialog.closeOnUiThread();
+            AppUtils.showToast(getContext(), "Data restore failed.");
+        });
+    }
+
+
 }

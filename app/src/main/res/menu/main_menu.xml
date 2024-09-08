@@ -10,5 +10,9 @@
         <item android:icon="@drawable/icon_open" android:id="@+id/main_menu_contents" android:title="@string/contents"/>
         <item android:icon="@drawable/icon_settings" android:id="@+id/main_menu_settings" android:title="@string/settings" />
         <item android:icon="@drawable/icon_about" android:id="@+id/main_menu_about" android:title="@string/about" />
+        <item
+            android:icon="@drawable/icon_reset"
+            android:id="@+id/main_menu_toggle_orientation"
+            android:title="@string/toggle_orientation" />
     </group>
 </menu>
