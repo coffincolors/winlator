@@ -121,4 +121,36 @@
         <item>2.12 (Default)</item>
         <item>2.13</item>>
     </string-array>
+    <string-array name="some_lc_all">
+        <item>ar_EG</item>
+        <item>ar_SA</item>
+        <item>de_AT</item>
+        <item>de_CH</item>
+        <item>de_DE</item>
+        <item>de_LU</item>
+        <item>en_AU</item>
+        <item>en_CA</item>
+        <item>en_GB</item>
+        <item>en_IN</item>
+        <item>en_US</item>
+        <item>es_AR</item>
+        <item>es_ES</item>
+        <item>es_MX</item>
+        <item>fr_BE</item>
+        <item>fr_CA</item>
+        <item>fr_CH</item>
+        <item>fr_FR</item>
+        <item>it_CH</item>
+        <item>it_IT</item>
+        <item>ja_JP</item>
+        <item>ko_KR</item>
+        <item>pt_BR</item>
+        <item>pt_PT</item>
+        <item>ru_RU</item>
+        <item>ru_UA</item>
+        <item>zh_CN</item>
+        <item>zh_HK</item>
+        <item>zh_SG</item>
+        <item>zh_TW</item>
+    </string-array>
 </resources>

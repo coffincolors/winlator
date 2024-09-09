@@ -205,7 +205,29 @@
                 android:id="@+id/SAudioDriver"
                 android:entries="@array/audio_driver_entries" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/lc_all" />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <EditText
+                    style="@style/EditText"
+                    android:layout_gravity="center"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:id="@+id/ETlcall" />
+
+                <ImageButton
+                    style="@style/ListMenuButton"
+                    android:id="@+id/BTShowLCALL"
+                    android:layout_gravity="center"
+                    android:src="@drawable/icon_menu" />
+            </LinearLayout>
             <CheckBox
                 android:id="@+id/CBShowFPS"
                 android:layout_width="wrap_content"

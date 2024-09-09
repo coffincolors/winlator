@@ -2,6 +2,7 @@ package com.winlator.core;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -32,11 +33,16 @@ public class PreloaderDialog {
     }
 
     public synchronized void show(int textResId) {
-        if (isShowing()) return;
+        Log.d("PreloaderDialog", "Attempting to show preloader dialog with textResId: " + textResId);
+        if (isShowing()) {
+            Log.d("PreloaderDialog", "PreloaderDialog is already showing.");
+            return;
+        }
         close();
         if (dialog == null) create();
         ((TextView)dialog.findViewById(R.id.TextView)).setText(textResId);
         dialog.show();
+        Log.d("PreloaderDialog", "Preloader dialog is now shown.");
     }
 
     public void showOnUiThread(final int textResId) {
@@ -44,12 +50,15 @@ public class PreloaderDialog {
     }
 
     public synchronized void close() {
+        Log.d("PreloaderDialog", "Attempting to close preloader dialog.");
         try {
             if (dialog != null) {
                 dialog.dismiss();
+                Log.d("PreloaderDialog", "Preloader dialog is dismissed.");
             }
+        } catch (Exception e) {
+            Log.e("PreloaderDialog", "Error while closing dialog: " + e.getMessage(), e);
         }
-        catch (Exception e) {}
     }
 
     public void closeOnUiThread() {

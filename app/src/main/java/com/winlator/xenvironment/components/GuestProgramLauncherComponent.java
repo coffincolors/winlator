@@ -8,6 +8,8 @@ import androidx.preference.PreferenceManager;
 
 import com.winlator.box86_64.Box86_64Preset;
 import com.winlator.box86_64.Box86_64PresetManager;
+import com.winlator.contents.ContentProfile;
+import com.winlator.contents.ContentsManager;
 import com.winlator.core.Callback;
 import com.winlator.core.DefaultVersion;
 import com.winlator.core.EnvVars;
@@ -29,6 +31,20 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
     private Callback<Integer> terminationCallback;
     private static final Object lock = new Object();
     private boolean wow64Mode = true;
+
+    private final ContentsManager contentsManager;
+    private final ContentProfile wineProfile;
+
+
+    public GuestProgramLauncherComponent(ContentsManager contentsManager, ContentProfile wineProfile) {
+        this.contentsManager = contentsManager;
+        this.wineProfile = wineProfile;
+    }
+
+    public GuestProgramLauncherComponent() {
+        contentsManager = null;
+        wineProfile = null;
+    }
 
     @Override
     public void start() {
@@ -121,7 +137,6 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
         envVars.put("HOME", ImageFs.HOME_PATH);
         envVars.put("USER", ImageFs.USER);
         envVars.put("TMPDIR", "/tmp");
-        envVars.put("LC_ALL", "en_US.utf8");
         envVars.put("DISPLAY", ":0");
         envVars.put("PATH", imageFs.getWinePath()+"/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
         envVars.put("LD_LIBRARY_PATH", "/usr/lib/aarch64-linux-gnu:/usr/lib/arm-linux-gnueabihf");
@@ -190,7 +205,11 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
         }
 
         if (!box64Version.equals(currentBox64Version)) {
-            TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box64-"+box64Version+".tzst", rootDir);
+            ContentProfile profile = contentsManager.getProfileByEntryName("box64-" + box64Version);
+            if (profile != null)
+                contentsManager.applyContent(profile);
+            else
+                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, "box86_64/box64-" + box64Version + ".tzst", rootDir);
             preferences.edit().putString("current_box64_version", box64Version).apply();
         }
     }

@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -141,7 +140,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private final float[] xform = XForm.getInstance();
     private ContentsManager contentsManager;
     private boolean navigationFocused = false;
-
+    private String lc_all = "";
+    PreloaderDialog preloaderDialog = null;
     private Runnable configChangedCallback = null;
 
 
@@ -195,7 +195,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         AppUtils.keepScreenOn(this);
         setContentView(R.layout.xserver_display_activity);
 
-        final PreloaderDialog preloaderDialog = new PreloaderDialog(this);
+        preloaderDialog = new PreloaderDialog(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         // Initialize and SensorManager
@@ -302,7 +302,25 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
             if (wineInfo != WineInfo.MAIN_WINE_VERSION) imageFs.setWinePath(wineInfo.path);
 
+            if (shortcutPath != null && !shortcutPath.isEmpty()) {
+                shortcut = new Shortcut(container, new File(shortcutPath));
+            }
 
+            // Retrieve secondary executable and delay
+            String secondaryExec = shortcut != null ? shortcut.getExtra("secondaryExec") : null;
+            int execDelay = shortcut != null ? Integer.parseInt(shortcut.getExtra("execDelay", "0")) : 0;
+
+            // Debug logging for secondaryExec and execDelay
+            Log.d("XServerDisplayActivity", "Secondary Exec: " + secondaryExec);
+            Log.d("XServerDisplayActivity", "Execution Delay: " + execDelay);
+
+            // If a secondary executable is specified, schedule it
+            if (secondaryExec != null && !secondaryExec.isEmpty() && execDelay > 0) {
+                scheduleSecondaryExecution(secondaryExec, execDelay);
+                Log.d("XServerDisplayActivity", "Scheduling secondary execution: " + secondaryExec + " with delay: " + execDelay);
+            } else {
+                Log.d("XServerDisplayActivity", "No valid secondary executable or delay is zero, skipping scheduling.");
+            }
 
             graphicsDriver = container.getGraphicsDriver();
             audioDriver = container.getAudioDriver();
@@ -310,6 +328,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             String dxwrapperConfig = container.getDXWrapperConfig();
             screenSize = container.getScreenSize();
             winHandler.setInputType((byte) container.getInputType());
+            lc_all = container.getLC_ALL();
 
             if (shortcut != null) {
                 graphicsDriver = shortcut.getExtra("graphicsDriver", container.getGraphicsDriver());
@@ -317,7 +336,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 dxwrapper = shortcut.getExtra("dxwrapper", container.getDXWrapper());
                 dxwrapperConfig = shortcut.getExtra("dxwrapperConfig", container.getDXWrapperConfig());
                 screenSize = shortcut.getExtra("screenSize", container.getScreenSize());
-
+                lc_all = shortcut.getExtra("lc_all", container.getLC_ALL());
                 String inputType = shortcut.getExtra("inputType");
                 if (!inputType.isEmpty()) winHandler.setInputType(Byte.parseByte(inputType));
             }
@@ -333,7 +352,22 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             }
         }
 
-        preloaderDialog.show(R.string.starting_up);
+//// Re-enable preloaderDialog with locale resource setup
+//        if (lc_all != null && !lc_all.isEmpty()) {
+//            Locale newLocale = new Locale(lc_all);
+//            Locale.setDefault(newLocale);
+//            Configuration config = new Configuration();
+//            config.locale = newLocale;
+//            getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+//
+//            // Ensure resources are fully loaded before showing dialog
+//            runOnUiThread(() -> preloaderDialog.show(R.string.starting_up));
+//            Log.d("PreloaderDialog", "Preloader dialog is shown after locale set.");
+//        }
+
+        runOnUiThread(() -> preloaderDialog.show(R.string.starting_up));
+
+
 
         inputControlsManager = new InputControlsManager(this);
         xServer = new XServer(new ScreenInfo(screenSize));
@@ -342,16 +376,25 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         xServer.windowManager.addOnWindowModificationListener(new WindowManager.OnWindowModificationListener() {
             @Override
             public void onUpdateWindowContent(Window window) {
-                if (!winStarted[0] && window.isApplicationWindow()) {
+                if (!winStarted[0]) {  // Removed the window.isApplicationWindow() check for now
                     xServerView.getRenderer().setCursorVisible(true);
 
-                    //setCustomCursor();
+                    Log.d("PreloaderDialog", "Detected window update, closing preloader dialog.");
 
-                    preloaderDialog.closeOnUiThread();
-                    winStarted[0] = true;
+                    // Ensure preloader dialog is closed on the UI thread
+                    runOnUiThread(() -> {
+                        if (preloaderDialog != null && preloaderDialog.isShowing()) {
+                            preloaderDialog.close();
+                            Log.d("PreloaderDialog", "Preloader dialog closed.");
+                        }
+                    });
+
+                    winStarted[0] = true; // Set flag indicating XServer has started
                 }
 
-                if (window.id == frameRatingWindowId) frameRating.update();
+                if (window.id == frameRatingWindowId) {
+                    frameRating.update();
+                }
             }
 
             @Override
@@ -369,6 +412,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 changeFrameRatingVisibility(window, null);
             }
         });
+
 
 
         Runnable runnable = () -> {
@@ -565,6 +609,10 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         sensorManager.unregisterListener(gyroListener);
         if (environment != null) environment.stopEnvironmentComponents();
         winHandler.stop();
+
+        if (environment != null) environment.stopEnvironmentComponents();
+        if (preloaderDialog != null && preloaderDialog.isShowing())
+            preloaderDialog.close();
 
         savePlaytimeData(); // Save on destroy
         handler.removeCallbacks(savePlaytimeRunnable);
@@ -763,6 +811,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     }
 
     private void setupXEnvironment() {
+        envVars.put("LC_ALL", lc_all);
         envVars.put("MESA_DEBUG", "silent");
         envVars.put("MESA_NO_ERROR", "1");
         envVars.put("WINEPREFIX", ImageFs.WINEPREFIX);
@@ -774,7 +823,10 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         String rootPath = imageFs.getRootDir().getPath();
         FileUtils.clear(imageFs.getTmpDir());
 
-        GuestProgramLauncherComponent guestProgramLauncherComponent = new GuestProgramLauncherComponent();
+        GuestProgramLauncherComponent guestProgramLauncherComponent = true
+                ? new GuestProgramLauncherComponent(contentsManager, contentsManager.getProfileByEntryName(container.getWineVersion()))
+                : new GuestProgramLauncherComponent();
+
 
         if (container != null) {
             if (container.getStartupSelection() == Container.STARTUP_SELECTION_AGGRESSIVE)
@@ -953,6 +1005,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             if (position > 0) {
                 showInputControls(inputControlsManager.getProfiles().get(position - 1));
             } else hideInputControls();
+            updateProfile.run();
         });
 
         dialog.setOnCancelCallback(updateProfile::run);
@@ -1124,22 +1177,22 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        // Check if the event is from a game controller
-        boolean isFromGameController = (event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
-                (event.getSource() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK;
-
-        // Handle Back button press if not from a game controller
-        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_BACK && !isFromGameController) {
-            // Similar logic to onBackPressed, but only for non-controller events
-            if (environment != null) {
-                if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    drawerLayout.openDrawer(GravityCompat.START);
-                } else {
-                    drawerLayout.closeDrawers();
-                }
-                return true; // Indicate that the event was handled
-            }
-        }
+//        // Check if the event is from a game controller
+//        boolean isFromGameController = (event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
+//                (event.getSource() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK;
+//
+//        // Handle Back button press if not from a game controller
+//        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_BACK && !isFromGameController) {
+//            // Similar logic to onBackPressed, but only for non-controller events
+//            if (environment != null) {
+//                if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+//                    drawerLayout.openDrawer(GravityCompat.START);
+//                } else {
+//                    drawerLayout.closeDrawers();
+//                }
+//                return true; // Indicate that the event was handled
+//            }
+//        }
 
         // Existing handling logic
         if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN) {
@@ -1204,7 +1257,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         GuestProgramLauncherComponent guestProgramLauncherComponent = environment.getComponent(GuestProgramLauncherComponent.class);
         guestProgramLauncherComponent.setGuestExecutable(wineInfo.getExecutable(this, false) + " explorer /desktop=shell," + Container.DEFAULT_SCREEN_SIZE + " winecfg");
 
-        final PreloaderDialog preloaderDialog = new PreloaderDialog(this);
+        preloaderDialog = new PreloaderDialog(this);
         guestProgramLauncherComponent.setTerminationCallback((status) -> Executors.newSingleThreadExecutor().execute(() -> {
             if (status > 0) {
                 AppUtils.showToast(this, R.string.unable_to_install_wine);
@@ -1213,7 +1266,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 return;
             }
 
-            preloaderDialog.showOnUiThread(R.string.finishing_installation);
+            // Temporarily disable showing the preloader dialog
+            preloaderDialog.show(R.string.starting_up);
+
             FileUtils.writeString(new File(rootDir, ImageFs.WINEPREFIX + "/.update-timestamp"), "disable\n");
 
             File userDir = new File(rootDir, ImageFs.WINEPREFIX + "/drive_c/users/xuser");
@@ -1524,23 +1579,14 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    private void scheduleSecondaryExecution(String secondaryExec, int delaySeconds) {
+        if (winHandler != null) {
+            winHandler.execWithDelay(secondaryExec, delaySeconds);
+            Log.d("XServerDisplayActivity", "Scheduled secondary execution: " + secondaryExec + " with delay: " + delaySeconds);
+        } else {
+            Log.e("XServerDisplayActivity", "WinHandler is null, cannot schedule secondary execution.");
+        }
+    }
 
 
 }

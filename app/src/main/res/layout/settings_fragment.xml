@@ -158,6 +158,48 @@
                 android:layout_height="wrap_content">
 
                 <LinearLayout style="@style/FieldSet">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Frontend Export Path"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <!-- TextView to Display the Selected Path -->
+                        <TextView
+                            android:id="@+id/TVFrontendExportPath"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Default Path: Downloads/Winlator/Frontend"
+                            android:layout_marginEnd="8dp" />
+
+                        <!-- Button to Open the FilePicker -->
+                        <Button
+                            android:id="@+id/BTChooseFrontendExportPath"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Choose Path" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    style="@style/FieldSetLabel"
+                    android:text="Shortcut Settings" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/FieldSet">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

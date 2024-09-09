@@ -26,6 +26,7 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class WinHandler {
     private static final short SERVER_PORT = 7947;
@@ -147,6 +148,8 @@ public class WinHandler {
         }
     }
 
+
+
     private boolean sendPacket(int port) {
         try {
             int size = sendData.position();
@@ -164,9 +167,34 @@ public class WinHandler {
     public void exec(String command) {
         command = command.trim();
         if (command.isEmpty()) return;
-        String[] cmdList = command.split(" ", 2);
-        final String filename = cmdList[0];
-        final String parameters = cmdList.length > 1 ? cmdList[1] : "";
+
+        // The `split` function here should be sensitive to paths with spaces.
+        // Instead of splitting, let's assume that command is directly provided in two parts: filename and parameters.
+        // Adjust command splitting based on whether it contains quotes.
+
+        String filename;
+        String parameters;
+
+        if (command.contains("\"")) {
+            // If the command is quoted, extract the quoted part as the filename
+            int firstQuote = command.indexOf("\"");
+            int lastQuote = command.lastIndexOf("\"");
+            filename = command.substring(firstQuote + 1, lastQuote);
+            if (lastQuote + 1 < command.length()) {
+                parameters = command.substring(lastQuote + 1).trim();
+            } else {
+                parameters = "";
+            }
+        } else {
+            // Standard split when no quotes
+            String[] cmdList = command.split(" ", 2);
+            filename = cmdList[0];
+            if (cmdList.length > 1) {
+                parameters = cmdList[1];
+            } else {
+                parameters = "";
+            }
+        }
 
         addAction(() -> {
             byte[] filenameBytes = filename.getBytes();
@@ -544,4 +572,12 @@ public class WinHandler {
     public ExternalController getCurrentController() {
         return currentController;
     }
+
+    public void execWithDelay(String command, int delaySeconds) {
+        if (command == null || command.trim().isEmpty() || delaySeconds < 0) return;
+
+        // Use a scheduled executor for delay
+        Executors.newSingleThreadScheduledExecutor().schedule(() -> exec(command), delaySeconds, TimeUnit.SECONDS);
+    }
+
 }

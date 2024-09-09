@@ -70,6 +70,8 @@ public class SettingsFragment extends Fragment {
     public static final String DEFAULT_WINE_DEBUG_CHANNELS = "warn,err,fixme";
     private Callback<Uri> selectWineFileCallback;
     private PreloaderDialog preloaderDialog;
+    public static final String DEFAULT_EXPORT_PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/Winlator/Frontend";
+    private static final int REQUEST_CODE_FRONTEND_EXPORT_PATH = 1002;
     private SharedPreferences preferences;
 
     // UI Elements
@@ -104,38 +106,80 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Button btnConfigureGyro = view.findViewById(R.id.BTConfigureGyro);
-        btnConfigureGyro.setOnClickListener(v -> showGyroConfigDialog());
+        Button btnChooseFrontendExportPath = view.findViewById(R.id.BTChooseFrontendExportPath);
+        TextView tvFrontendExportPath = view.findViewById(R.id.TVFrontendExportPath);
 
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(R.string.settings);
+        // Get the saved export path from SharedPreferences or use the default
+        String savedUriString = preferences.getString("frontend_export_uri", null);
+        if (savedUriString == null) {
+            // No saved path, set default path
+            tvFrontendExportPath.setText(DEFAULT_EXPORT_PATH);
+        } else {
+            // Parse and display the saved URI path
+            Uri savedUri = Uri.parse(savedUriString);
+            String displayPath = FileUtils.getFilePathFromUri(getContext(), savedUri);
+            tvFrontendExportPath.setText(displayPath != null ? displayPath : savedUriString);
+        }
+
+        // Set the click listener for the "Choose Frontend Export Path" button
+        btnChooseFrontendExportPath.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE); // Launch File Picker for directory selection
+            startActivityForResult(intent, REQUEST_CODE_FRONTEND_EXPORT_PATH);
+        });
     }
+
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == MainActivity.OPEN_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
             Uri uri = data.getData();
 
             if (uri != null) {
-                // Handle restoring data from backup
-                if (isRestoreAction) {
-                    restoreAppData(uri);
-                    isRestoreAction = false;  // Reset the flag
-                }
-                // Handle selecting a Wine file
-                else if (selectWineFileCallback != null) {
-                    try {
-                        selectWineFileCallback.call(uri);
-                    } catch (Exception e) {
-                        AppUtils.showToast(getContext(), R.string.unable_to_import_profile);
-                    } finally {
-                        selectWineFileCallback = null;
-                    }
+                switch (requestCode) {
+                    // Case for File Picker to restore data
+                    case MainActivity.OPEN_FILE_REQUEST_CODE:
+                        if (isRestoreAction) {
+                            restoreAppData(uri);
+                            isRestoreAction = false;  // Reset the flag
+                        } else if (selectWineFileCallback != null) {
+                            try {
+                                selectWineFileCallback.call(uri);
+                            } catch (Exception e) {
+                                AppUtils.showToast(getContext(), R.string.unable_to_import_profile);
+                            } finally {
+                                selectWineFileCallback = null;
+                            }
+                        }
+                        break;
+
+                    // Case for FilePicker to select frontend export path
+                    case REQUEST_CODE_FRONTEND_EXPORT_PATH:
+                        // Save the selected URI as a string in SharedPreferences
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putString("frontend_export_uri", uri.toString());
+                        editor.apply();
+
+                        // Convert the URI to an absolute path and display it
+                        String fullPath = FileUtils.getFilePathFromUri(getContext(), uri);
+
+                        // Update the TextView with the absolute path or URI string if conversion fails
+                        TextView tvFrontendExportPath = getView().findViewById(R.id.TVFrontendExportPath);
+                        tvFrontendExportPath.setText(fullPath != null ? fullPath : uri.toString());
+                        break;
+
+                    // Add future cases here for other request codes...
+                    default:
+                        break;
                 }
             }
         }
     }
+
+
+
 
     @Nullable
     @Override
@@ -165,6 +209,8 @@ public class SettingsFragment extends Fragment {
 
         CheckBox cbProcessGyroWithLeftTrigger = view.findViewById(R.id.CBProcessGyroWithLeftTrigger);
         cbProcessGyroWithLeftTrigger.setChecked(preferences.getBoolean("process_gyro_with_left_trigger", false));
+
+
 
         // Initialize version spinners
         final Spinner sBox86Version = view.findViewById(R.id.SBox86Version);

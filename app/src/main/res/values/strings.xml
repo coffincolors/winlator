@@ -226,6 +226,8 @@
     <string name="msg_warning_install_wine">Warning: Installing a new version of Wine is recommended for testing purposes only.</string>
     <string name="startup_selection">Startup Selection</string>
     <string name="wine_debug_channel">Wine Debug Channel</string>
+    <string name="enabled_async">Enable Async</string>
+    <string name="enabled_async_cache">Enable Async Cache</string>
     <string name="vkd3d_feature_level">VKD3D Feature Level</string>
     <string name="box64_rc_file">Box64 RCFile</string>
     <string name="filter">Filter</string>
@@ -354,4 +356,18 @@
         <i><b>Is Button</b></i>: Check this If the trigger on your controller is a button (similar to a switch).<br/><br/>
         <i><b>Note</b></i>: For linear triggers, using <i><b>Is Button</b></i> will result in the loss of linear data when mapping.<br/>
     ]]></string>
+    <string name="help_file_provider"><![CDATA[
+        <i><b>File Provider</b></i> allows access to Winlator\'s internal data through android file manager.<br/><br/>
+    ]]></string>
+    <string name="reconfigure">Reconfigure</string>
+    <string name="do_you_want_to_reconfigure_wine">Do you want to reconfigure this container on the next startup? This will remove the timestamp to trigger Wine Configuration.</string>
+
+    <string name="lc_all" translatable="false">LC_ALL</string>
+    <string name="secondary_executable">Path:</string>
+    <string name="enter_secondary_exec_path"> ex: "D:/Games/My Game/My Game.exe"</string>
+    <string name="exec_delay">Delayed Execution (seconds):</string>
+    <string name="enter_delay_seconds">Enter the delay in seconds:</string>
+    <string name="use_secondary_executable">Use secondary executable?</string>
+    <string name="secondary_exec">Secondary Executable</string>
+    <string name="secondary_exe_path_subtext">(Spaces in paths must be wrapped in quotes)</string>
 </resources>

@@ -16,6 +16,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -33,8 +34,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,10 +48,12 @@ import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.ShortcutSettingsDialog;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -383,26 +388,55 @@ public class ShortcutsFragment extends Fragment {
 
 
         private void exportShortcutToFrontend(Shortcut shortcut) {
-            // Create the directory if it doesn't exist
-            File frontendDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Winlator/Frontend");
-            if (!frontendDir.exists()) {
-                frontendDir.mkdirs();
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+            String uriString = sharedPreferences.getString("frontend_export_uri", null);
+
+            // Check if a custom URI is set, if not fall back to default path
+            DocumentFile pickedDir;
+            if (uriString != null) {
+                // Convert URI string back to a Uri object for the custom directory
+                Uri folderUri = Uri.parse(uriString);
+                pickedDir = DocumentFile.fromTreeUri(getContext(), folderUri);
+
+                if (pickedDir == null || !pickedDir.canWrite()) {
+                    Toast.makeText(getContext(), "Cannot write to the selected folder", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } else {
+                // Default to Downloads\Winlator\Frontend if no custom URI is set
+                File defaultDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Winlator/Frontend");
+
+                // Create the directory if it doesn't exist
+                if (!defaultDir.exists() && !defaultDir.mkdirs()) {
+                    Toast.makeText(getContext(), "Failed to create default directory", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Convert the default directory to a DocumentFile
+                Uri defaultDirUri = Uri.fromFile(defaultDir);
+                pickedDir = DocumentFile.fromFile(defaultDir);
             }
 
-            String packageName = requireContext().getPackageName();
+            // Resolve package name dynamically
+            String packageName = getContext().getPackageName();
 
-            // Check for FRONTEND_INSTRUCTIONS.txt
-            File instructionsFile = new File(frontendDir, "FRONTEND_INSTRUCTIONS.txt");
-            if (!instructionsFile.exists()) {
-                try (FileWriter writer = new FileWriter(instructionsFile, false)) {
+            // Create FRONTEND_INSTRUCTIONS.txt if it doesn't exist
+            DocumentFile instructionsFile = pickedDir.findFile("FRONTEND_INSTRUCTIONS.txt");
+            if (instructionsFile == null) {
+                instructionsFile = pickedDir.createFile("text/plain", "FRONTEND_INSTRUCTIONS.txt");
+            }
+
+            if (instructionsFile != null) {
+                try (OutputStream outStream = getContext().getContentResolver().openOutputStream(instructionsFile.getUri());
+                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream))) {
                     writer.write("Instructions for adding Winlator shortcuts to Frontends (WIP):\n\n");
                     writer.write("Daijisho:\n\n");
                     writer.write("1. Open Daijisho\n");
                     writer.write("2. Navigate to the Settings tab.\n");
                     writer.write("3. Navigate to Settings\\Library\n");
                     writer.write("4. Select, Import from Pegasus\n");
-                    writer.write("5. Add the metadata.pegasus.txt file located in this directory (Downloads\\Winlator\\Frontend)\n");
-                    writer.write("6. Set the Sync path to Downloads\\Winlator\\Frontend\n");
+                    writer.write("5. Add the metadata.pegasus.txt file located in this directory\n");
+                    writer.write("6. Set the Sync path to the selected directory\n");
                     writer.write("7. Start your game!\n\n");
                     writer.write("Beacon:\n\n");
                     writer.write("1. Navigate to Settings\n");
@@ -411,8 +445,8 @@ public class ShortcutsFragment extends Fragment {
                     writer.write("Platform Type: Custom\n");
                     writer.write("Name: Windows (or Winlator, whatever you prefer)\n");
                     writer.write("Short name: windows\n");
-                    writer.write("Player app: Select Winlator.glibcmod (or whichever fork you are using that has adopted this code)\n");
-                    writer.write("ROMs folder: Use Android FilePicker to select the Downloads\\Winlator\\Frontend directory\n");
+                    writer.write("Player app: Select Winlator.glibcmod\n");
+                    writer.write("ROMs folder: Use Android FilePicker to select the chosen directory\n");
                     writer.write("Expand Advanced:\n");
                     writer.write("File handling: Default\n");
                     writer.write("Use custom launch: True\n");
@@ -427,81 +461,75 @@ public class ShortcutsFragment extends Fragment {
                 }
             }
 
-
-
-            // Check for metadata.pegasus.txt
-            File metadataFile = new File(frontendDir, "metadata.pegasus.txt");
-            try (FileWriter writer = new FileWriter(metadataFile, false)) {
-                writer.write("collection: Windows (Cmod Proot)\n");
-                writer.write("shortname: winproot\n");
-                writer.write("extensions: desktop\n");
-                writer.write("launch: am start\n");
-                writer.write("  -n " + packageName + "/com.winlator.XServerDisplayActivity\n");
-                writer.write("  -e shortcut_path {file.path}\n");
-                writer.write("  --activity-clear-task\n");
-                writer.write("  --activity-clear-top\n");
-                writer.write("  --activity-no-history\n");
-                writer.flush();
-                Log.d("ShortcutsFragment", "metadata.pegasus.txt created or updated successfully.");
-            } catch (IOException e) {
-                Log.e("ShortcutsFragment", "Failed to create or update metadata.pegasus.txt", e);
+            // Create or update metadata.pegasus.txt in the selected folder
+            DocumentFile metadataFile = pickedDir.findFile("metadata.pegasus.txt");
+            if (metadataFile == null) {
+                metadataFile = pickedDir.createFile("text/plain", "metadata.pegasus.txt");
             }
 
-            // Create the export file in the Frontend directory
-            File exportFile = new File(frontendDir, shortcut.file.getName());
+            if (metadataFile != null) {
+                try (OutputStream outStream = getContext().getContentResolver().openOutputStream(metadataFile.getUri());
+                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream))) {
+                    writer.write("collection: Windows (Cmod Proot)\n");
+                    writer.write("shortname: winproot\n");
+                    writer.write("extensions: desktop\n");
+                    writer.write("launch: am start\n");
+                    writer.write("  -n " + packageName + "/com.winlator.XServerDisplayActivity\n");
+                    writer.write("  -e shortcut_path {file.path}\n");
+                    writer.write("  --activity-clear-task\n");
+                    writer.write("  --activity-clear-top\n");
+                    writer.write("  --activity-no-history\n");
+                    writer.flush();
+                    Log.d("ShortcutsFragment", "metadata.pegasus.txt created successfully.");
+                } catch (IOException e) {
+                    Log.e("ShortcutsFragment", "Failed to create metadata.pegasus.txt", e);
+                }
+            }
 
-            boolean fileExists = exportFile.exists();
-            boolean containerIdFound = false;
+            // Export the shortcut file directly into the chosen or default directory
+            DocumentFile exportFile = pickedDir.findFile(shortcut.file.getName());
+            if (exportFile != null) {
+                // Delete the existing file to allow overwriting
+                exportFile.delete();
+            }
 
-            try {
-                List<String> lines = new ArrayList<>();
+            // Recreate the export file
+            exportFile = pickedDir.createFile("application/octet-stream", shortcut.file.getName());
 
-                // Read the original file or existing file if it exists
-                try (BufferedReader reader = new BufferedReader(new FileReader(shortcut.file))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        if (line.startsWith("container_id:")) {
-                            // Replace the existing container_id line
-                            lines.add("container_id:" + shortcut.container.id);
-                            containerIdFound = true;
-                        } else {
-                            lines.add(line);
+            if (exportFile != null) {
+                try (OutputStream outStream = getContext().getContentResolver().openOutputStream(exportFile.getUri());
+                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream))) {
+                    List<String> lines = new ArrayList<>();
+                    try (BufferedReader reader = new BufferedReader(new FileReader(shortcut.file))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            if (line.startsWith("container_id:")) {
+                                // Replace container_id
+                                lines.add("container_id:" + shortcut.container.id);
+                            } else {
+                                lines.add(line);
+                            }
                         }
                     }
-                }
 
-                // If no container_id was found, add it
-                if (        !containerIdFound) {
-                    lines.add("container_id:" + shortcut.container.id);
-                }
+                    // If no container_id was found, add it
+                    if (!lines.contains("container_id:" + shortcut.container.id)) {
+                        lines.add("container_id:" + shortcut.container.id);
+                    }
 
-                // Write the contents to the export file
-                try (FileWriter writer = new FileWriter(exportFile, false)) {
                     for (String line : lines) {
                         writer.write(line + "\n");
                     }
                     writer.flush();
+
+                    Log.d("ShortcutsFragment", "Shortcut exported successfully to " + exportFile.getUri().getPath());
+                    Toast.makeText(getContext(), "Frontend Shortcut Exported", Toast.LENGTH_LONG).show();
+
+                } catch (IOException e) {
+                    Log.e("ShortcutsFragment", "Failed to export shortcut", e);
+                    Toast.makeText(getContext(), "Failed to export shortcut", Toast.LENGTH_LONG).show();
                 }
-
-                Log.d("ShortcutsFragment", "Shortcut exported successfully to " + exportFile.getPath());
-
-                // Determine the toast message
-                String message;
-                if (fileExists) {
-                    message = "Frontend Shortcut Updated at " + exportFile.getPath();
-                } else {
-                    message = "Frontend Shortcut Exported to " + exportFile.getPath();
-                }
-
-                // Show a toast message to the user
-                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
-
-            } catch (IOException e) {
-                Log.e("ShortcutsFragment", "Failed to export shortcut", e);
-                Toast.makeText(getContext(), "Failed to export shortcut", Toast.LENGTH_LONG).show();
             }
-
-
         }
 
         private void showShortcutProperties(Shortcut shortcut) {

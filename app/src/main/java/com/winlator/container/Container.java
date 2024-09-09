@@ -19,7 +19,7 @@ import java.io.File;
 import java.util.Iterator;
 
 public class Container {
-    public static final String DEFAULT_ENV_VARS = "LC_ALL=en_US.utf8 ZINK_DESCRIPTORS=lazy ZINK_DEBUG=compact MESA_SHADER_CACHE_DISABLE=false MESA_SHADER_CACHE_MAX_SIZE=512MB mesa_glthread=true WINEESYNC=1 MESA_VK_WSI_PRESENT_MODE=mailbox TU_DEBUG=noconform DXVK_HUD=devinfo,fps,frametimes,gpuload,version,api";
+    public static final String DEFAULT_ENV_VARS = "ZINK_DESCRIPTORS=lazy ZINK_DEBUG=compact MESA_SHADER_CACHE_DISABLE=false MESA_SHADER_CACHE_MAX_SIZE=512MB mesa_glthread=true WINEESYNC=1 MESA_VK_WSI_PRESENT_MODE=mailbox TU_DEBUG=noconform DXVK_HUD=devinfo,fps,frametimes,gpuload,version,api";
     public static final String DEFAULT_SCREEN_SIZE = "1280x720";
     public static final String DEFAULT_GRAPHICS_DRIVER = "turnip";
     public static final String DEFAULT_AUDIO_DRIVER = "pulseaudio";
@@ -54,7 +54,7 @@ public class Container {
     private JSONObject extraData;
     private int rcfileId = 0;
     private int inputType = WinHandler.DEFAULT_INPUT_TYPE;
-
+    private String lc_all = "";
     private String graphicsDriverVersion = "24.3.0"; // Default version or fallback
 
     private ContainerManager containerManager;
@@ -154,6 +154,14 @@ public class Container {
 
     public void setDrives(String drives) {
         this.drives = drives;
+    }
+
+    public String getLC_ALL() {
+        return lc_all;
+    }
+
+    public void setLC_ALL(String lc_all) {
+        this.lc_all = lc_all;
     }
 
     public boolean isShowFPS() {
@@ -354,6 +362,7 @@ public class Container {
             data.put("desktopTheme", desktopTheme);
             data.put("extraData", extraData);
             data.put("rcfileId", rcfileId);
+            data.put("lc_all", lc_all);
 
             if (!WineInfo.isMainWineVersion(wineVersion)) data.put("wineVersion", wineVersion);
             FileUtils.writeString(getConfigFile(), data.toString());
@@ -438,6 +447,9 @@ public class Container {
                     break;
                 case "rcfileId" :
                     setRcfileId(data.getInt(key));
+                    break;
+                case "lc_all" :
+                    setLC_ALL(data.getString(key));
                     break;
             }
         }

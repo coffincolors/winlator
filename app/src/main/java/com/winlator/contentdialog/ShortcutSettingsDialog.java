@@ -2,6 +2,7 @@ package com.winlator.contentdialog;
 
 import android.content.Context;
 import android.graphics.drawable.Icon;
+import android.view.Menu;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -76,6 +77,21 @@ public class ShortcutSettingsDialog extends ContentDialog {
         final Spinner sAudioDriver = findViewById(R.id.SAudioDriver);
         AppUtils.setSpinnerSelectionFromIdentifier(sAudioDriver, shortcut.getExtra("audioDriver", shortcut.container.getAudioDriver()));
 
+        final CheckBox cbUseSecondaryExec = findViewById(R.id.CBUseSecondaryExec);
+        final LinearLayout llSecondaryExecOptions = findViewById(R.id.LLSecondaryExecOptions);
+        final EditText etSecondaryExec = findViewById(R.id.ETSecondaryExec);
+        final EditText etExecDelay = findViewById(R.id.ETExecDelay);
+
+        boolean useSecondaryExec = !shortcut.getExtra("secondaryExec", "").isEmpty();
+        cbUseSecondaryExec.setChecked(useSecondaryExec);
+        llSecondaryExecOptions.setVisibility(useSecondaryExec ? View.VISIBLE : View.GONE);
+        etSecondaryExec.setText(shortcut.getExtra("secondaryExec"));
+        etExecDelay.setText(shortcut.getExtra("execDelay", "0"));
+
+        cbUseSecondaryExec.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            llSecondaryExecOptions.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+        });
+
         final Runnable showInputWarning = () -> ContentDialog.alert(context, R.string.enable_xinput_and_dinput_same_time, null);
         final CheckBox cbEnableXInput = findViewById(R.id.CBEnableXInput);
         final CheckBox cbEnableDInput = findViewById(R.id.CBEnableDInput);
@@ -100,6 +116,21 @@ public class ShortcutSettingsDialog extends ContentDialog {
         SDInputType.setSelection(((inputType & WinHandler.FLAG_DINPUT_MAPPER_STANDARD) == WinHandler.FLAG_DINPUT_MAPPER_STANDARD) ? 0 : 1);
         llDInputType.setVisibility(cbEnableDInput.isChecked()?View.VISIBLE:View.GONE);
 
+        final EditText etLC_ALL = findViewById(R.id.ETlcall);
+        etLC_ALL.setText(shortcut.getExtra("lc_all", shortcut.container.getLC_ALL()));
+
+        final View btShowLCALL = findViewById(R.id.BTShowLCALL);
+        btShowLCALL.setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(context, v);
+            String[] lcs = context.getResources().getStringArray(R.array.some_lc_all);
+            for (int i = 0; i < lcs.length; i++)
+                popupMenu.getMenu().add(Menu.NONE, i, Menu.NONE, lcs[i]);
+            popupMenu.setOnMenuItemClickListener(item -> {
+                etLC_ALL.setText(item.toString() + ".UTF-8");
+                return true;
+            });
+            popupMenu.show();
+        });
 
         final CheckBox cbForceFullscreen = findViewById(R.id.CBForceFullscreen);
         cbForceFullscreen.setChecked(shortcut.getExtra("forceFullscreen", "0").equals("1"));
@@ -149,6 +180,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
                 String dxwrapper = StringUtils.parseIdentifier(sDXWrapper.getSelectedItem());
                 String dxwrapperConfig = vDXWrapperConfig.getTag().toString();
                 String audioDriver = StringUtils.parseIdentifier(sAudioDriver.getSelectedItem());
+                String lc_all = etLC_ALL.getText().toString();
                 String screenSize = ContainerDetailFragment.getScreenSize(getContentView());
 
                 int finalInputType = 0;
@@ -164,6 +196,17 @@ public class ShortcutSettingsDialog extends ContentDialog {
                 shortcut.putExtra("dxwrapperConfig", !dxwrapperConfig.equals(shortcut.container.getDXWrapperConfig()) ? dxwrapperConfig : null);
                 shortcut.putExtra("audioDriver", !audioDriver.equals(shortcut.container.getAudioDriver())? audioDriver : null);
                 shortcut.putExtra("forceFullscreen", cbForceFullscreen.isChecked() ? "1" : null);
+                updateExtra("lc_all", shortcut.container.getLC_ALL(), lc_all);
+
+                if (cbUseSecondaryExec.isChecked()) {
+                    String secondaryExec = etSecondaryExec.getText().toString().trim();
+                    String execDelay = etExecDelay.getText().toString().trim();
+                    shortcut.putExtra("secondaryExec", !secondaryExec.isEmpty() ? secondaryExec : null);
+                    shortcut.putExtra("execDelay", !execDelay.isEmpty() ? execDelay : null);
+                } else {
+                    shortcut.putExtra("secondaryExec", null);
+                    shortcut.putExtra("execDelay", null);
+                }
 
                 String wincomponents = ContainerDetailFragment.getWinComponents(getContentView());
                 shortcut.putExtra("wincomponents", !wincomponents.equals(shortcut.container.getWinComponents()) ? wincomponents : null);
@@ -237,4 +280,5 @@ public class ShortcutSettingsDialog extends ContentDialog {
         spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, values));
         spinner.setSelection(selectedPosition, false);
     }
+
 }
