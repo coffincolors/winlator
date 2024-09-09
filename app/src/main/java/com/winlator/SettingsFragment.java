@@ -106,6 +106,9 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        Button btnConfigureGyro = view.findViewById(R.id.BTConfigureGyro);
+        btnConfigureGyro.setOnClickListener(v -> showGyroConfigDialog());
+
         Button btnChooseFrontendExportPath = view.findViewById(R.id.BTChooseFrontendExportPath);
         TextView tvFrontendExportPath = view.findViewById(R.id.TVFrontendExportPath);
 
@@ -120,6 +123,8 @@ public class SettingsFragment extends Fragment {
             String displayPath = FileUtils.getFilePathFromUri(getContext(), savedUri);
             tvFrontendExportPath.setText(displayPath != null ? displayPath : savedUriString);
         }
+
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(R.string.settings);
 
         // Set the click listener for the "Choose Frontend Export Path" button
         btnChooseFrontendExportPath.setOnClickListener(v -> {
