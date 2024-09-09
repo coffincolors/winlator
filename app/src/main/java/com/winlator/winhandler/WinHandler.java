@@ -58,6 +58,7 @@ public class WinHandler {
 
     public WinHandler(XServerDisplayActivity activity) {
         this.activity = activity;
+        preferences = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
     }
 
     // Gyro related variables
@@ -107,9 +108,12 @@ public class WinHandler {
 
 
     public void updateGyroData(float rawGyroX, float rawGyroY) {
+        // Check if gyro is enabled before processing the data
+        if (!preferences.getBoolean("gyro_enabled", false)) {
+            return; // Exit if the gyro is disabled
+        }
+
         boolean shouldProcessGyro = true;
-															
-															
 
         // Check if processing gyro data only when the left trigger is held
         if (processGyroWithLeftTrigger) {
@@ -147,6 +151,7 @@ public class WinHandler {
             sendGamepadState();
         }
     }
+
 
 
 

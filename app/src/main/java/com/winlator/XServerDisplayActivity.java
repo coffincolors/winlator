@@ -128,7 +128,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private boolean firstTimeBoot = false;
     private SharedPreferences preferences;
     private OnExtractFileListener onExtractFileListener;
-    private final WinHandler winHandler = new WinHandler(this);
+    private WinHandler winHandler;
     private float globalCursorSpeed = 1.0f;
     private MagnifierView magnifierView;
     private DebugDialog debugDialog;
@@ -197,6 +197,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         preloaderDialog = new PreloaderDialog(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // Initialize the WinHandler after context is set up
+        winHandler = new WinHandler(this);
 
         // Initialize and SensorManager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
