@@ -27,6 +27,8 @@
         <item>24.1.0</item>
         <item>24.3.0</item>
         <item>24.3.0.2</item>
+        <item>24.3.0.3</item>
+        <item>24.3.0.4</item>
     </string-array>
     <string-array name="audio_driver_entries">
         <item>ALSA</item>
@@ -47,13 +49,14 @@
         <item>0.40.1</item>
         <item>0.96</item>
 		<item>1.7.1</item>
-        <item>1.10.3 (Default)</item>
-        <item>1.10.3.0 (Async)</item>
+        <item>1.10.3</item>
+        <item>async-1.10.3</item>
         <item>2.2.116</item>
         <item>2.3.1.1</item>
         <item>2.3.1.54</item>
         <item>2.3.1</item>
         <item>2.4</item>
+        <item>2.4-gplasync</item>
     </string-array>
     <string-array name="dxvk_max_device_memory_entries">
         <item>0 (Default)</item>
