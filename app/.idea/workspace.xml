@@ -255,7 +255,8 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github">
+    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="Fix: Removed large files from the history">
+      <change beforePath="$PROJECT_DIR$/../Winlator-7.1.3-glibc-cmod-v7fix6_source_code.zip" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -300,6 +301,12 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="PUSH_TAGS">
+      <GitPushTagMode>
+        <option name="argument" value="--follow-tags" />
+        <option name="title" value="Current Branch" />
+      </GitPushTagMode>
+    </option>
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
         <entry key="$PROJECT_DIR$/.." value="cmod-glibc-branch-backup" />
@@ -562,7 +569,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725932043554</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Fix: Removed large files from the history">
+      <option name="closed" value="true" />
+      <created>1725933046618</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1725933046618</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -582,9 +597,10 @@
     <MESSAGE value="modified xserverdisplayactivity to handle turnip installations for selections that were added via content manager" />
     <MESSAGE value="added backup and restore to settings, updated tarcompressor with new exclusions methods to avoid overwriting shared prefs during restore, added frontend support modified xserverdisplayactivity to accept container_id as an extra, fixed issue with turnip driver appearing in turnip/virgl selection dropdown, added new playtime tracking and play count stats, updated default turnip version, added additional logging and experimental changes to drawable.c, gpu_image. and gpu_image.java" />
     <MESSAGE value="fixed extract graphics driver method in xserverdisplayactivity where I accidently removed the passing of environmental variables XD" />
-    <MESSAGE value="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github" />
     <MESSAGE value="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github. Updated dxvk, turnip, fixed gyro default bug, added logging for motion events with analog sticks to trace binding issues," />
-    <option name="LAST_COMMIT_MESSAGE" value="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github. Updated dxvk, turnip, fixed gyro default bug, added logging for motion events with analog sticks to trace binding issues," />
+    <MESSAGE value="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github" />
+    <MESSAGE value="Fix: Removed large files from the history" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix: Removed large files from the history" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
