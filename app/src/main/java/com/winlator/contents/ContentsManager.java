@@ -121,18 +121,52 @@ public class ContentsManager {
 
             File typeFile = getContentTypeDir(context, type);
             File[] fileList = typeFile.listFiles();
-            if (fileList == null)
+            if (fileList == null) {
+                Log.w("ContentsManager", "No files found for type: " + type);
                 continue;
+            }
 
             for (File file : fileList) {
                 File proFile = new File(file, PROFILE_NAME);
                 if (proFile.exists() && proFile.isFile()) {
                     ContentProfile profile = readProfile(proFile);
-                    if (profile != null)
+                    if (profile != null) {
                         profiles.add(profile);
+                        Log.d("ContentsManager", "Profile loaded: " + profile.verName);
+                    } else {
+                        Log.w("ContentsManager", "Invalid profile found at: " + proFile.getAbsolutePath());
+                    }
+                }
+            }
+            Log.d("ContentsManager", "Profiles count for " + type + ": " + profiles.size());
+        }
+    }
+
+    public void syncTurnipContents() {
+        profilesMap = new HashMap<>();
+        LinkedList<ContentProfile> turnipProfiles = new LinkedList<>();
+        profilesMap.put(ContentProfile.ContentType.CONTENT_TYPE_TURNIP, turnipProfiles);
+
+        File turnipDir = getContentTypeDir(context, ContentProfile.ContentType.CONTENT_TYPE_TURNIP);
+        File[] fileList = turnipDir.listFiles();
+        if (fileList == null) {
+            Log.w("ContentsManager", "No files found for Turnip type.");
+            return;
+        }
+
+        for (File file : fileList) {
+            File proFile = new File(file, PROFILE_NAME);
+            if (proFile.exists() && proFile.isFile()) {
+                ContentProfile profile = readProfile(proFile);
+                if (profile != null) {
+                    turnipProfiles.add(profile);
+                    Log.d("ContentsManager", "Turnip profile loaded: " + profile.verName);
+                } else {
+                    Log.w("ContentsManager", "Invalid Turnip profile found at: " + proFile.getAbsolutePath());
                 }
             }
         }
+        Log.d("ContentsManager", "Turnip Profiles count: " + turnipProfiles.size());
     }
 
     public void extraContentFile(Uri uri, OnInstallFinishedCallback callback) {

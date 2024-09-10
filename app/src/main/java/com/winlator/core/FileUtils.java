@@ -1,12 +1,13 @@
 package com.winlator.core;
 
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
 import android.provider.DocumentsContract;
+import android.provider.OpenableColumns;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.util.Log;
@@ -30,8 +31,6 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -168,27 +167,86 @@ public abstract class FileUtils {
                     }
                 }
             }
-        }
-        else {
+        } else {
             File parent = dstFile.getParentFile();
             if (!srcFile.exists() || (parent != null && !parent.exists() && !parent.mkdirs())) return false;
 
-            try {
-                FileChannel inChannel = (new FileInputStream(srcFile)).getChannel();
-                FileChannel outChannel = (new FileOutputStream(dstFile)).getChannel();
+            try (FileChannel inChannel = (new FileInputStream(srcFile)).getChannel();
+                 FileChannel outChannel = (new FileOutputStream(dstFile)).getChannel()) {
                 inChannel.transferTo(0, inChannel.size(), outChannel);
-                inChannel.close();
-                outChannel.close();
 
                 if (callback != null) callback.call(dstFile);
                 return dstFile.exists();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
+                e.printStackTrace();
                 return false;
             }
         }
         return true;
     }
+
+
+    public static boolean copy(Context context, Object src, File dstFile, Callback<File> callback) {
+        if (src instanceof File) {
+            // Handle File to File copying
+            File sourceFile = (File) src;
+            if (isSymlink(sourceFile)) return true;
+            if (sourceFile.isDirectory()) {
+                if (!dstFile.exists() && !dstFile.mkdirs()) return false;
+                if (callback != null) callback.call(dstFile);
+
+                String[] filenames = sourceFile.list();
+                if (filenames != null) {
+                    for (String filename : filenames) {
+                        if (!copy(context, new File(sourceFile, filename), new File(dstFile, filename), callback)) {
+                            return false;
+                        }
+                    }
+                }
+            } else {
+                File parent = dstFile.getParentFile();
+                if (!sourceFile.exists() || (parent != null && !parent.exists() && !parent.mkdirs())) return false;
+
+                try (FileChannel inChannel = (new FileInputStream(sourceFile)).getChannel();
+                     FileChannel outChannel = (new FileOutputStream(dstFile)).getChannel()) {
+                    inChannel.transferTo(0, inChannel.size(), outChannel);
+
+                    if (callback != null) callback.call(dstFile);
+                    return dstFile.exists();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+        } else if (src instanceof Uri) {
+            // Handle Uri to File copying, which requires a Context
+            if (context == null) {
+                throw new IllegalArgumentException("Context is required for Uri to File copying");
+            }
+            Uri srcUri = (Uri) src;
+            try (InputStream inputStream = context.getContentResolver().openInputStream(srcUri);
+                 OutputStream outputStream = new FileOutputStream(dstFile)) {
+                byte[] buffer = new byte[1024];
+                int length;
+
+                while ((length = inputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, length);
+                }
+
+                if (callback != null) callback.call(dstFile);
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        // Return false if src is neither File nor Uri
+        return false;
+    }
+
+
+
 
     public static void copy(Context context, String assetFile, File dstFile) {
         if (isDirectory(context, assetFile)) {
@@ -215,6 +273,21 @@ public abstract class FileUtils {
             }
             catch (IOException e) {}
         }
+    }
+
+    public static boolean copy(Context context, Uri uri, File dest) {
+        try (InputStream inputStream = context.getContentResolver().openInputStream(uri);
+             OutputStream outputStream = new FileOutputStream(dest)) {
+            byte[] buffer = new byte[1024];
+            int length;
+
+            while ((length = inputStream.read(buffer)) > 0)
+                outputStream.write(buffer, 0, length);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     public static ArrayList<String> readLines(File file) {
@@ -464,6 +537,19 @@ public abstract class FileUtils {
 
         // If all else fails, return null
         return null;
+    }
+    public static String getUriFileName(Context context, Uri uri) {
+        String fileName = null;
+        Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+            if (nameIndex != -1)
+                fileName = cursor.getString(nameIndex);
+            cursor.close();
+        }
+
+        return fileName;
     }
 
 }

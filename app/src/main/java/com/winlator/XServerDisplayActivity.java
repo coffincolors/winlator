@@ -1,11 +1,12 @@
 package com.winlator;
 
-import static java.security.AccessController.getContext;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -14,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,6 +27,8 @@ import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -65,6 +69,8 @@ import com.winlator.inputcontrols.ExternalController;
 import com.winlator.inputcontrols.InputControlsManager;
 import com.winlator.math.Mathf;
 import com.winlator.math.XForm;
+import com.winlator.midi.MidiHandler;
+import com.winlator.midi.MidiManager;
 import com.winlator.renderer.GLRenderer;
 import com.winlator.widget.FrameRating;
 import com.winlator.widget.InputControlsView;
@@ -105,8 +111,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.Executors;
+
+import cn.sherlock.com.sun.media.sound.SF2Soundbank;
 
 public class XServerDisplayActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private XServerView xServerView;
@@ -115,7 +122,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private XEnvironment environment;
     private DrawerLayout drawerLayout;
     private ContainerManager containerManager;
-    private Container container;
+    protected Container container;
     private XServer xServer;
     private InputControlsManager inputControlsManager;
     private ImageFs imageFs;
@@ -131,7 +138,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private boolean firstTimeBoot = false;
     private SharedPreferences preferences;
     private OnExtractFileListener onExtractFileListener;
-    private final WinHandler winHandler = new WinHandler(this);
+    private WinHandler winHandler;
     private float globalCursorSpeed = 1.0f;
     private MagnifierView magnifierView;
     private DebugDialog debugDialog;
@@ -142,6 +149,11 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private final float[] xform = XForm.getInstance();
     private ContentsManager contentsManager;
     private boolean navigationFocused = false;
+    private MidiHandler midiHandler;
+    private String midiSoundFont = "";
+    private String lc_all = "";
+    PreloaderDialog preloaderDialog = null;
+    private Runnable configChangedCallback = null;
 
     // Inside the XServerDisplayActivity class
     private SensorManager sensorManager;
@@ -155,6 +167,17 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private Handler handler;
     private Runnable savePlaytimeRunnable;
     private static final long SAVE_INTERVAL_MS = 1000;
+
+    private boolean overrideGraphicsDriver = false;
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (configChangedCallback != null) {
+            configChangedCallback.run();
+            configChangedCallback = null;
+        }
+    }
 
 
     private final SensorEventListener gyroListener = new SensorEventListener() {
@@ -183,6 +206,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         final PreloaderDialog preloaderDialog = new PreloaderDialog(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // Initialize the WinHandler after context is set up
+        winHandler = new WinHandler(this);
 
         // Initialize SensorManager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -247,13 +273,22 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         String screenSize = Container.DEFAULT_SCREEN_SIZE;
         if (!isGenerateWineprefix()) {
             containerManager = new ContainerManager(this);
+            container = containerManager.getContainerById(getIntent().getIntExtra("container_id", 0));
+//            containerManager.activateContainer(container);
 
             // Log shortcut_path
             String shortcutPath = getIntent().getStringExtra("shortcut_path");
             Log.d("XServerDisplayActivity", "Shortcut Path: " + shortcutPath);
 
+
             // Determine container ID
             int containerId = getIntent().getIntExtra("container_id", 0);
+            Log.d("XServerDisplayActivity", "Container ID from Intent: " + containerId);
+            if (containerId == 0) {
+                Log.d("XServerDisplayActivity", "Container ID is 0, attempting to parse from .desktop file");
+                // Proceed with .desktop file parsing
+            }
+
 
             // If container_id is 0, read from the .desktop file
             if (containerId == 0 && shortcutPath != null && !shortcutPath.isEmpty()) {
@@ -289,26 +324,62 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 shortcut = new Shortcut(container, new File(shortcutPath));
             }
 
+            // Retrieve secondary executable and delay
+            String secondaryExec = shortcut != null ? shortcut.getExtra("secondaryExec") : null;
+            int execDelay = shortcut != null ? Integer.parseInt(shortcut.getExtra("execDelay", "0")) : 0;
+
+            // Debug logging for secondaryExec and execDelay
+            Log.d("XServerDisplayActivity", "Secondary Exec: " + secondaryExec);
+            Log.d("XServerDisplayActivity", "Execution Delay: " + execDelay);
+
+            // If a secondary executable is specified, schedule it
+            if (secondaryExec != null && !secondaryExec.isEmpty() && execDelay > 0) {
+                scheduleSecondaryExecution(secondaryExec, execDelay);
+                Log.d("XServerDisplayActivity", "Scheduling secondary execution: " + secondaryExec + " with delay: " + execDelay);
+            } else {
+                Log.d("XServerDisplayActivity", "No valid secondary executable or delay is zero, skipping scheduling.");
+            }
+
             graphicsDriver = container.getGraphicsDriver();
             audioDriver = container.getAudioDriver();
+            midiSoundFont = container.getMIDISoundFont();
             dxwrapper = container.getDXWrapper();
             String dxwrapperConfig = container.getDXWrapperConfig();
             screenSize = container.getScreenSize();
+            winHandler.setInputType((byte) container.getInputType());
+            lc_all = container.getLC_ALL();
 
             if (shortcut != null) {
-                graphicsDriver = shortcut.getExtra("graphicsDriver", container.getGraphicsDriver());
+                // Get the graphics driver version directly
+                String selectedDriverVersion = shortcut.getExtra("graphicsDriverVersion", container.getGraphicsDriverVersion());
+
+                // Set graphicsDriverVersion and check if it should override
+                if (!selectedDriverVersion.equals(container.getGraphicsDriverVersion())) {
+                    overrideGraphicsDriver = true;
+                    container.setGraphicsDriverVersion(selectedDriverVersion); // Update the container's version
+                } else {
+                    overrideGraphicsDriver = false; // Reset if no override is needed
+                }
+
+                graphicsDriver = shortcut.getExtra("graphicsDriver", container.getGraphicsDriver()); // Keep this for logging or other use cases
                 audioDriver = shortcut.getExtra("audioDriver", container.getAudioDriver());
+                midiSoundFont = shortcut.getExtra("midiSoundFont", container.getMIDISoundFont());
                 dxwrapper = shortcut.getExtra("dxwrapper", container.getDXWrapper());
                 dxwrapperConfig = shortcut.getExtra("dxwrapperConfig", container.getDXWrapperConfig());
                 screenSize = shortcut.getExtra("screenSize", container.getScreenSize());
+                lc_all = shortcut.getExtra("lc_all", container.getLC_ALL());
 
-                String dinputMapperType = shortcut.getExtra("dinputMapperType");
-                if (!dinputMapperType.isEmpty()) winHandler.setDInputMapperType(Byte.parseByte(dinputMapperType));
+                String inputType = shortcut.getExtra("inputType");
+                if (!inputType.isEmpty()) {
+                    winHandler.setInputType(Byte.parseByte(inputType));
+                }
             }
 
             if (dxwrapper.equals("dxvk") || dxwrapper.equals("vkd3d")) {
                 this.dxwrapperConfig = DXVKConfigDialog.parseConfig(dxwrapperConfig);
             }
+
+
 
             if (!wineInfo.isWin64()) {
                 onExtractFileListener = (file, size) -> {
@@ -353,16 +424,52 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             }
         });
 
-        setupUI();
+        if (!midiSoundFont.equals("")) {
+            InputStream in = null;
+            InputStream finalIn = in;
+            MidiManager.OnMidiLoadedCallback callback = new MidiManager.OnMidiLoadedCallback() {
+                @Override
+                public void onSuccess(SF2Soundbank soundbank) {
+                    midiHandler = new MidiHandler();
+                    midiHandler.setSoundBank(soundbank);
+                    midiHandler.start();
+                }
 
-        Executors.newSingleThreadExecutor().execute(() -> {
-            if (!isGenerateWineprefix()) {
-                setupWineSystemFiles();
-                extractGraphicsDriverFiles();
-                changeWineAudioDriver();
-            }
-            setupXEnvironment();
-        });
+                @Override
+                public void onFailed(Exception e) {
+                    try {
+                        finalIn.close();
+                    } catch (Exception e2) {}
+                }
+            };
+            try {
+                if (midiSoundFont.equals(MidiManager.DEFAULT_SF2_FILE)) {
+                    in = getAssets().open(MidiManager.SF2_ASSETS_DIR + "/" + midiSoundFont);
+                    MidiManager.load(in, callback);
+                } else
+                    MidiManager.load(new File(MidiManager.getSoundFontDir(this), midiSoundFont), callback);
+            } catch (Exception e) {}
+        }
+
+        Runnable runnable = () -> {
+            setupUI();
+
+            Executors.newSingleThreadExecutor().execute(() -> {
+                if (!isGenerateWineprefix()) {
+                    setupWineSystemFiles();
+                    extractGraphicsDriverFiles();
+                    changeWineAudioDriver();
+                }
+                setupXEnvironment();
+            });
+        };
+
+        if (xServer.screenInfo.height > xServer.screenInfo.width) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            configChangedCallback = runnable;
+        } else
+            runnable.run();
+
     }
 
     // Method to parse container_id from .desktop file
@@ -387,6 +494,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
 
 
+    // Inside XServerDisplayActivity class
     private void handleCapturedPointer(MotionEvent event) {
 
         boolean handled = false;
@@ -402,18 +510,20 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             case MotionEvent.ACTION_BUTTON_PRESS:
                 if (actionButton == MotionEvent.BUTTON_PRIMARY) {
                     xServer.injectPointerButtonPress(Pointer.Button.BUTTON_LEFT);
-                }
-                else if (actionButton == MotionEvent.BUTTON_SECONDARY) {
+                } else if (actionButton == MotionEvent.BUTTON_SECONDARY) {
                     xServer.injectPointerButtonPress(Pointer.Button.BUTTON_RIGHT);
+                } else if (actionButton == MotionEvent.BUTTON_TERTIARY) {
+                    xServer.injectPointerButtonPress(Pointer.Button.BUTTON_MIDDLE); // Handle middle mouse button press
                 }
                 handled = true;
                 break;
             case MotionEvent.ACTION_BUTTON_RELEASE:
                 if (actionButton == MotionEvent.BUTTON_PRIMARY) {
                     xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
-                }
-                else if (actionButton == MotionEvent.BUTTON_SECONDARY) {
+                } else if (actionButton == MotionEvent.BUTTON_SECONDARY) {
                     xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_RIGHT);
+                } else if (actionButton == MotionEvent.BUTTON_TERTIARY) {
+                    xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_MIDDLE); // Handle middle mouse button release
                 }
                 handled = true;
                 break;
@@ -427,8 +537,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 if (scrollY <= -1.0f) {
                     xServer.injectPointerButtonPress(Pointer.Button.BUTTON_SCROLL_DOWN);
                     xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_SCROLL_DOWN);
-                }
-                else if (scrollY >= 1.0f) {
+                } else if (scrollY >= 1.0f) {
                     xServer.injectPointerButtonPress(Pointer.Button.BUTTON_SCROLL_UP);
                     xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_SCROLL_UP);
                 }
@@ -438,7 +547,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     }
 
 
-//    private void setCustomCursor() {
+
+    //    private void setCustomCursor() {
 //        View decorView = getWindow().getDecorView();
 //        Bitmap transparentCursorBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.transparent_cursor);
 //        PointerIcon transparentCursorIcon = PointerIcon.create(transparentCursorBitmap, 0, 0);
@@ -485,14 +595,19 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             sensorManager.unregisterListener(gyroListener);
         }
 
-        if (environment != null) {
-            environment.onPause();
-            xServerView.onPause();
+        // Check if we are entering Picture-in-Picture mode
+        if (!isInPictureInPictureMode()) {
+            // Only pause environment and xServerView if not in PiP mode
+            if (environment != null) {
+                environment.onPause();
+                xServerView.onPause();
+            }
         }
 
         savePlaytimeData();
         handler.removeCallbacks(savePlaytimeRunnable);
     }
+
 
     private void savePlaytimeData() {
         long endTime = System.currentTimeMillis();
@@ -527,9 +642,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (midiHandler != null)
+            midiHandler.stop();
         // Unregister sensor listener to avoid memory leaks
         sensorManager.unregisterListener(gyroListener);
         if (environment != null) environment.stopEnvironmentComponents();
+        if (preloaderDialog != null && preloaderDialog.isShowing())
+            preloaderDialog.close();
         winHandler.stop();
 
         savePlaytimeData(); // Save on destroy
@@ -554,6 +673,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         }
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         final GLRenderer renderer = xServerView.getRenderer();
@@ -568,6 +688,23 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 break;
             case R.id.main_menu_toggle_fullscreen:
                 renderer.toggleFullscreen();
+                drawerLayout.closeDrawers();
+                touchpadView.toggleFullscreen();
+                break;
+            case R.id.main_menu_toggle_orientation:
+                if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                else
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                ControlsProfile profile = inputControlsView.getProfile();
+                int id = profile == null ? -1 : profile.id;
+                configChangedCallback = () -> {
+                    if (profile != null) {
+                        inputControlsManager = new InputControlsManager(this);
+                        inputControlsManager.loadProfiles(true);
+                        showInputControls(inputControlsManager.getProfile(id));
+                    }
+                };
                 drawerLayout.closeDrawers();
                 break;
             case R.id.main_menu_task_manager:
@@ -599,11 +736,16 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 showTouchpadHelpDialog();
                 break;
             case R.id.main_menu_exit:
-                exit();
+                finish();
+                break;
+            case R.id.main_menu_pip_mode: // New case for PiP mode
+                enterPictureInPictureMode();
+                drawerLayout.closeDrawers();
                 break;
         }
         return true;
     }
+
 
 
     @Override
@@ -695,6 +837,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     }
 
     private void setupXEnvironment() {
+        envVars.put("LC_ALL", lc_all);
         envVars.put("MESA_DEBUG", "silent");
         envVars.put("MESA_NO_ERROR", "1");
         envVars.put("WINEPREFIX", imageFs.wineprefix);
@@ -715,7 +858,6 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             if (container.getStartupSelection() == Container.STARTUP_SELECTION_AGGRESSIVE) winHandler.killProcess("services.exe");
 
             boolean wow64Mode = container.isWoW64Mode();
-//            String guestExecutable = wineInfo.getExecutable(this, wow64Mode)+" explorer /desktop=shell,"+xServer.screenInfo+" "+getWineStartCommand();
             String guestExecutable = "wine explorer /desktop=shell,"+xServer.screenInfo+" "+getWineStartCommand();
             guestProgramLauncherComponent.setWoW64Mode(wow64Mode);
             guestProgramLauncherComponent.setGuestExecutable(guestExecutable);
@@ -746,7 +888,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             environment.addComponent(new PulseAudioComponent(UnixSocketConfig.createSocket(rootPath, UnixSocketConfig.PULSE_SERVER_PATH)));
         }
 
-        if (graphicsDriver.startsWith("virgl")) {
+        // Check for graphics driver override
+        if (overrideGraphicsDriver || graphicsDriver.startsWith("virgl")) {
             environment.addComponent(new VirGLRendererComponent(xServer, UnixSocketConfig.createSocket(rootPath, UnixSocketConfig.VIRGL_SERVER_PATH)));
         }
 
@@ -761,7 +904,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         envVars.put("BOX64_RCFILE", file.getAbsolutePath());
 
         guestProgramLauncherComponent.setEnvVars(envVars);
-        guestProgramLauncherComponent.setTerminationCallback((status) -> exit());
+        guestProgramLauncherComponent.setTerminationCallback((status) -> finish());
         environment.addComponent(guestProgramLauncherComponent);
 
         if (isGenerateWineprefix()) generateWineprefix();
@@ -771,6 +914,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         envVars.clear();
         dxwrapperConfig = null;
     }
+
 
     private void setupUI() {
         FrameLayout rootView = findViewById(R.id.FLXServerDisplay);
@@ -821,6 +965,16 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         AppUtils.observeSoftKeyboardVisibility(drawerLayout, renderer::setScreenOffsetYRelativeToCursor);
     }
 
+    private ActivityResultLauncher<Intent> controlsEitorActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (editInputControlsCallback != null) {
+                    editInputControlsCallback.run();
+                    editInputControlsCallback = null;
+                }
+            }
+    );
+
     private void showInputControlsDialog() {
         final ContentDialog dialog = new ContentDialog(this, R.layout.input_controls_dialog);
         dialog.setTitle(R.string.input_controls);
@@ -834,7 +988,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             profileItems.add("-- "+getString(R.string.disabled)+" --");
             for (int i = 0; i < profiles.size(); i++) {
                 ControlsProfile profile = profiles.get(i);
-                if (profile == inputControlsView.getProfile()) selectedPosition = i + 1;
+                if (inputControlsView.getProfile() != null && profile.id == inputControlsView.getProfile().id)
+                    selectedPosition = i + 1;
                 profileItems.add(profile.getName());
             }
 
@@ -852,6 +1007,14 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         final CheckBox cbShowTouchscreenControls = dialog.findViewById(R.id.CBShowTouchscreenControls);
         cbShowTouchscreenControls.setChecked(inputControlsView.isShowTouchscreenControls());
 
+        final Runnable updateProfile = () -> {
+            int position = sProfile.getSelectedItemPosition();
+            if (position > 0) {
+                showInputControls(inputControlsManager.getProfiles().get(position - 1));
+            }
+            else hideInputControls();
+        };
+
         dialog.findViewById(R.id.BTSettings).setOnClickListener((v) -> {
             int position = sProfile.getSelectedItemPosition();
             Intent intent = new Intent(this, MainActivity.class);
@@ -861,8 +1024,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 hideInputControls();
                 inputControlsManager.loadProfiles(true);
                 loadProfileSpinner.run();
+                updateProfile.run();
             };
-            startActivityForResult(intent, MainActivity.EDIT_INPUT_CONTROLS_REQUEST_CODE);
+            controlsEitorActivityResultLauncher.launch(intent);
         });
 
         dialog.setOnConfirmCallback(() -> {
@@ -874,8 +1038,12 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             }
             else hideInputControls();
             touchpadView.setSimTouchScreen(cbSimTouchScreen.isChecked());
+            updateProfile.run();
         });
 
+        dialog.setOnCancelCallback(updateProfile::run);
+
+        dialog.setCanceledOnTouchOutside(false);
         dialog.show();
     }
 
@@ -904,19 +1072,36 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     private void extractGraphicsDriverFiles() {
         String cacheId = graphicsDriver;
-        String selectedDriverVersion = container.getGraphicsDriverVersion(); // Fetch the selected version
 
-        // Adjust cacheId based on graphics driver
+        // Log the state of overrideGraphicsDriver
+        Log.d("GraphicsDriverExtraction", "overrideGraphicsDriver flag: " + overrideGraphicsDriver);
+
+        // Determine the selected driver version, respecting the override flag
+        String selectedDriverVersion;
+        if (overrideGraphicsDriver && shortcut != null) {
+            selectedDriverVersion = shortcut.getExtra("graphicsDriverVersion");
+            // Log the version retrieved from the shortcut
+            Log.d("GraphicsDriverExtraction", "Using graphicsDriverVersion from shortcut: " + selectedDriverVersion);
+        } else {
+            selectedDriverVersion = container.getGraphicsDriverVersion();
+            // Log the version retrieved from the container
+            Log.d("GraphicsDriverExtraction", "Using graphicsDriverVersion from container: " + selectedDriverVersion);
+        }
+
+        // Adjust cacheId based on graphics driver and selected version
         if (graphicsDriver.equals("turnip")) {
-            cacheId += "-" + DefaultVersion.TURNIP + "-" + DefaultVersion.ZINK;
+            cacheId += "-" + selectedDriverVersion; // Use selectedDriverVersion directly
         } else if (graphicsDriver.equals("virgl")) {
             cacheId += "-" + DefaultVersion.VIRGL;
         }
 
-        boolean changed = !cacheId.equals(container.getExtra("graphicsDriver"));
+        boolean changed = !cacheId.equals(container.getExtra("graphicsDriver")) || overrideGraphicsDriver; // Check for changes or override
+
         File rootDir = imageFs.getRootDir(); // Target the root directory of imagefs
 
+        // Only delete and update if there are changes
         if (changed) {
+            Log.d("GraphicsDriverExtraction", "Detected change in graphics driver version or override. Updating...");
             FileUtils.delete(new File(imageFs.getLib32Dir(), "libvulkan_freedreno.so"));
             FileUtils.delete(new File(imageFs.getLib64Dir(), "libvulkan_freedreno.so"));
             FileUtils.delete(new File(imageFs.getLib32Dir(), "libGL.so.1.7.0"));
@@ -1009,11 +1194,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             envVars.put("MESA_GL_VERSION_OVERRIDE", "3.1");
             envVars.put("vblank_mode", "0");
 
-            if (changed) {
+            if (changed || overrideGraphicsDriver) {
                 TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/virgl-" + DefaultVersion.VIRGL + ".tzst", rootDir);
             }
         }
     }
+
+
 
 
     private void copyDirectory(File sourceDir, File destinationDir) throws IOException {
@@ -1175,6 +1362,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         return (!inputControlsView.onKeyEvent(event) && !winHandler.onKeyEvent(event) && xServer.keyboard.onKeyEvent(event)) ||
                 (!ExternalController.isGameController(event.getDevice()) && super.dispatchKeyEvent(event));
     }
+
 
     public InputControlsView getInputControlsView() {
         return inputControlsView;
@@ -1480,7 +1668,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         WineUtils.applySystemTweaks(this, wineInfo);
         container.putExtra("graphicsDriver", null);
         container.putExtra("desktopTheme", null);
-        SettingsFragment.resetBox86_64Version(this);
+        //SettingsFragment.resetBox86_64Version(this);
     }
 
     private void assignTaskAffinity(Window window) {
@@ -1509,4 +1697,15 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             runOnUiThread(() -> frameRating.setVisibility(View.GONE));
         }
     }
+
+    private void scheduleSecondaryExecution(String secondaryExec, int delaySeconds) {
+        if (winHandler != null) {
+            winHandler.execWithDelay(secondaryExec, delaySeconds);
+            Log.d("XServerDisplayActivity", "Scheduled secondary execution: " + secondaryExec + " with delay: " + delaySeconds);
+        } else {
+            Log.e("XServerDisplayActivity", "WinHandler is null, cannot schedule secondary execution.");
+        }
+    }
+
+
 }

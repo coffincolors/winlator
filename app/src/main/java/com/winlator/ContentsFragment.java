@@ -235,6 +235,12 @@ public class ContentsFragment extends Fragment {
             return new ContentItemAdapter.ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.content_list_item, parent, false));
         }
 
+        @Override
+        public void onViewRecycled(@NonNull ViewHolder holder) {
+            holder.ibMenu.setOnClickListener(null);
+            super.onViewRecycled(holder);
+        }
+
         @SuppressLint("StringFormatInvalid")
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {

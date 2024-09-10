@@ -28,6 +28,7 @@
         <item>24.3.0</item>
         <item>24.3.0.2</item>
         <item>24.3.0.3</item>
+        <item>24.3.0.4</item>
     </string-array>
     <string-array name="audio_driver_entries">
         <item>ALSA</item>
@@ -55,6 +56,7 @@
         <item>2.3.1</item>
         <item>2.4</item>
         <item>2.4-gplasync</item>
+        <item>2.4-24-gplasync</item>
     </string-array>
     <string-array name="dxvk_max_device_memory_entries">
         <item>0 (Default)</item>
@@ -96,13 +98,16 @@
         <item>0.3.7</item>
     </string-array>
     <string-array name="box64_version_entries">
+        <item>0.2.7</item>
         <item>0.2.8</item>
         <item>0.3.0</item>
         <item>0.3.1</item>
+        <item>0.3.1.8g2</item>
+        <item>0.3.1-2</item>
     </string-array>
     <string-array name="dinput_mapper_type_entries">
-        <item>Standard (Old Gamepads)</item>
-        <item>XInput</item>
+        <item>@string/dinput_legacy</item>
+        <item>@string/dinput_modern</item>
     </string-array>
     <string-array name="desktop_theme_entries">
         <item>Light</item>
@@ -120,5 +125,41 @@
     <string-array name="vkd3d_version_entries">
         <item>2.12</item>
         <item>2.13</item>
+    </string-array>
+    <string-array name="some_lc_all">
+        <item>ar_EG</item>
+        <item>ar_SA</item>
+        <item>de_AT</item>
+        <item>de_CH</item>
+        <item>de_DE</item>
+        <item>de_LU</item>
+        <item>en_AU</item>
+        <item>en_CA</item>
+        <item>en_GB</item>
+        <item>en_IN</item>
+        <item>en_US</item>
+        <item>es_AR</item>
+        <item>es_ES</item>
+        <item>es_MX</item>
+        <item>fr_BE</item>
+        <item>fr_CA</item>
+        <item>fr_CH</item>
+        <item>fr_FR</item>
+        <item>it_CH</item>
+        <item>it_IT</item>
+        <item>ja_JP</item>
+        <item>ko_KR</item>
+        <item>pt_BR</item>
+        <item>pt_PT</item>
+        <item>ru_RU</item>
+        <item>ru_UA</item>
+        <item>zh_CN</item>
+        <item>zh_HK</item>
+        <item>zh_SG</item>
+        <item>zh_TW</item>
+    </string-array>
+    <string-array name="xr_controllers">
+    <item>@string/left_controller</item>
+    <item>@string/right_controller</item>
     </string-array>
 </resources>

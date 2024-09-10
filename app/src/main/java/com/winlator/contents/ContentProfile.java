@@ -27,8 +27,8 @@ public class ContentProfile {
 
         final String typeName;
 
-        ContentType(String typeNmae) {
-            this.typeName = typeNmae;
+        ContentType(String typeName) {
+            this.typeName = typeName;
         }
 
         @NonNull
@@ -38,9 +38,11 @@ public class ContentProfile {
         }
 
         public static ContentType getTypeByName(String name) {
-            for (ContentType type : ContentType.values())
-                if (type.typeName.toLowerCase().equals(name.toLowerCase()))
+            for (ContentType type : ContentType.values()) {
+                if (type.typeName.equalsIgnoreCase(name)) {
                     return type;
+                }
+            }
             return null;
         }
     }

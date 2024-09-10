@@ -26,12 +26,17 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class WinHandler {
     private static final short SERVER_PORT = 7947;
     private static final short CLIENT_PORT = 7946;
-    public static final byte DINPUT_MAPPER_TYPE_STANDARD = 0;
-    public static final byte DINPUT_MAPPER_TYPE_XINPUT = 1;
+    public static final byte FLAG_DINPUT_MAPPER_STANDARD = 0x01;
+    public static final byte FLAG_DINPUT_MAPPER_XINPUT = 0x02;
+    public static final byte FLAG_INPUT_TYPE_XINPUT = 0x04;
+    public static final byte FLAG_INPUT_TYPE_DINPUT = 0x08;
+    public static final byte DEFAULT_INPUT_TYPE = FLAG_INPUT_TYPE_XINPUT;
+    public static final byte INPUT_TYPE_MIXED = 2;
     private DatagramSocket socket;
     private final ByteBuffer sendData = ByteBuffer.allocate(64).order(ByteOrder.LITTLE_ENDIAN);
     private final ByteBuffer receiveData = ByteBuffer.allocate(64).order(ByteOrder.LITTLE_ENDIAN);
@@ -43,30 +48,43 @@ public class WinHandler {
     private OnGetProcessInfoListener onGetProcessInfoListener;
     private ExternalController currentController;
     private InetAddress localhost;
-    private byte dinputMapperType = DINPUT_MAPPER_TYPE_XINPUT;
+    private byte inputType = DEFAULT_INPUT_TYPE;
     private final XServerDisplayActivity activity;
     private final List<Integer> gamepadClients = new CopyOnWriteArrayList<>();
     private SharedPreferences preferences;
-    private byte triggerMode;
+    private byte triggerType;
 
     private boolean xinputDisabled; // Used for exclusive mouse control
+
+    private boolean useLegacyInputMethod = false; // Default to using the new input method
+    // Add this field near the other field declarations at the top of the class
+    // Add these constants at the top of the class where other constants are defined
+    public static final byte DINPUT_MAPPER_TYPE_STANDARD = 0;
+    public static final byte DINPUT_MAPPER_TYPE_XINPUT = 1;
+    private byte dinputMapperType = DINPUT_MAPPER_TYPE_XINPUT; // Default value, you can set this as needed
+
+
 
     // Gyro related variables
     private float gyroX = 0;
     private float gyroY = 0;
     // Add fields for sensitivity, smoothing, and inversion
-    private float gyroSensitivityX = 1.0f;
-    private float gyroSensitivityY = 1.0f;
-    private float smoothingFactor = 0.9f; // For exponential smoothing
+    private float gyroSensitivityX = 0.35f;
+    private float gyroSensitivityY = 0.25f;
+    private float smoothingFactor = 0.45f; // For exponential smoothing
     private boolean invertGyroX = true;
     private boolean invertGyroY = false;
-    private float gyroDeadzone = 0.05f;
+    private float gyroDeadzone = 0.01f;
 
     // Implement exponential smoothing
     private float smoothGyroX = 0;
     private float smoothGyroY = 0;
 
     private boolean processGyroWithLeftTrigger = false;
+
+    public void setUseLegacyInputMethod(boolean useLegacy) {
+        this.useLegacyInputMethod = useLegacy;
+    }
 
     public void setGyroSensitivityX(float sensitivity) {
         this.gyroSensitivityX = sensitivity;
@@ -98,6 +116,11 @@ public class WinHandler {
 
 
     public void updateGyroData(float rawGyroX, float rawGyroY) {
+        // Check if gyro is enabled before processing the data
+        if (!preferences.getBoolean("gyro_enabled", false)) {
+            return; // Exit if the gyro is disabled
+        }
+
         boolean shouldProcessGyro = true;
 
         // Check if processing gyro data only when the left trigger is held
@@ -140,8 +163,8 @@ public class WinHandler {
 
     public WinHandler(XServerDisplayActivity activity) {
         this.activity = activity;
+        preferences = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
     }
-
     private boolean sendPacket(int port) {
         try {
             int size = sendData.position();
@@ -159,9 +182,34 @@ public class WinHandler {
     public void exec(String command) {
         command = command.trim();
         if (command.isEmpty()) return;
-        String[] cmdList = command.split(" ", 2);
-        final String filename = cmdList[0];
-        final String parameters = cmdList.length > 1 ? cmdList[1] : "";
+
+        // The `split` function here should be sensitive to paths with spaces.
+        // Instead of splitting, let's assume that command is directly provided in two parts: filename and parameters.
+        // Adjust command splitting based on whether it contains quotes.
+
+        String filename;
+        String parameters;
+
+        if (command.contains("\"")) {
+            // If the command is quoted, extract the quoted part as the filename
+            int firstQuote = command.indexOf("\"");
+            int lastQuote = command.lastIndexOf("\"");
+            filename = command.substring(firstQuote + 1, lastQuote);
+            if (lastQuote + 1 < command.length()) {
+                parameters = command.substring(lastQuote + 1).trim();
+            } else {
+                parameters = "";
+            }
+        } else {
+            // Standard split when no quotes
+            String[] cmdList = command.split(" ", 2);
+            filename = cmdList[0];
+            if (cmdList.length > 1) {
+                parameters = cmdList[1];
+            } else {
+                parameters = "";
+            }
+        }
 
         addAction(() -> {
             byte[] filenameBytes = filename.getBytes();
@@ -177,6 +225,7 @@ public class WinHandler {
             sendPacket(CLIENT_PORT);
         });
     }
+
 
     public void killProcess(final String processName) {
         addAction(() -> {
@@ -327,8 +376,11 @@ public class WinHandler {
                 preferences = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
 
                 // Load and apply trigger mode and xinput toggle settings
-                triggerMode = (byte) preferences.getInt("trigger_mode", ExternalController.TRIGGER_AS_AXIS);
+                triggerType = (byte) preferences.getInt("trigger_type", ExternalController.TRIGGER_IS_AXIS);
                 xinputDisabled = preferences.getBoolean("xinput_toggle", false);
+
+                // Load the flag to use legacy input method
+                useLegacyInputMethod = preferences.getBoolean("useLegacyInputMethod", false);
 
                 // Load and apply gyro settings
                 setGyroSensitivityX(preferences.getFloat("gyro_x_sensitivity", 1.0f));
@@ -371,8 +423,9 @@ public class WinHandler {
 
                 if (!useVirtualGamepad && (currentController == null || !currentController.isConnected())) {
                     currentController = ExternalController.getController(0);
-                    if (currentController != null)
-                        currentController.setTriggerMode(triggerMode);
+                    if (currentController != null) {
+                        currentController.setTriggerType(triggerType);
+                    }
                 }
 
                 final boolean enabled = currentController != null || useVirtualGamepad;
@@ -389,7 +442,15 @@ public class WinHandler {
 
                     if (enabled) {
                         sendData.putInt(!useVirtualGamepad ? currentController.getDeviceId() : profile.id);
-                        sendData.put(dinputMapperType);
+
+                        if (useLegacyInputMethod) {
+                            // Use legacy DInput mapper type
+                            sendData.put(dinputMapperType);
+                        } else {
+                            // Use new input type flags
+                            sendData.put(inputType);
+                        }
+
                         byte[] bytes = (useVirtualGamepad ? profile.getName() : currentController.getName()).getBytes();
                         sendData.putInt(bytes.length);
                         sendData.put(bytes);
@@ -442,8 +503,13 @@ public class WinHandler {
                 activity.getXServerView().requestRender();
                 break;
             }
+            default: {
+                // Handle any other request codes if needed
+                break;
+            }
         }
     }
+
 
 
     public void start() {
@@ -533,15 +599,23 @@ public class WinHandler {
         return handled;
     }
 
-    public byte getDInputMapperType() {
-        return dinputMapperType;
+    public byte getInputType() {
+        return inputType;
     }
 
-    public void setDInputMapperType(byte dinputMapperType) {
-        this.dinputMapperType = dinputMapperType;
+    public void setInputType(byte inputType) {
+        this.inputType = inputType;
     }
 
     public ExternalController getCurrentController() {
         return currentController;
     }
+
+    public void execWithDelay(String command, int delaySeconds) {
+        if (command == null || command.trim().isEmpty() || delaySeconds < 0) return;
+
+        // Use a scheduled executor for delay
+        Executors.newSingleThreadScheduledExecutor().schedule(() -> exec(command), delaySeconds, TimeUnit.SECONDS);
+    }
+
 }

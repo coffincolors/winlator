@@ -67,6 +67,9 @@ public class ShortcutsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+
+
         FrameLayout frameLayout = (FrameLayout)inflater.inflate(R.layout.shortcuts_fragment, container, false);
         recyclerView = frameLayout.findViewById(R.id.RecyclerView);
         emptyTextView = frameLayout.findViewById(R.id.TVEmptyText);
@@ -77,9 +80,15 @@ public class ShortcutsFragment extends Fragment {
 
     public void loadShortcutsList() {
         ArrayList<Shortcut> shortcuts = manager.loadShortcuts();
+
+        // Validate and remove corrupted shortcuts
+        shortcuts.removeIf(shortcut -> shortcut == null || shortcut.file == null || shortcut.file.getName().isEmpty());
+
         recyclerView.setAdapter(new ShortcutsAdapter(shortcuts));
         if (shortcuts.isEmpty()) emptyTextView.setVisibility(View.VISIBLE);
+        else emptyTextView.setVisibility(View.GONE); // Ensure the empty text view is hidden if there are shortcuts
     }
+
 
     private class ShortcutsAdapter extends RecyclerView.Adapter<ShortcutsAdapter.ViewHolder> {
         private final List<Shortcut> data;
@@ -112,6 +121,13 @@ public class ShortcutsFragment extends Fragment {
         }
 
         @Override
+        public void onViewRecycled(@NonNull ViewHolder holder) {
+            holder.menuButton.setOnClickListener(null);
+            holder.innerArea.setOnClickListener(null);
+            super.onViewRecycled(holder);
+        }
+
+        @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             final Shortcut item = data.get(position);
             if (item.icon != null) holder.imageView.setImageBitmap(item.icon);
@@ -139,9 +155,23 @@ public class ShortcutsFragment extends Fragment {
                 }
                 else if (itemId == R.id.shortcut_remove) {
                     ContentDialog.confirm(context, R.string.do_you_want_to_remove_this_shortcut, () -> {
-                        if (shortcut.file.delete() && shortcut.iconFile != null) shortcut.iconFile.delete();
-                        disableShortcutOnScreen(shortcut);
-                        loadShortcutsList();
+                        // Attempt to delete the shortcut file
+                        boolean fileDeleted = shortcut.file.delete();
+                        boolean iconFileDeleted = shortcut.iconFile != null && shortcut.iconFile.delete();
+
+                        if (fileDeleted) {
+                            // Successfully deleted the shortcut
+                            if (iconFileDeleted) {
+                                Log.d("ShortcutsFragment", "Icon file deleted successfully: " + shortcut.iconFile.getPath());
+                            }
+                            disableShortcutOnScreen(requireContext(), shortcut);
+                            loadShortcutsList();
+                            Toast.makeText(context, "Shortcut removed successfully.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            // Handle failure case
+                            Toast.makeText(context, "Failed to remove the shortcut. Please try again.", Toast.LENGTH_SHORT).show();
+                            Log.e("ShortcutsFragment", "Failed to delete shortcut file: " + shortcut.file.getPath());
+                        }
                     });
                 }
                 else if (itemId == R.id.shortcut_add_to_home_screen) {
@@ -159,6 +189,7 @@ public class ShortcutsFragment extends Fragment {
             });
             listItemMenu.show();
         }
+
 
         private void runFromShortcut(Shortcut shortcut) {
             Activity activity = getActivity();
@@ -347,11 +378,11 @@ public class ShortcutsFragment extends Fragment {
                     shortcut.file.getPath(), Icon.createWithBitmap(shortcut.icon), shortcut.getExtra("uuid")), null);
     }
 
-    private void disableShortcutOnScreen(Shortcut shortcut) {
-        ShortcutManager shortcutManager = getSystemService(requireContext(), ShortcutManager.class);
+    public static void disableShortcutOnScreen(Context context, Shortcut shortcut) {
+        ShortcutManager shortcutManager = getSystemService(context, ShortcutManager.class);
         try {
             shortcutManager.disableShortcuts(Collections.singletonList(shortcut.getExtra("uuid")),
-                    requireContext().getString(R.string.shortcut_not_available));
+                    context.getString(R.string.shortcut_not_available));
         } catch (Exception e) {}
     }
 

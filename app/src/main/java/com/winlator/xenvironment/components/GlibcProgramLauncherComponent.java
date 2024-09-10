@@ -127,7 +127,6 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
         envVars.put("HOME", imageFs.home_path);
         envVars.put("USER", ImageFs.USER);
         envVars.put("TMPDIR", imageFs.getRootDir().getPath() + "/tmp");
-        envVars.put("LC_ALL", "en_US.UTF-8");
         envVars.put("DISPLAY", ":0");
 
         String winePath = wineProfile == null ? imageFs.getWinePath() + "/bin"
@@ -215,7 +214,6 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
 
         envVars.putAll(Box86_64PresetManager.getEnvVars("box64", environment.getContext(), box64Preset));
         envVars.put("BOX64_X11GLX", "1");
-        envVars.put("BOX64_NORCFILES", "1");
     }
 
     public void suspendProcess() {

@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class ImageFsInstaller {
-    public static final byte LATEST_VERSION = 10;
+    public static final byte LATEST_VERSION = 13;
 
     private static void resetContainerImgVersions(Context context) {
         ContainerManager manager = new ContainerManager(context);
@@ -98,8 +98,7 @@ public abstract class ImageFsInstaller {
                 for (File file : files) {
                     if (file.isDirectory()) {
                         String name = file.getName();
-                        if (name.equals("home") || name.equals("opt")) {
-                            if (name.equals("opt")) clearOptDir(file);
+                        if (name.equals("home")) {
                             continue;
                         }
                     }

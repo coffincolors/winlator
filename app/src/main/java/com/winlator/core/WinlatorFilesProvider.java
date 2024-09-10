@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.Objects;
 
 public class WinlatorFilesProvider extends DocumentsProvider {
     private static final String ALL_MIME_TYPES = "*/*";
@@ -32,7 +33,60 @@ public class WinlatorFilesProvider extends DocumentsProvider {
     public void attachInfo(Context context, ProviderInfo info) {
         super.attachInfo(context, info);
         BASE_DIR = context.getDataDir();
-        enabled = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("enable_file_provider", false);
+        enabled = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("enable_file_provider", true);
+    }
+
+    @Override
+    public String moveDocument(String sourceDocumentId, String sourceParentDocumentId, String targetParentDocumentId) throws FileNotFoundException {
+        File source = new File(sourceDocumentId);
+        File sourceParent = new File(sourceParentDocumentId);
+        File targetParent = new File(targetParentDocumentId);
+        File target = null;
+
+        if (!sourceParent.exists())
+            throw new FileNotFoundException("Source parent is not found: " + sourceParentDocumentId);
+
+        if (!source.exists())
+            throw new FileNotFoundException("Source file not found: " + sourceDocumentId);
+
+        if (Objects.equals(source.getParentFile(), sourceParent))
+            throw new FileNotFoundException("Source has wrong parent: " + sourceDocumentId + " " + sourceParentDocumentId);
+
+        if (!targetParent.exists())
+            throw new FileNotFoundException("Target file not found: " + targetParentDocumentId);
+
+        if (!targetParent.isDirectory())
+            throw new FileNotFoundException("Target parent is not directory: " + targetParentDocumentId);
+
+        target = new File(targetParentDocumentId, source.getName());
+        if (target.exists())
+            throw new FileNotFoundException("Target already exist");
+
+        boolean ret = source.renameTo(target);
+        if (!ret)
+            throw new FileNotFoundException("Failed to move: " + sourceDocumentId);
+
+        return target.getAbsolutePath();
+    }
+
+    @Override
+    public void removeDocument(String documentId, String parentDocumentId) throws FileNotFoundException {
+        File parent = new File(parentDocumentId);
+        File target = new File(documentId);
+        boolean ret;
+
+        if (!parent.exists())
+            throw new FileNotFoundException("Parent is not exist: " + parentDocumentId);
+
+        if (!parent.isDirectory())
+            throw new FileNotFoundException("Parent is not directory: " + parentDocumentId);
+
+        if (!target.exists())
+            throw new FileNotFoundException("File is not found: " + documentId);
+
+        ret = target.delete();
+        if (!ret)
+            throw new FileNotFoundException("Failed to delete file: " + documentId);
     }
 
     private static final String[] DEFAULT_ROOT_PROJECTION = new String[]{

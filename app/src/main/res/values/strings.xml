@@ -233,11 +233,11 @@
     <string name="startup_selection">Startup Selection</string>
     <string name="wine_debug_channel">Wine Debug Channel</string>
     <string name="game_controller">Game Controller</string>
-    <string name="as_button">As Button</string>
-    <string name="as_axis">As Axis</string>
+    <string name="as_button">Is Button</string>
+    <string name="as_axis">Is Axis</string>
     <string name="both">Both</string>
-    <string name="trigger_mode">Trigger Mode</string>
-    <string name="use_glibc">Use Glibc instead of Proot</string>
+    <string name="trigger_type">Trigger Type</string>
+    <string name="use_glibc">Use native Glibc instead of Proot</string>
     <string name="experimental">Experimental</string>
     <string name="glibc_exp_edition">Glibc Experimental Edition</string>
     <string name="enabled_async">Enable Async</string>
@@ -342,6 +342,72 @@
     <string name="_copy">copy</string>
     <string name="backing_up_data">Backing up data...</string>
     <string name="restoring_data">Restoring data...</string>
+    <string name="midi_sound_font">MIDI SoundFont</string>
+    <string name="sound">Sound</string>
+    <string name="do_you_want_to_remove_this_sound_font">Do you want to remove this soundfont?</string>
+    <string name="sound_font_removed_success">Soundfont removed successfully!</string>
+    <string name="sound_font_removed_failed">Soundfont removed failed!</string>
+    <string name="sound_font_installed_success">Soundfont installed successfully!</string>
+    <string name="sound_font_installed_failed">Soundfont installed failed!</string>
+    <string name="sound_font_already_exist">Soundfont you want to install is already exist.</string>
+    <string name="unable_to_install_soundfont">Unable to install soundfont</string>
+    <string name="installing_soundfont">Installing SoundFont…</string>
+    <string name="sound_font_bad_format">Bad SoundFont Format.</string>
+    <string name="cannot_remove_default_sound_font">Cannot remove default soundfont</string>
+    <string name="enable_dinput_for_wine_game">Enable DInput for Games in Wine</string>
+    <string name="enable_xinput_for_wine_game">Enable XInput for Games in Wine</string>
+    <string name="dinput_legacy">Legacy (Old Gamepads)</string>
+    <string name="dinput_modern">Modern (Xinput like)</string>
+    <string name="mixed">Mixed</string>
+    <string name="help_xinput"><![CDATA[
+        If your game utilizes the <i><b>XInput API</b></i> for game controller support, please enable this option.<br/><br/>
+        This option will affect both <i><b>virtual</b></i> (provided by Input Controls) and <i><b>physical</b></i> game controllers.
+    ]]></string>
+    <string name="help_dinput"><![CDATA[
+        If your game utilizes the <i><b>DInput API</b></i> for game controller support, please enable this option.<br/><br/>
+        This option will affect both <i><b>virtual</b></i> (provided by Input Controls) and <i><b>physical</b></i> game controllers.
+    ]]></string>
+    <string name="enable_xinput_and_dinput_same_time">Some games may support both APIs. Enabling both XInput and DInput simultaneously in such games may cause control issues, as seen in titles like The Binding of Isaac and the Resident Evil series.</string>
+    <string name="startup_normal">Normal (Load all services)</string>
+    <string name="startup_essential">Essential (Load only essential services)</string>
+    <string name="startup_aggressive">Aggressive (Stop services on startup)</string>
+    <string name="lc_all" translatable="false">LC_ALL</string>
+    <string name="help_trigger_mode"><![CDATA[
+        This option depends on the <i><b>Physical Controller</b></i> you are using.<br/><br/>
+        <i><b>Is Axis</b></i>: Check this if the trigger on your controller is linear (with a range of motion).<br/><br/>
+        <i><b>Is Button</b></i>: Check this If the trigger on your controller is a button (similar to a switch).<br/><br/>
+        <i><b>Note</b></i>: For linear triggers, using <i><b>Is Button</b></i> will result in the loss of linear data when mapping.<br/>
+    ]]></string>
+    <string name="toggle_orientation">Toggle Orientation</string>
+    <string name="help_file_provider"><![CDATA[
+        <i><b>File Provider</b></i> allows access to Winlator\'s internal data through android file manager.<br/><br/>
+    ]]></string>
+    <string name="reconfigure">Reconfigure</string>
+    <string name="do_you_want_to_reconfigure_wine">Do you want to reconfigure this container on the next startup? This will remove the timestamp to trigger Wine Configuration.</string>
 
-
+    <!-- OpenXR specific text -->
+    <string name="xr" translatable="false">XR</string>
+    <string name="primary_controller">Primary controller</string>
+    <string name="left_controller">Left controller</string>
+    <string name="right_controller">Right controller</string>
+    <string name="button_a">Button A</string>
+    <string name="button_b">Button B</string>
+    <string name="button_x">Button X</string>
+    <string name="button_y">Button Y</string>
+    <string name="button_grip">Grip button</string>
+    <string name="button_trigger">Trigger button</string>
+    <string name="thumbstick_left">Thumbstick left</string>
+    <string name="thumbstick_right">Thumbstick right</string>
+    <string name="thumbstick_up">Thumbstick up</string>
+    <string name="thumbstick_down">Thumbstick down</string>
+    <string name="secondary_executable">Path:</string>
+    <string name="enter_secondary_exec_path"> ex: "D:/Games/My Game/My Game.exe"</string>
+    <string name="exec_delay">Delayed Execution (seconds):</string>
+    <string name="enter_delay_seconds">Enter the delay in seconds:</string>
+    <string name="use_secondary_executable">Use secondary executable?</string>
+    <string name="secondary_exec">Secondary Executable</string>
+    <string name="secondary_exe_path_subtext">(Spaces in paths must be wrapped in quotes)</string>
+    <string name="pip_mode">PiP Mode</string>
+    <string name="configure">Configure</string>
+    <string name="enable_legacy_input_mode">Enable 7.1.2 Legacy Input Mode</string>
 </resources>

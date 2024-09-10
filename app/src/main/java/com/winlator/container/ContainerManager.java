@@ -34,17 +34,26 @@ public class ContainerManager {
     private final File homeDir;
     private final Context context;
 
+    private boolean isInitialized = false; // New flag to track initialization
+
     public ContainerManager(Context context) {
         this.context = context;
         File rootDir = ImageFs.find(context).getRootDir();
         homeDir = new File(rootDir, "home");
         loadContainers();
+        isInitialized = true;
+    }
+
+    // Check if the ContainerManager is fully initialized
+    public boolean isInitialized() {
+        return isInitialized;
     }
 
     public ArrayList<Container> getContainers() {
         return containers;
     }
 
+    // Load containers from the home directory
     private void loadContainers() {
         containers.clear();
         maxContainerId = 0;
@@ -54,10 +63,12 @@ public class ContainerManager {
             if (files != null) {
                 for (File file : files) {
                     if (file.isDirectory()) {
-                        if (file.getName().startsWith(ImageFs.USER+"-")) {
-                            Container container = new Container(Integer.parseInt(file.getName().replace(ImageFs.USER+"-", "")), this);
+                        if (file.getName().startsWith(ImageFs.USER + "-")) {
+                            Container container = new Container(
+                                    Integer.parseInt(file.getName().replace(ImageFs.USER + "-", "")), this
+                            );
 
-                            container.setRootDir(new File(homeDir, ImageFs.USER+"-"+container.id));
+                            container.setRootDir(new File(homeDir, ImageFs.USER + "-" + container.id));
                             JSONObject data = new JSONObject(FileUtils.readString(container.getConfigFile()));
                             container.loadData(data);
                             containers.add(container);
@@ -66,9 +77,16 @@ public class ContainerManager {
                     }
                 }
             }
+        } catch (JSONException | NullPointerException e) {
+            Log.e("ContainerManager", "Error loading containers", e);
         }
-        catch (JSONException | NullPointerException e) {}
     }
+
+
+    public Context getContext() {
+        return context;
+    }
+
 
     public void activateContainer(Container container) {
         container.setRootDir(new File(homeDir, ImageFs.USER+"-"+container.id));
@@ -142,17 +160,18 @@ public class ContainerManager {
     private void duplicateContainer(Container srcContainer) {
         int id = maxContainerId + 1;
 
-        File dstDir = new File(homeDir, ImageFs.USER+"-"+id);
+        File dstDir = new File(homeDir, ImageFs.USER + "-" + id);
         if (!dstDir.mkdirs()) return;
 
-        if (!FileUtils.copy(srcContainer.getRootDir(), dstDir, (file) -> FileUtils.chmod(file, 0771))) {
+        // Use the refactored copy method that doesn't require a Context for File operations
+        if (!FileUtils.copy(srcContainer.getRootDir(), dstDir, file -> FileUtils.chmod(file, 0771))) {
             FileUtils.delete(dstDir);
             return;
         }
 
         Container dstContainer = new Container(id, this);
         dstContainer.setRootDir(dstDir);
-        dstContainer.setName(srcContainer.getName()+" ("+context.getString(R.string._copy)+")");
+        dstContainer.setName(srcContainer.getName() + " (" + context.getString(R.string._copy) + ")");
         dstContainer.setScreenSize(srcContainer.getScreenSize());
         dstContainer.setEnvVars(srcContainer.getEnvVars());
         dstContainer.setCPUList(srcContainer.getCPUList());
@@ -176,6 +195,7 @@ public class ContainerManager {
         maxContainerId++;
         containers.add(dstContainer);
     }
+
 
     private void removeContainer(Container container) {
         if (FileUtils.delete(container.getRootDir())) containers.remove(container);

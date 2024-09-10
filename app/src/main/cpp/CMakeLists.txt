@@ -7,6 +7,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wno-unused-function -Wimplicit-function
 #add_subdirectory(proot)
 add_subdirectory(virglrenderer)
 add_subdirectory(OpenXR-SDK)
+add_subdirectory(patchelf)
 
 add_library(winlator SHARED
             xr/engine.c
@@ -19,7 +20,8 @@ add_library(winlator SHARED
             winlator/gpu_image.c
             winlator/sysvshared_memory.c
             winlator/xconnector_epoll.c
-            winlator/alsa_client.c)
+            winlator/alsa_client.c
+            winlator/patchelf_wrapper.cpp)
 
 target_link_libraries(winlator
                       log

@@ -164,6 +164,48 @@
                 android:layout_height="wrap_content">
 
                 <LinearLayout style="@style/FieldSet">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/midi_sound_font" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <Spinner
+                            android:id="@+id/SMIDISoundFont"
+                            style="@style/ComboBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                        <ImageButton
+                            android:id="@+id/BTInstallSF"
+                            style="@style/ListMenuButton"
+                            android:src="@drawable/icon_add" />
+
+                        <ImageButton
+                            android:id="@+id/BTRemoveSF"
+                            style="@style/ListMenuButton"
+                            android:layout_marginRight="0dp"
+                            android:src="@drawable/icon_remove" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    style="@style/FieldSetLabel"
+                    android:text="@string/sound" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/FieldSet">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -305,38 +347,59 @@
                 android:layout_height="wrap_content">
 
                 <LinearLayout style="@style/FieldSet">
-                    <TextView
-                        android:layout_width="wrap_content"
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/trigger_mode"/>
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/trigger_type"
+                            android:layout_gravity="center"/>
+
+                        <ImageView
+                            android:id="@+id/BTHelpTriggerMode"
+                            android:layout_gravity="center"
+                            style="@style/HelpButton" />
+                    </LinearLayout>
+
 
                     <RadioGroup
-                        android:id="@+id/RGTriggerMode"
+                        android:id="@+id/RGTriggerType"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
                         <RadioButton
-                            android:id="@+id/RBTriggerAsButton"
+                            android:id="@+id/RBTriggerIsButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/as_button"/>
 
                         <RadioButton
-                            android:id="@+id/RBTriggerAsAxis"
+                            android:id="@+id/RBTriggerIsAxis"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/as_axis"/>
 
                         <RadioButton
-                            android:id="@+id/RBTriggerAsBoth"
+                            android:id="@+id/RBTriggerIsMixed"
                             android:visibility="gone"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/both"/>
+                            android:text="@string/mixed"/>
                     </RadioGroup>
+
+                    <CheckBox
+                        android:id="@+id/CBLegacyInputMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/enable_legacy_input_mode"
+                        android:layout_marginTop="8dp" />
                 </LinearLayout>
 
                 <TextView
@@ -357,11 +420,23 @@
 
                     <View style="@style/FieldSeparator" />
 
-                    <CheckBox
-                        android:id="@+id/CBEnableFileProvider"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/enable_file_provider" />
+                        android:orientation="horizontal">
+
+                        <CheckBox
+                            android:id="@+id/CBEnableFileProvider"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="@string/enable_file_provider" />
+
+                        <ImageView
+                            android:id="@+id/BTHelpFileProvider"
+                            android:layout_gravity="center"
+                            style="@style/HelpButton" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <TextView

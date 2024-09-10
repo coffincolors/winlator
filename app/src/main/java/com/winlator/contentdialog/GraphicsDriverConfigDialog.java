@@ -1,6 +1,7 @@
 package com.winlator.contentdialog;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -36,7 +37,7 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
         setIcon(R.drawable.icon_settings);
         setTitle(anchor.getContext().getString(R.string.graphics_driver_configuration));
 
-        sVersion = findViewById(R.id.SGraphicsDriverVersion);
+        sVersion = findViewById(R.id.SGraphicsDriverVersion); // Initialize sVersion here
 
         // Ensure ContentsManager syncContents is called
         ContentsManager contentsManager = new ContentsManager(anchor.getContext());
@@ -61,17 +62,32 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
         setOnConfirmCallback(() -> {
             anchor.setTag(selectedVersion);
 
-            if (container != null) {
-                // Apply the selected version to the existing container
-                container.setGraphicsDriverVersion(selectedVersion);
-                containerManager.extractGraphicsDriverFiles(selectedVersion, container.getRootDir(), null);
+            if (container != null && containerManager != null) {
+                if (containerManager.isInitialized()) { // Check if ContainerManager is initialized
+                    // Apply the selected version to the existing container
+                    container.setGraphicsDriverVersion(selectedVersion);
+                    boolean extractionSuccess = containerManager.extractGraphicsDriverFiles(selectedVersion, container.getRootDir(), null);
+
+                    if (!extractionSuccess) {
+                        Log.e("GraphicsDriverConfigDialog", "Failed to extract graphics driver files.");
+                    }
+                } else {
+                    Log.e("GraphicsDriverConfigDialog", "ContainerManager is not initialized.");
+                }
             }
 
-            // Pass the selected version back to ContainerDetailFragment
+            // Pass the selected version back to the listener
             if (listener != null) {
                 listener.onGraphicsDriverVersionSelected(selectedVersion);
             }
         });
+    }
+
+
+    // Optional method to check if containerManager is initialized
+    private boolean isContainerManagerInitialized(ContainerManager containerManager) {
+        // Logic to verify if containerManager is fully initialized
+        return true;  // Placeholder for actual check
     }
 
     private void populateGraphicsDriverVersions(Context context, ContentsManager contentsManager, @Nullable String initialVersion) {
@@ -94,7 +110,6 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
         sVersion.setAdapter(adapter);
         AppUtils.setSpinnerSelectionFromIdentifier(sVersion, initialVersion != null ? initialVersion : defaultVersions[0]);
     }
-
 
     public String getSelectedVersion() {
         return selectedVersion;

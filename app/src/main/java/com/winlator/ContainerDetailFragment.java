@@ -1,5 +1,6 @@
 package com.winlator;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +11,7 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -17,6 +19,7 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,6 +36,7 @@ import com.winlator.box86_64.rc.RCManager;
 import com.winlator.container.Container;
 import com.winlator.container.ContainerManager;
 import com.winlator.contentdialog.AddEnvVarDialog;
+import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.DXVKConfigDialog;
 import com.winlator.contentdialog.GraphicsDriverConfigDialog;
 import com.winlator.contentdialog.VKD3DConfigDialog;
@@ -50,10 +54,13 @@ import com.winlator.core.WineInfo;
 import com.winlator.core.WineRegistryEditor;
 import com.winlator.core.WineThemeManager;
 import com.winlator.core.WineUtils;
+import com.winlator.midi.MidiManager;
 import com.winlator.widget.CPUListView;
 import com.winlator.widget.ColorPickerView;
 import com.winlator.widget.EnvVarsView;
 import com.winlator.widget.ImagePickerView;
+import com.winlator.winhandler.WinHandler;
+import com.winlator.xserver.XKeycode;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -88,6 +95,18 @@ public class ContainerDetailFragment extends Fragment {
     public ContainerDetailFragment(int containerId) {
         this.containerId = containerId;
     }
+
+    // Interface to notify about graphics driver version changes
+    public interface OnGraphicsDriverVersionChangeListener {
+        void onGraphicsDriverVersionChanged();
+    }
+
+    // Method to set the listener
+    public void setOnGraphicsDriverVersionChangeListener(OnGraphicsDriverVersionChangeListener listener) {
+        this.graphicsDriverVersionChangeListener = listener;
+    }
+
+    private OnGraphicsDriverVersionChangeListener graphicsDriverVersionChangeListener;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -131,6 +150,7 @@ public class ContainerDetailFragment extends Fragment {
         return container != null;
     }
 
+    @SuppressLint("SetTextI18n")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup root, @Nullable Bundle savedInstanceState) {
@@ -142,23 +162,31 @@ public class ContainerDetailFragment extends Fragment {
         contentsManager = new ContentsManager(context);
         contentsManager.syncContents();
 
-        final EditText etName = view.findViewById(R.id.ETName);
 
+        boolean isLegacyModeEnabled = preferences.getBoolean("legacy_mode_enabled", false);
+
+
+        final EditText etName = view.findViewById(R.id.ETName);
+        final Spinner sWineVersion = view.findViewById(R.id.SWineVersion);
+
+        // Ensure the Wine version layout is visible
+        final LinearLayout llWineVersion = view.findViewById(R.id.LLWineVersion);
+        llWineVersion.setVisibility(View.VISIBLE);
+
+        // Set container name and graphics driver version based on mode
         if (isEditMode()) {
             etName.setText(container.getName());
-            graphicsDriverVersion = container.getGraphicsDriverVersion();  // Use the existing version for editing
+            graphicsDriverVersion = container.getGraphicsDriverVersion();
         } else {
             etName.setText(getString(R.string.container) + "-" + manager.getNextContainerId());
-//            graphicsDriverVersion = DefaultVersion.TURNIP;  // Default to the latest Turnip version for new containers
+            graphicsDriverVersion = DefaultVersion.TURNIP;  // Default to Turnip
         }
 
-
+        // Handle Wine version selection based on the toggle
         final ArrayList<WineInfo> wineInfos = WineUtils.getInstalledWineInfos(context);
-        final Spinner sWineVersion = view.findViewById(R.id.SWineVersion);
-        //if (wineInfos.size() > 1) loadWineVersionSpinner(view, sWineVersion, wineInfos);
         loadWineVersionSpinner(view, sWineVersion, wineInfos);
 
-        loadScreenSizeSpinner(view, isEditMode() ? container.getScreenSize() : Container.DEFAULT_SCREEN_SIZE);
+        loadWineVersionSpinner(view, sWineVersion, wineInfos);
 
         final Spinner sGraphicsDriver = view.findViewById(R.id.SGraphicsDriver);
         final Spinner sDXWrapper = view.findViewById(R.id.SDXWrapper);
@@ -178,8 +206,85 @@ public class ContainerDetailFragment extends Fragment {
         Spinner sAudioDriver = view.findViewById(R.id.SAudioDriver);
         AppUtils.setSpinnerSelectionFromIdentifier(sAudioDriver, isEditMode() ? container.getAudioDriver() : Container.DEFAULT_AUDIO_DRIVER);
 
+        Spinner sMIDISoundFont = view.findViewById(R.id.SMIDISoundFont);
+        MidiManager.loadSFSpinner(sMIDISoundFont);
+        AppUtils.setSpinnerSelectionFromValue(sMIDISoundFont, isEditMode() ? container.getMIDISoundFont() : "");
+
         final CheckBox cbShowFPS = view.findViewById(R.id.CBShowFPS);
         cbShowFPS.setChecked(isEditMode() && container.isShowFPS());
+
+        // Existing declarations of UI components and variables
+        final Runnable showInputWarning = () -> ContentDialog.alert(context, R.string.enable_xinput_and_dinput_same_time, null);
+        final CheckBox cbEnableXInput = view.findViewById(R.id.CBEnableXInput);
+        final CheckBox cbEnableDInput = view.findViewById(R.id.CBEnableDInput);
+        final View llDInputType = view.findViewById(R.id.LLDinputMapperType);
+        final View btHelpXInput = view.findViewById(R.id.BTXInputHelp);
+        final View btHelpDInput = view.findViewById(R.id.BTDInputHelp);
+        final Spinner SDInputType = view.findViewById(R.id.SDInputType);
+
+        // Check if we are in edit mode to set input type accordingly
+        int inputType = isEditMode() ? container.getInputType() : WinHandler.DEFAULT_INPUT_TYPE;
+
+        // Initialize the TextView for the legacy mode message
+        TextView tvLegacyInputMessage = view.findViewById(R.id.TVLegacyInputMessage);
+
+        if (!isLegacyModeEnabled) {
+
+            // Set visibility of legacy mode message
+            tvLegacyInputMessage.setVisibility(View.GONE); // Hide message when not in legacy mode
+
+            // New logic for enabling XInput and DInput
+            cbEnableXInput.setChecked((inputType & WinHandler.FLAG_INPUT_TYPE_XINPUT) == WinHandler.FLAG_INPUT_TYPE_XINPUT);
+            cbEnableDInput.setChecked((inputType & WinHandler.FLAG_INPUT_TYPE_DINPUT) == WinHandler.FLAG_INPUT_TYPE_DINPUT);
+
+            cbEnableDInput.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                llDInputType.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+                if (isChecked && cbEnableXInput.isChecked())
+                    showInputWarning.run();
+            });
+
+            cbEnableXInput.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked && cbEnableDInput.isChecked())
+                    showInputWarning.run();
+            });
+
+            SDInputType.setSelection(((inputType & WinHandler.FLAG_DINPUT_MAPPER_STANDARD) == WinHandler.FLAG_DINPUT_MAPPER_STANDARD) ? 0 : 1);
+            llDInputType.setVisibility(cbEnableDInput.isChecked() ? View.VISIBLE : View.GONE);
+
+            btHelpXInput.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_xinput));
+            btHelpDInput.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_dinput));
+        } else {
+            // Legacy mode handling: disable or hide input-related UI elements
+            cbEnableXInput.setVisibility(View.GONE);
+            cbEnableDInput.setVisibility(View.GONE);
+            llDInputType.setVisibility(View.GONE);
+            btHelpXInput.setVisibility(View.GONE);
+            btHelpDInput.setVisibility(View.GONE);
+            SDInputType.setVisibility(View.GONE);
+
+            // Show the legacy input mode message
+            tvLegacyInputMessage.setVisibility(View.VISIBLE);
+
+            // Set inputType to default or legacy-compatible setting
+            inputType = WinHandler.DEFAULT_INPUT_TYPE;
+        }
+
+        final EditText etLC_ALL = view.findViewById(R.id.ETlcall);
+        Locale systemLocal = Locale.getDefault();
+        etLC_ALL.setText(isEditMode() ? container.getLC_ALL() : systemLocal.getLanguage() + '_' + systemLocal.getCountry() + ".UTF-8");
+
+        final View btShowLCALL = view.findViewById(R.id.BTShowLCALL);
+        btShowLCALL.setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(context, v);
+            String[] lcs = getResources().getStringArray(R.array.some_lc_all);
+            for (int i = 0; i < lcs.length; i++)
+                popupMenu.getMenu().add(Menu.NONE, i, Menu.NONE, lcs[i]);
+            popupMenu.setOnMenuItemClickListener(item -> {
+                etLC_ALL.setText(item.toString() + ".UTF-8");
+                return true;
+            });
+            popupMenu.show();
+        });
 
         final CheckBox cbWoW64Mode = view.findViewById(R.id.CBWoW64Mode);
         cbWoW64Mode.setChecked(!isEditMode() || container.isWoW64Mode());
@@ -205,15 +310,30 @@ public class ContainerDetailFragment extends Fragment {
         cpuListView.setCheckedCPUList(isEditMode() ? container.getCPUList(true) : Container.getFallbackCPUList());
         cpuListViewWoW64.setCheckedCPUList(isEditMode() ? container.getCPUListWoW64(true) : Container.getFallbackCPUListWoW64());
 
+        final Spinner sPrimaryController = view.findViewById(R.id.SPrimaryController);
+        sPrimaryController.setSelection(isEditMode() ? container.getPrimaryController() : 1);
+        setControllerMapping(view.findViewById(R.id.SButtonA), Container.XrControllerMapping.BUTTON_A, XKeycode.KEY_A.ordinal());
+        setControllerMapping(view.findViewById(R.id.SButtonB), Container.XrControllerMapping.BUTTON_B, XKeycode.KEY_B.ordinal());
+        setControllerMapping(view.findViewById(R.id.SButtonX), Container.XrControllerMapping.BUTTON_X, XKeycode.KEY_X.ordinal());
+        setControllerMapping(view.findViewById(R.id.SButtonY), Container.XrControllerMapping.BUTTON_Y, XKeycode.KEY_Y.ordinal());
+        setControllerMapping(view.findViewById(R.id.SButtonGrip), Container.XrControllerMapping.BUTTON_GRIP, XKeycode.KEY_SPACE.ordinal());
+        setControllerMapping(view.findViewById(R.id.SButtonTrigger), Container.XrControllerMapping.BUTTON_TRIGGER, XKeycode.KEY_ENTER.ordinal());
+        setControllerMapping(view.findViewById(R.id.SThumbstickUp), Container.XrControllerMapping.THUMBSTICK_UP, XKeycode.KEY_UP.ordinal());
+        setControllerMapping(view.findViewById(R.id.SThumbstickDown), Container.XrControllerMapping.THUMBSTICK_DOWN, XKeycode.KEY_DOWN.ordinal());
+        setControllerMapping(view.findViewById(R.id.SThumbstickLeft), Container.XrControllerMapping.THUMBSTICK_LEFT, XKeycode.KEY_LEFT.ordinal());
+        setControllerMapping(view.findViewById(R.id.SThumbstickRight), Container.XrControllerMapping.THUMBSTICK_RIGHT, XKeycode.KEY_RIGHT.ordinal());
+
         createWineConfigurationTab(view);
         final EnvVarsView envVarsView = createEnvVarsTab(view);
         createWinComponentsTab(view, isEditMode() ? container.getWinComponents() : Container.DEFAULT_WINCOMPONENTS);
         createDrivesTab(view);
 
-        AppUtils.setupTabLayout(view, R.id.TabLayout, R.id.LLTabWineConfiguration, R.id.LLTabWinComponents, R.id.LLTabEnvVars, R.id.LLTabDrives, R.id.LLTabAdvanced);
+        AppUtils.setupTabLayout(view, R.id.TabLayout, R.id.LLTabWineConfiguration, R.id.LLTabWinComponents, R.id.LLTabEnvVars, R.id.LLTabDrives, R.id.LLTabAdvanced, R.id.LLTabXR);
 
+        // Set up confirm button
         view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
             try {
+                // Capture and set container properties based on UI inputs
                 String name = etName.getText().toString();
                 String screenSize = getScreenSize(view);
                 String envVars = envVarsView.getEnvVars();
@@ -233,30 +353,49 @@ public class ContainerDetailFragment extends Fragment {
                 String desktopTheme = getDesktopTheme(view);
                 int rcfileId = rcfileIds[0];
 
+                // Capture missing properties
+                String midiSoundFont = sMIDISoundFont.getSelectedItemPosition() == 0 ? "" : sMIDISoundFont.getSelectedItem().toString();
+                String lc_all = etLC_ALL.getText().toString();
+                int primaryController = sPrimaryController.getSelectedItemPosition();
+                String controllerMapping = getControllerMapping(view);
+
+                // Define final input type
+                int finalInputType = 0;
+                finalInputType |= cbEnableXInput.isChecked() ? WinHandler.FLAG_INPUT_TYPE_XINPUT : 0;
+                finalInputType |= cbEnableDInput.isChecked() ? WinHandler.FLAG_INPUT_TYPE_DINPUT : 0;
+                finalInputType |= SDInputType.getSelectedItemPosition() == 0 ? WinHandler.FLAG_DINPUT_MAPPER_STANDARD : WinHandler.FLAG_DINPUT_MAPPER_XINPUT;
+
                 if (isEditMode()) {
+                    // Update existing container properties
                     container.setName(name);
                     container.setScreenSize(screenSize);
                     container.setEnvVars(envVars);
                     container.setCPUList(cpuList);
                     container.setCPUListWoW64(cpuListWoW64);
                     container.setGraphicsDriver(graphicsDriver);
-                    container.setGraphicsDriverVersion(graphicsDriverVersion); // Set the updated version here
+                    container.setGraphicsDriverVersion(graphicsDriverVersion);
                     container.setDXWrapper(dxwrapper);
                     container.setDXWrapperConfig(dxwrapperConfig);
                     container.setAudioDriver(audioDriver);
                     container.setWinComponents(wincomponents);
                     container.setDrives(drives);
                     container.setShowFPS(showFPS);
+                    container.setInputType(finalInputType);
                     container.setWoW64Mode(wow64Mode);
                     container.setStartupSelection(startupSelection);
                     container.setBox86Preset(box86Preset);
                     container.setBox64Preset(box64Preset);
                     container.setDesktopTheme(desktopTheme);
                     container.setRcfileId(rcfileId);
+                    container.setMidiSoundFont(midiSoundFont);
+                    container.setLC_ALL(lc_all);
+                    container.setPrimaryController(primaryController);
+                    container.setControllerMapping(controllerMapping);
                     container.saveData();
                     saveWineRegistryKeys(view);
                     getActivity().onBackPressed();
                 } else {
+                    // Create new container with specified properties
                     JSONObject data = new JSONObject();
                     data.put("name", name);
                     data.put("screenSize", screenSize);
@@ -264,12 +403,14 @@ public class ContainerDetailFragment extends Fragment {
                     data.put("cpuList", cpuList);
                     data.put("cpuListWoW64", cpuListWoW64);
                     data.put("graphicsDriver", graphicsDriver);
+                    data.put("graphicsDriverVersion", getGraphicsDriverVersion());
                     data.put("dxwrapper", dxwrapper);
                     data.put("dxwrapperConfig", dxwrapperConfig);
                     data.put("audioDriver", audioDriver);
                     data.put("wincomponents", wincomponents);
                     data.put("drives", drives);
                     data.put("showFPS", showFPS);
+                    data.put("inputType", finalInputType);
                     data.put("wow64Mode", wow64Mode);
                     data.put("startupSelection", startupSelection);
                     data.put("box86Preset", box86Preset);
@@ -277,19 +418,25 @@ public class ContainerDetailFragment extends Fragment {
                     data.put("desktopTheme", desktopTheme);
                     data.put("rcfileId", rcfileId);
                     data.put("wineVersion", sWineVersion.getSelectedItem().toString());
+                    data.put("midiSoundFont", midiSoundFont);
+                    data.put("lc_all", lc_all);
+                    data.put("primaryController", primaryController);
+                    data.put("controllerMapping", controllerMapping);
 
                     preloaderDialog.show(R.string.creating_container);
                     manager.createContainerAsync(data, (container) -> {
                         if (container != null) {
                             this.container = container;
+                            container.setGraphicsDriverVersion(graphicsDriverVersion);
                             saveWineRegistryKeys(view);
                         }
                         preloaderDialog.close();
                         getActivity().onBackPressed();
                     });
                 }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-            catch (JSONException e) {}
         });
         return view;
     }
@@ -428,7 +575,7 @@ public class ContainerDetailFragment extends Fragment {
         ColorPickerView cpvDesktopBackground = view.findViewById(R.id.CPVDesktopBackgroundColor);
         WineThemeManager.Theme theme = WineThemeManager.Theme.values()[sDesktopTheme.getSelectedItemPosition()];
 
-       String desktopTheme = theme+","+type+","+cpvDesktopBackground.getColorAsString();
+        String desktopTheme = theme+","+type+","+cpvDesktopBackground.getColorAsString();
         if (type == WineThemeManager.BackgroundType.IMAGE) {
             File userWallpaperFile = WineThemeManager.getUserWallpaperFile(getContext());
             desktopTheme += ","+(userWallpaperFile.isFile() ? userWallpaperFile.lastModified() : "0");
@@ -465,6 +612,11 @@ public class ContainerDetailFragment extends Fragment {
         new GraphicsDriverConfigDialog(anchor, manager, container, graphicsDriverVersion, version -> {
             // Capture the selected version
             graphicsDriverVersion = version;
+
+            // Notify the listener about the change
+            if (graphicsDriverVersionChangeListener != null) {
+                graphicsDriverVersionChangeListener.onGraphicsDriverVersionChanged();
+            }
         }).show();
     }
 
@@ -698,20 +850,61 @@ public class ContainerDetailFragment extends Fragment {
         if (isEditMode()) AppUtils.setSpinnerSelectionFromValue(sWineVersion, container.getWineVersion());
     }
 
-    public static void updateGraphicsDriverSpinner(Context context, ContentsManager manager, Spinner spinner) {
-        String[] originalItems = context.getResources().getStringArray(R.array.graphics_driver_entries);
-        List<String> itemList = new ArrayList<>(Arrays.asList(originalItems));
-
-        // Add Turnip graphics driver versions to the list
-//        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_TURNIP)) {
-//            itemList.add(ContentsManager.getEntryName(profile));
-//        }
-        // Add VirGL graphics driver versions to the list
-        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_VIRGL)) {
-            itemList.add(ContentsManager.getEntryName(profile));
+    public void updateGraphicsDriverSpinner(Context context, ContentsManager contentsManager, Spinner sGraphicsDriver) {
+        if (contentsManager == null) {
+            Log.e("ContainerDetailFragment", "ContentsManager is null, cannot update graphics driver spinner.");
+            return;
         }
 
-        // Set the adapter with the combined list
-        spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, itemList));
+        List<ContentProfile> profiles = contentsManager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_TURNIP);
+        if (profiles == null) {
+            Log.e("ContainerDetailFragment", "No profiles found for Turnip in ContentsManager.");
+        } else {
+            Log.d("ContainerDetailFragment", "Found " + profiles.size() + " Turnip profiles.");
+        }
+
+        // Rest of the method...
+    }
+
+    public String getGraphicsDriverVersion() {
+        // Use the tempGraphicsDriverVersion if it has been modified, otherwise use the container's version
+        return graphicsDriverVersion != null ? graphicsDriverVersion : (container != null ? container.getGraphicsDriverVersion() : null);
+    }
+
+
+    public String getControllerMapping(View view) {
+        //The order has to be the same like Container.XrControllerMapping
+        int[] ids = {
+                R.id.SButtonA, R.id.SButtonB, R.id.SButtonX, R.id.SButtonY, R.id.SButtonGrip, R.id.SButtonTrigger,
+                R.id.SThumbstickUp, R.id.SThumbstickDown, R.id.SThumbstickLeft, R.id.SThumbstickRight
+        };
+        byte[] controllerMapping = new byte[ids.length];
+        for (int i = 0; i < ids.length; i++) {
+            int index =  ((Spinner)view.findViewById(ids[i])).getSelectedItemPosition();
+            byte value = XKeycode.values()[index].id;
+            controllerMapping[i] = value;
+        }
+        return new String(controllerMapping);
+    }
+
+    public void setControllerMapping(Spinner spinner, Container.XrControllerMapping mapping, int defaultValue) {
+        XKeycode[] values = XKeycode.values();
+        ArrayList<String> array = new ArrayList<>();
+        for (XKeycode value : values) {
+            array.add(value.name());
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(spinner.getContext(), android.R.layout.simple_spinner_dropdown_item, array);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+        byte keycode = isEditMode() ? container.getControllerMapping(mapping) : (byte) defaultValue;
+        int index = 0;
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].id == keycode) {
+                index = i;
+                break;
+            }
+        }
+        spinner.setSelection(isEditMode() && (index != 0) ? index : defaultValue);
     }
 }

@@ -336,6 +336,14 @@ public class Box86_64RCFragment extends Fragment {
         }
 
         @Override
+        public void onViewRecycled(@NonNull ViewHolder holder) {
+            holder.tvTitle.setOnClickListener(null);
+            holder.tbEnabled.setOnCheckedChangeListener(null);
+            holder.btMenu.setOnClickListener(null);
+            super.onViewRecycled(holder);
+        }
+
+        @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             final RCGroup group = data.get(position);
             holder.tvTitle.setText(group.getGroupName());
@@ -503,6 +511,15 @@ public class Box86_64RCFragment extends Fragment {
             }
 
             @Override
+            public void onViewRecycled(@NonNull ViewHolder holder) {
+                holder.llItem.setOnClickListener(null);
+                holder.tbExpand.setOnCheckedChangeListener(null);
+                for (View v : holder.buttons)
+                    v.setOnClickListener(null);
+                super.onViewRecycled(holder);
+            }
+
+            @Override
             public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
                 final RCItem item = data.get(position);
                 holder.llItem.setOnClickListener(v -> holder.tbExpand.performClick());
@@ -529,7 +546,7 @@ public class Box86_64RCFragment extends Fragment {
                     } else if (id == R.id.BTEditItem) {
                         ContentDialog.prompt(getContext(), R.string.process_name, item.getProcessName(), (name) -> {
                             item.setProcessName(name);
-                            loadRCItemList();
+                            holder.tvTitle.setText(name);
                         });
                     } else if (id == R.id.BTDuplicateItem) {
                         ContentDialog.confirm(getContext(), R.string.do_you_want_to_duplicate_this_process, () -> {

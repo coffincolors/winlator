@@ -263,6 +263,13 @@ public class InputControlsView extends View {
         return (int)Mathf.roundTo(getWidth(), snappingSize);
     }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        if (mouseMoveTimer != null)
+            mouseMoveTimer.cancel();
+        super.onDetachedFromWindow();
+    }
+
     public int getMaxHeight() {
         return (int)Mathf.roundTo(getHeight(), snappingSize);
     }

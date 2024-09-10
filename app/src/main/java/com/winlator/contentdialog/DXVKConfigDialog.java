@@ -128,17 +128,20 @@ public class DXVKConfigDialog extends ContentDialog {
 
         String framerate = config.get("framerate");
         if (!framerate.isEmpty() && !framerate.equals("0")) {
-            content += "dxgi.maxFrameRate = "+framerate+';';
-            content += "d3d9.maxFrameRate = "+framerate+';';
+//            content += "dxgi.maxFrameRate = "+framerate+';';
+//            content += "d3d9.maxFrameRate = "+framerate+';';
+            envVars.put("DXVK_FRAME_RATE", framerate);
         }
 
         String async = config.get("async");
         if (!async.isEmpty() && !async.equals("0"))
-            content += "dxvk.enableAsync = True;";
+//            content += "dxvk.enableAsync = True;";
+            envVars.put("DXVK_ASYNC", "1");
 
         String asyncCache = config.get("asyncCache");
         if (!asyncCache.isEmpty() && !asyncCache.equals("0"))
-            content += "dxvk.gplAsyncCache = True;";
+//            content += "dxvk.gplAsyncCache = True;";
+            envVars.put("DXVK_GPLASYNCCACHE", "1");
         content = content + '\"';
 
 //        FileUtils.delete(dxvkConfigFile);

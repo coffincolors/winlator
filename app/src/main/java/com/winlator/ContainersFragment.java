@@ -27,11 +27,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.winlator.container.Container;
 import com.winlator.container.ContainerManager;
+import com.winlator.container.Shortcut;
 import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.StorageInfoDialog;
 import com.winlator.core.PreloaderDialog;
 import com.winlator.xenvironment.ImageFs;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,6 +120,12 @@ public class ContainersFragment extends Fragment {
         }
 
         @Override
+        public void onViewRecycled(@NonNull ViewHolder holder) {
+            holder.menuButton.setOnClickListener(null);
+            super.onViewRecycled(holder);
+        }
+
+        @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             final Container item = data.get(position);
             holder.imageView.setImageResource(R.drawable.icon_container);
@@ -165,6 +173,10 @@ public class ContainersFragment extends Fragment {
                     case R.id.container_remove:
                         ContentDialog.confirm(getContext(), R.string.do_you_want_to_remove_this_container, () -> {
                             preloaderDialog.show(R.string.removing_container);
+                            for (Shortcut shortcut : manager.loadShortcuts()) {
+                                if (shortcut.container == container)
+                                    ShortcutsFragment.disableShortcutOnScreen(context, shortcut);
+                            }
                             manager.removeContainerAsync(container, () -> {
                                 preloaderDialog.close();
                                 loadContainersList();
@@ -173,6 +185,11 @@ public class ContainersFragment extends Fragment {
                         break;
                     case R.id.container_info:
                         (new StorageInfoDialog(getActivity(), container)).show();
+                        break;
+                    case R.id.container_reconfigure:
+                        ContentDialog.confirm(getContext(), R.string.do_you_want_to_reconfigure_wine, () -> {
+                            new File(container.getRootDir(), ".wine/.update-timestamp").delete();
+                        });
                         break;
                 }
                 return true;

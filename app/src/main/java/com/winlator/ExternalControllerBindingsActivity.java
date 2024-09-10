@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -101,7 +102,11 @@ public class ExternalControllerBindingsActivity extends AppCompatActivity {
 
         byte sign;
         for (int i = 0; i < axes.length; i++) {
-            if ((sign = Mathf.sign(values[i])) != 0) {
+            sign = Mathf.sign(values[i]);
+            // Log the input for debugging
+            Log.d("JoystickDebug", "Axis: " + axes[i] + " Value: " + values[i] + " Sign: " + sign);
+
+            if (sign != 0) {
                 if (axes[i] == MotionEvent.AXIS_X || axes[i] == MotionEvent.AXIS_Z) {
                     binding = sign > 0 ? Binding.MOUSE_MOVE_RIGHT : Binding.MOUSE_MOVE_LEFT;
                 }
@@ -123,16 +128,24 @@ public class ExternalControllerBindingsActivity extends AppCompatActivity {
         updateControllerBinding(keyCode, binding);
     }
 
+
     @Override
     public boolean dispatchGenericMotionEvent(MotionEvent event) {
+        Log.d("MotionEventDebug", "Device ID: " + event.getDeviceId() + " Event: " + event);
+
         if (event.getDeviceId() == controller.getDeviceId() && controller.updateStateFromMotionEvent(event)) {
+            Log.d("MotionEventDebug", "State updated successfully");
+
             if (controller.state.isPressed(ExternalController.IDX_BUTTON_L2)) updateControllerBinding(KeyEvent.KEYCODE_BUTTON_L2, Binding.NONE);
             if (controller.state.isPressed(ExternalController.IDX_BUTTON_R2)) updateControllerBinding(KeyEvent.KEYCODE_BUTTON_R2, Binding.NONE);
+
             processJoystickInput();
             return true;
         }
+
         return super.dispatchGenericMotionEvent(event);
     }
+
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {

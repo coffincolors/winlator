@@ -3,6 +3,8 @@
   <component name="AndroidLayouts">
     <shared>
       <config>
+        <device id="pixel_8" />
+        <device id="desktop_medium" />
         <target>android-28</target>
       </config>
     </shared>
@@ -23,6 +25,11 @@
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/binding_field.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/box86_64_rc_group_list_item.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
@@ -57,6 +64,21 @@
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/content_info_dialog.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/control_element_settings.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/controls_editor_activity.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/custom_toast.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
@@ -68,6 +90,16 @@
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/dxvk_config_dialog.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/env_vars_list_item.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/external_controller_binding_list_item.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
@@ -147,12 +179,27 @@
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/task_manager_dialog.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/xserver_display_activity.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/menu/container_popup_menu.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/menu/containers_menu.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/menu/content_popup_menu.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
@@ -208,26 +255,110 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="added backup and restore to settings, updated tarcompressor with new exclusions methods to avoid overwriting shared prefs during restore, added frontend support modified xserverdisplayactivity to accept container_id as an extra, fixed issue with turnip driver appearing in turnip/virgl selection dropdown, added new playtime tracking and play count stats, updated default turnip version, added additional logging and experimental changes to drawable.c, gpu_image. and gpu_image.java">
-      <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.3.tzst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/i386-windows/dinput.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/i386-windows/dinput8.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/i386-windows/windows.gaming.input.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/i386-windows/xinput1_1.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/i386-windows/xinput1_2.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/i386-windows/xinput1_3.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/i386-windows/xinput1_4.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/i386-windows/xinput9_1_0.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/x86_64-windows/dinput.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/x86_64-windows/dinput8.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/x86_64-windows/windows.gaming.input.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/x86_64-windows/xinput1_1.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/x86_64-windows/xinput1_2.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/x86_64-windows/xinput1_3.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/x86_64-windows/xinput1_4.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/longjunyu2-xinput/opt/wine/lib/wine/x86_64-windows/xinput9_1_0.dll" afterDir="false" />
+    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github. Updated dxvk, turnip, fixed gyro default bug, added logging for motion events with analog sticks to trace binding issues,">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/box64_env_vars.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.7.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.8.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.0.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.1-2.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.1.8g2.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.1.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/rcfiles/box86_64rc-1.rcp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_env_vars.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/common_dlls.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/container_pattern.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dexopt/baseline.prof" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dexopt/baseline.profm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/bilinear.glsl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/catmull-rom-bilinear.glsl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/fsr.glsl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/fsr.glsl.pass1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/jinc2-dedither.glsl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/lanczos2-sharp.glsl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/nearest-neighbor.glsl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/ddraw.ini" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/ddraw.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/d8vk-1.0.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-0.40.1.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-0.96.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-1.10.3.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-1.5.5.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-1.7.1.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.2.116.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.3.1.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4-24-gplasync.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4-gplasync.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-async-1.10.3.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.12.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.13.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/gpu_cards.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.0.9.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.1.0.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.2.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.3.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.4.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/virgl-23.1.9.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/zink-22.2.5.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/0.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/1.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/10.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/11.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/12.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/13.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/14.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/15.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/16.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/17.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/18.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/19.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/2.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/20.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/21.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/22.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/23.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/24.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/25.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/26.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/27.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/28.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/29.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/3.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/30.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/31.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/32.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/33.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/34.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/35.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/36.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/37.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/38.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/39.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/4.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/5.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/6.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/7.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/8.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/9.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/profiles/controls-1.icp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/profiles/controls-2.icp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/profiles/controls-3.icp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/pulseaudio.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/soundfonts/wt_210k_G.sf2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/soundfonts/wt_210k_G_LICENSE.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/ddraw.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/direct3d.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directmusic.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directplay.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directshow.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directsound.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/vcrun2010.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/wincomponents.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/wmdecoder.tzst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wine_debug_channels.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/assets/wine_startmenu.json" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -237,7 +368,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=Default, isTemplate=false, identifier=serial=192.168.68.55:35857;connection=72f778cb)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -292,32 +423,41 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;Android App.app.executor&quot;: &quot;Run&quot;,
-    &quot;DEBUGGABLE_DEVICE&quot;: &quot;samsung-sm_s928u-192.168.68.55:43625&quot;,
-    &quot;DEBUGGABLE_PROCESS&quot;: &quot;com.winlator&quot;,
-    &quot;DEBUGGER_ID&quot;: &quot;Auto&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
-    &quot;SHOW_ALL_PROCESSES&quot;: &quot;false&quot;,
-    &quot;cf.advertisement.text.has.clang-format&quot;: &quot;true&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;com.google.services.firebase.aqiPopupShown&quot;: &quot;true&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/res/layout&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;AndroidSdkUpdater&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Android App.app.executor": "Run",
+    "DEBUGGABLE_DEVICE": "samsung-sm_s928u-192.168.68.55:43625",
+    "DEBUGGABLE_PROCESS": "com.winlator",
+    "DEBUGGER_ID": "Auto",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "SHOW_ALL_PROCESSES": "false",
+    "cf.advertisement.text.has.clang-format": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "com.google.services.firebase.aqiPopupShown": "true",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_directory_selection": "C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/res/drawable",
+    "last_opened_file_path": "C:/Users/alexs/Documents/Tools/Winlator/Projects/afei's code/winlator-fork/app/src/main/java/com/winlator/inputcontrols/ExternalController.java",
+    "project.structure.last.edited": "Dependencies",
+    "project.structure.proportion": "0.17",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "device.mirroring",
+    "two.files.diff.last.used.file": "C:/Users/alexs/Documents/Tools/Winlator/Projects/afei's code/winlator-fork/app/src/main/java/com/winlator/inputcontrols/ExternalController.java"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\layout" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\drawable" />
+      <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\layout" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\menu" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\java\com\winlator" />
+      <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="com.winlator.saves" />
@@ -427,7 +567,79 @@
       <option name="project" value="LOCAL" />
       <updated>1724441258865</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="fixed extract graphics driver method in xserverdisplayactivity where I accidently removed the passing of environmental variables XD">
+      <option name="closed" value="true" />
+      <created>1724466548645</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1724466548645</updated>
+    </task>
+    <task id="LOCAL-00005" summary="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github">
+      <option name="closed" value="true" />
+      <created>1725860404442</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1725860404442</updated>
+    </task>
+    <task id="LOCAL-00006" summary="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github">
+      <option name="closed" value="true" />
+      <created>1725860741109</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1725860741109</updated>
+    </task>
+    <task id="LOCAL-00007" summary="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github">
+      <option name="closed" value="true" />
+      <created>1725861000452</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1725861000452</updated>
+    </task>
+    <task id="LOCAL-00008" summary="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github">
+      <option name="closed" value="true" />
+      <created>1725929908264</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1725929908264</updated>
+    </task>
+    <task id="LOCAL-00009" summary="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github">
+      <option name="closed" value="true" />
+      <created>1725930230605</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1725930230605</updated>
+    </task>
+    <task id="LOCAL-00010" summary="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github">
+      <option name="closed" value="true" />
+      <created>1725931583879</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1725931583879</updated>
+    </task>
+    <task id="LOCAL-00011" summary="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github. Updated dxvk, turnip, fixed gyro default bug, added logging for motion events with analog sticks to trace binding issues,">
+      <option name="closed" value="true" />
+      <created>1725931630941</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1725931630941</updated>
+    </task>
+    <task id="LOCAL-00012" summary="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github. Updated dxvk, turnip, fixed gyro default bug, added logging for motion events with analog sticks to trace binding issues,">
+      <option name="closed" value="true" />
+      <created>1725931666916</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1725931666916</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -446,7 +658,10 @@
     <MESSAGE value="Cmod test commit" />
     <MESSAGE value="modified xserverdisplayactivity to handle turnip installations for selections that were added via content manager" />
     <MESSAGE value="added backup and restore to settings, updated tarcompressor with new exclusions methods to avoid overwriting shared prefs during restore, added frontend support modified xserverdisplayactivity to accept container_id as an extra, fixed issue with turnip driver appearing in turnip/virgl selection dropdown, added new playtime tracking and play count stats, updated default turnip version, added additional logging and experimental changes to drawable.c, gpu_image. and gpu_image.java" />
-    <option name="LAST_COMMIT_MESSAGE" value="added backup and restore to settings, updated tarcompressor with new exclusions methods to avoid overwriting shared prefs during restore, added frontend support modified xserverdisplayactivity to accept container_id as an extra, fixed issue with turnip driver appearing in turnip/virgl selection dropdown, added new playtime tracking and play count stats, updated default turnip version, added additional logging and experimental changes to drawable.c, gpu_image. and gpu_image.java" />
+    <MESSAGE value="fixed extract graphics driver method in xserverdisplayactivity where I accidently removed the passing of environmental variables XD" />
+    <MESSAGE value="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github" />
+    <MESSAGE value="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github. Updated dxvk, turnip, fixed gyro default bug, added logging for motion events with analog sticks to trace binding issues," />
+    <option name="LAST_COMMIT_MESSAGE" value="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github. Updated dxvk, turnip, fixed gyro default bug, added logging for motion events with analog sticks to trace binding issues," />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

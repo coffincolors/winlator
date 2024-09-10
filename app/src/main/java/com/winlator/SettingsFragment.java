@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -51,6 +52,7 @@ import com.winlator.core.TarCompressorUtils;
 import com.winlator.core.WineInfo;
 import com.winlator.core.WineUtils;
 import com.winlator.inputcontrols.ExternalController;
+import com.winlator.midi.MidiManager;
 import com.winlator.restore.RestoreActivity;
 import com.winlator.xenvironment.ImageFs;
 import com.winlator.xenvironment.ImageFsInstaller;
@@ -60,6 +62,7 @@ import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -69,6 +72,7 @@ import java.util.concurrent.Executors;
 public class SettingsFragment extends Fragment {
     public static final String DEFAULT_WINE_DEBUG_CHANNELS = "warn,err,fixme";
     private Callback<Uri> selectWineFileCallback;
+    private Callback<Uri> installSoundFontCallback;
     private PreloaderDialog preloaderDialog;
     private SharedPreferences preferences;
 
@@ -88,6 +92,8 @@ public class SettingsFragment extends Fragment {
     private CheckBox cbInvertGyroY;
 
     private boolean isRestoreAction = false;
+
+    private boolean enableLegacyInputMode = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -127,6 +133,18 @@ public class SettingsFragment extends Fragment {
         cbXTouchscreenToggle = view.findViewById(R.id.CBXTouchscreenToggle);
         cbXTouchscreenToggle.setChecked(preferences.getBoolean("touchscreen_toggle", false));
 
+        // Inside onCreateView in SettingsFragment.java
+        CheckBox cbLegacyInputMode = view.findViewById(R.id.CBLegacyInputMode);
+        enableLegacyInputMode = preferences.getBoolean("legacy_mode_enabled", false);
+        cbLegacyInputMode.setChecked(enableLegacyInputMode);
+
+        // Listen to changes and update the temporary state
+        cbLegacyInputMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            enableLegacyInputMode = isChecked;
+            preferences.edit().putBoolean("legacy_mode_enabled", isChecked).apply();
+        });
+
+
         // Initialize gyro enable checkbox
         cbGyroEnabled = view.findViewById(R.id.CBGyroEnabled);
         cbGyroEnabled.setChecked(preferences.getBoolean("gyro_enabled", false));
@@ -154,6 +172,52 @@ public class SettingsFragment extends Fragment {
         final Spinner sBox86Preset = view.findViewById(R.id.SBox86Preset);
         final Spinner sBox64Preset = view.findViewById(R.id.SBox64Preset);
         loadBox86_64PresetSpinners(view, sBox86Preset, sBox64Preset);
+
+        final Spinner sMIDISoundFont = view.findViewById(R.id.SMIDISoundFont);
+        final View btInstallSF = view.findViewById(R.id.BTInstallSF);
+        final View btRemoveSF = view.findViewById(R.id.BTRemoveSF);
+
+        MidiManager.loadSFSpinnerWithoutDisabled(sMIDISoundFont);
+        btInstallSF.setOnClickListener(v -> {
+            installSoundFontCallback = uri -> {
+                PreloaderDialog dialog = new PreloaderDialog(requireActivity());
+                dialog.showOnUiThread(R.string.installing_content);
+                MidiManager.installSF2File(context, uri, new MidiManager.OnSoundFontInstalledCallback() {
+                    @Override
+                    public void onSuccess() {
+                        dialog.closeOnUiThread();
+                        requireActivity().runOnUiThread(() -> {
+                            ContentDialog.alert(context, R.string.sound_font_installed_success, null);
+                            MidiManager.loadSFSpinnerWithoutDisabled(sMIDISoundFont);
+                        });
+                    }
+
+                    @Override
+                    public void onFailed(int reason) {
+                        dialog.closeOnUiThread();
+                        int resId = switch (reason) {
+                            case MidiManager.ERROR_BADFORMAT -> R.string.sound_font_bad_format;
+                            case MidiManager.ERROR_EXIST -> R.string.sound_font_already_exist;
+                            default -> R.string.sound_font_installed_failed;
+                        };
+                        requireActivity().runOnUiThread(() -> ContentDialog.alert(context, resId, null));
+                    }
+                });
+            };
+            openFile();
+        });
+        btRemoveSF.setOnClickListener(v -> {
+            if (sMIDISoundFont.getSelectedItemPosition() != 0) {
+                ContentDialog.confirm(context, R.string.do_you_want_to_remove_this_sound_font, () -> {
+                    if (MidiManager.removeSF2File(context, sMIDISoundFont.getSelectedItem().toString())) {
+                        AppUtils.showToast(context, R.string.sound_font_removed_success);
+                        MidiManager.loadSFSpinnerWithoutDisabled(sMIDISoundFont);
+                    } else
+                        AppUtils.showToast(context, R.string.sound_font_removed_failed);
+                });
+            } else
+                AppUtils.showToast(context, R.string.cannot_remove_default_sound_font);
+        });
 
         final CheckBox cbUseDRI3 = view.findViewById(R.id.CBUseDRI3);
         cbUseDRI3.setChecked(preferences.getBoolean("use_dri3", true));
@@ -183,21 +247,26 @@ public class SettingsFragment extends Fragment {
         });
         sbCursorSpeed.setProgress((int)(preferences.getFloat("cursor_speed", 1.0f) * 100));
 
-        final RadioGroup rgTriggerMode = view.findViewById(R.id.RGTriggerMode);
-        List<Integer> triggerRbIds = List.of(R.id.RBTriggerAsButton, R.id.RBTriggerAsAxis, R.id.RBTriggerAsBoth);
-        int triggerMode = preferences.getInt("trigger_mode", ExternalController.TRIGGER_AS_AXIS);
+        final RadioGroup rgTriggerType = view.findViewById(R.id.RGTriggerType);
+        final View btHelpTriggerMode = view.findViewById(R.id.BTHelpTriggerMode);
+        List<Integer> triggerRbIds = List.of(R.id.RBTriggerIsButton, R.id.RBTriggerIsAxis, R.id.RBTriggerIsMixed);
+        int triggerType = preferences.getInt("trigger_type", ExternalController.TRIGGER_IS_AXIS);
 
-        if (triggerMode >= 0 && triggerMode < triggerRbIds.size()) {
-            ((RadioButton) (rgTriggerMode.findViewById(triggerRbIds.get(triggerMode)))).setChecked(true);
+        if (triggerType >= 0 && triggerType < triggerRbIds.size()) {
+            ((RadioButton) (rgTriggerType.findViewById(triggerRbIds.get(triggerType)))).setChecked(true);
         }
+        btHelpTriggerMode.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_trigger_mode));
 
         final CheckBox cbUseGlibc = view.findViewById(R.id.CBUseGlibc);
         cbUseGlibc.setChecked(preferences.getBoolean("use_glibc", true));
         cbUseGlibc.setEnabled(false);
 
         final CheckBox cbEnableFileProvider = view.findViewById(R.id.CBEnableFileProvider);
-        cbEnableFileProvider.setChecked(preferences.getBoolean("enable_file_provider", false));
+        final View btHelpFileProvider = view.findViewById(R.id.BTHelpFileProvider);
+
+        cbEnableFileProvider.setChecked(preferences.getBoolean("enable_file_provider", true));
         cbEnableFileProvider.setOnClickListener(v -> AppUtils.showToast(context, R.string.take_effect_next_startup));
+        btHelpFileProvider.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_file_provider));
 
         loadInstalledWineList(view);
 
@@ -231,7 +300,7 @@ public class SettingsFragment extends Fragment {
             editor.putFloat("cursor_speed", sbCursorSpeed.getProgress() / 100.0f);
             editor.putBoolean("enable_wine_debug", cbEnableWineDebug.isChecked());
             editor.putBoolean("enable_box86_64_logs", cbEnableBox86_64Logs.isChecked());
-            editor.putInt("trigger_mode", triggerRbIds.indexOf(rgTriggerMode.getCheckedRadioButtonId()));
+            editor.putInt("trigger_type", triggerRbIds.indexOf(rgTriggerType.getCheckedRadioButtonId()));
             editor.putBoolean("use_glibc", cbUseGlibc.isChecked());
             editor.putBoolean("cursor_lock", cbCursorLock.isChecked()); // Save cursor lock state
             editor.putBoolean("xinput_toggle", cbXinputToggle.isChecked()); // Save xinput toggle state
@@ -249,7 +318,15 @@ public class SettingsFragment extends Fragment {
             }
             else if (preferences.contains("wine_debug_channels")) editor.remove("wine_debug_channels");
 
+            editor.putBoolean("legacy_mode_enabled", enableLegacyInputMode); // Save the 7.1.2 legacy mode state
+
             if (editor.commit()) {
+                // Now perform the extraction based on the saved state
+
+                extractLegacyInputFiles(enableLegacyInputMode);
+
+
+
                 NavigationView navigationView = getActivity().findViewById(R.id.NavigationView);
                 navigationView.setCheckedItem(R.id.main_menu_containers);
                 FragmentManager fragmentManager = getParentFragmentManager();
@@ -394,7 +471,10 @@ public class SettingsFragment extends Fragment {
                 }
             });
         };
+        openFile();
+    }
 
+    private void openFile() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
@@ -667,25 +747,36 @@ public class SettingsFragment extends Fragment {
         if (requestCode == MainActivity.OPEN_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
             Uri uri = data.getData();
 
-            // Handle restoring data from backup
             if (uri != null) {
+                // Handle restoring data from backup
                 if (isRestoreAction) {
                     restoreAppData(uri);
                     isRestoreAction = false;  // Reset the flag
-                } else {
+                }
+                // Handle selecting a Wine file
+                else if (selectWineFileCallback != null) {
                     try {
-                        if (selectWineFileCallback != null) {
-                            selectWineFileCallback.call(uri);
-                        }
+                        selectWineFileCallback.call(uri);
                     } catch (Exception e) {
                         AppUtils.showToast(getContext(), R.string.unable_to_import_profile);
                     } finally {
                         selectWineFileCallback = null;
                     }
                 }
+                // Handle installing a SoundFont
+                else if (installSoundFontCallback != null) {
+                    try {
+                        installSoundFontCallback.call(uri);
+                    } catch (Exception e) {
+                        AppUtils.showToast(getContext(), R.string.unable_to_install_soundfont);
+                    } finally {
+                        installSoundFontCallback = null;
+                    }
+                }
             }
         }
     }
+
 
 
 
@@ -735,5 +826,34 @@ public class SettingsFragment extends Fragment {
             AppUtils.showToast(getContext(), "Data restore failed.");
         });
     }
+
+    private boolean extractLegacyInputFiles(boolean enableLegacyMode) {
+        Context context = getContext();
+        ImageFs imageFs = ImageFs.find(context);
+        File destinationDir = imageFs.getRootDir(); // Assuming you want to extract into the rootDir
+
+        // Determine the correct asset file name based on the mode
+        String assetFileName = enableLegacyMode ? "lj2-7.1.2-xinputdlls.tzst" : "lj2-7.1.3-xinputdlls.tzst";
+
+        // Set the compression type to ZSTD for .tzst files
+        TarCompressorUtils.Type compressionType = TarCompressorUtils.Type.ZSTD;
+
+        // Use the correct method to extract the asset file
+        boolean extractionSuccess = TarCompressorUtils.extract(compressionType, context, assetFileName, destinationDir);
+
+        // Log the result of the extraction process
+        if (extractionSuccess) {
+            String message = enableLegacyMode ? "7.1.2 legacy input files extracted successfully." : "7.1.3 input files extracted successfully.";
+            Log.i("SettingsFragment", message); // Info log for successful extraction
+        } else {
+            Log.e("SettingsFragment", "Failed to extract input files."); // Error log for failed extraction
+        }
+
+        return extractionSuccess;
+    }
+
+
+
+
 
 }
