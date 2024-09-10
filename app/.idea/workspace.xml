@@ -255,116 +255,15 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github. Updated dxvk, turnip, fixed gyro default bug, added logging for motion events with analog sticks to trace binding issues,">
+    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/box64_env_vars.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.7.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.8.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.0.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.1-2.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.1.8g2.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.1.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_64/rcfiles/box86_64rc-1.rcp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/box86_env_vars.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/common_dlls.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/container_pattern.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dexopt/baseline.prof" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dexopt/baseline.profm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/bilinear.glsl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/catmull-rom-bilinear.glsl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/fsr.glsl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/fsr.glsl.pass1" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/jinc2-dedither.glsl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/interpolation/lanczos2-sharp.glsl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/Shaders/nearest-neighbor.glsl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/ddraw.ini" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/cnc-ddraw-6.6/ddraw.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/d8vk-1.0.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-0.40.1.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-0.96.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-1.10.3.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-1.5.5.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-1.7.1.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.2.116.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.3.1.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4-24-gplasync.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4-gplasync.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-async-1.10.3.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.12.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.13.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/gpu_cards.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.0.9.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.1.0.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.2.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.3.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.4.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/virgl-23.1.9.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/graphics_driver/zink-22.2.5.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/0.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/10.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/11.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/12.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/13.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/14.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/15.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/16.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/17.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/18.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/19.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/20.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/21.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/22.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/23.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/24.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/25.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/26.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/27.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/28.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/29.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/3.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/30.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/31.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/32.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/33.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/34.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/35.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/36.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/37.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/38.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/39.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/4.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/5.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/6.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/7.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/8.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/icons/9.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/profiles/controls-1.icp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/profiles/controls-2.icp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/inputcontrols/profiles/controls-3.icp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/pulseaudio.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/soundfonts/wt_210k_G.sf2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/soundfonts/wt_210k_G_LICENSE.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/ddraw.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/direct3d.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directmusic.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directplay.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directshow.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/directsound.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/vcrun2010.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/wincomponents.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wincomponents/wmdecoder.tzst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wine_debug_channels.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/assets/wine_startmenu.json" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ChangesViewManager" show_ignored="true" />
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
@@ -639,7 +538,31 @@
       <option name="project" value="LOCAL" />
       <updated>1725931666916</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github">
+      <option name="closed" value="true" />
+      <created>1725931911019</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1725931911019</updated>
+    </task>
+    <task id="LOCAL-00014" summary="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github. Updated dxvk, turnip, fixed gyro default bug, added logging for motion events with analog sticks to trace binding issues,">
+      <option name="closed" value="true" />
+      <created>1725931980602</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1725931980602</updated>
+    </task>
+    <task id="LOCAL-00015" summary="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github">
+      <option name="closed" value="true" />
+      <created>1725932043554</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1725932043554</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
