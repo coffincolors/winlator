@@ -65,7 +65,7 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
             if (container != null && containerManager != null) {
                 if (containerManager.isInitialized()) { // Check if ContainerManager is initialized
                     // Apply the selected version to the existing container
-                    container.setGraphicsDriverVersion(selectedVersion);
+                    //container.setGraphicsDriverVersion(selectedVersion);
                     boolean extractionSuccess = containerManager.extractGraphicsDriverFiles(selectedVersion, container.getRootDir(), null);
 
                     if (!extractionSuccess) {

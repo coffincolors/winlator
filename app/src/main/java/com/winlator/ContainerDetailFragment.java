@@ -186,7 +186,7 @@ public class ContainerDetailFragment extends Fragment {
         final ArrayList<WineInfo> wineInfos = WineUtils.getInstalledWineInfos(context);
         loadWineVersionSpinner(view, sWineVersion, wineInfos);
 
-        loadWineVersionSpinner(view, sWineVersion, wineInfos);
+        loadScreenSizeSpinner(view, isEditMode() ? container.getScreenSize() : Container.DEFAULT_SCREEN_SIZE);
 
         final Spinner sGraphicsDriver = view.findViewById(R.id.SGraphicsDriver);
         final Spinner sDXWrapper = view.findViewById(R.id.SDXWrapper);

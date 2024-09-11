@@ -256,8 +256,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="Fix: Removed large files from the history">
-      <change beforePath="$PROJECT_DIR$/../Winlator-7.1.3-glibc-cmod-v7fix6_source_code.zip" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ContainerDetailFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ContainerDetailFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/GraphicsDriverConfigDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/GraphicsDriverConfigDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ShortcutSettingsDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ShortcutSettingsDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/shortcut_settings_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/shortcut_settings_dialog.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -268,7 +272,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=PhysicalDevice, isTemplate=false, identifier=serial=R5CX10LYMLW)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -329,32 +333,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "Android App.app.executor": "Run",
-    "DEBUGGABLE_DEVICE": "samsung-sm_s928u-192.168.68.55:43625",
-    "DEBUGGABLE_PROCESS": "com.winlator",
-    "DEBUGGER_ID": "Auto",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "SHOW_ALL_PROCESSES": "false",
-    "cf.advertisement.text.has.clang-format": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "com.google.services.firebase.aqiPopupShown": "true",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_directory_selection": "C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/res/drawable",
-    "last_opened_file_path": "C:/Users/alexs/Documents/Tools/Winlator/Projects/afei's code/winlator-fork/app/src/main/java/com/winlator/inputcontrols/ExternalController.java",
-    "project.structure.last.edited": "Dependencies",
-    "project.structure.proportion": "0.17",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "device.mirroring",
-    "two.files.diff.last.used.file": "C:/Users/alexs/Documents/Tools/Winlator/Projects/afei's code/winlator-fork/app/src/main/java/com/winlator/inputcontrols/ExternalController.java"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;Android App.app.executor&quot;: &quot;Run&quot;,
+    &quot;DEBUGGABLE_DEVICE&quot;: &quot;samsung-sm_s928u-192.168.68.55:43625&quot;,
+    &quot;DEBUGGABLE_PROCESS&quot;: &quot;com.winlator&quot;,
+    &quot;DEBUGGER_ID&quot;: &quot;Auto&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;SHOW_ALL_PROCESSES&quot;: &quot;false&quot;,
+    &quot;cf.advertisement.text.has.clang-format&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;com.google.services.firebase.aqiPopupShown&quot;: &quot;true&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/res/drawable&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/alexs/Documents/Tools/Winlator/Projects/afei's code/winlator-fork/app/src/main/java/com/winlator/inputcontrols/ExternalController.java&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Dependencies&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;device.mirroring&quot;,
+    &quot;two.files.diff.last.used.file&quot;: &quot;C:/Users/alexs/Documents/Tools/Winlator/Projects/afei's code/winlator-fork/app/src/main/java/com/winlator/inputcontrols/ExternalController.java&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\drawable" />

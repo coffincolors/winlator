@@ -50,6 +50,9 @@ public class ShortcutSettingsDialog extends ContentDialog {
 
     private boolean overrideGraphicsDriver = false;
 
+    private TextView tvTurnipVersion;  // For displaying the turnip version
+
+
     public ShortcutSettingsDialog(ShortcutsFragment fragment, Shortcut shortcut) {
         super(fragment.getContext(), R.layout.shortcut_settings_dialog);
         this.fragment = fragment;
@@ -77,6 +80,12 @@ public class ShortcutSettingsDialog extends ContentDialog {
         LinearLayout llContent = findViewById(R.id.LLContent);
         llContent.getLayoutParams().width = AppUtils.getPreferredDialogWidth(context);
 
+        // Initialize the turnip version TextView
+        tvTurnipVersion = findViewById(R.id.TVTurnipVersion);
+
+        // Set initial Turnip version from shortcut extras or container
+        updateTurnipVersionText();
+
         // Get the shared preferences and check the legacy mode status
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         boolean isLegacyModeEnabled = preferences.getBoolean("legacy_mode_enabled", false);
@@ -98,8 +107,8 @@ public class ShortcutSettingsDialog extends ContentDialog {
         vDXWrapperConfig.setTag(shortcut.getExtra("dxwrapperConfig", shortcut.container.getDXWrapperConfig()));
 
         // Clear the graphicsDriverVersion when opening the dialog
-        shortcut.putExtra("graphicsDriverVersion", null);
-        shortcut.saveData();
+//        shortcut.putExtra("graphicsDriverVersion", null);
+//        shortcut.saveData();
 
         if (contentsManager != null && contentsManager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_TURNIP) != null) {
             containerDetailFragment.updateGraphicsDriverSpinner(context, contentsManager, sGraphicsDriver);
@@ -241,31 +250,46 @@ public class ShortcutSettingsDialog extends ContentDialog {
                 renameShortcut(name);
             }
 
-            // Use a flag to indicate if renaming was successful
+
+            // Determine if renaming is needed
             boolean renamingSuccess = !nameChanged || new File(shortcut.file.getParent(), name + ".desktop").exists();
 
-            // Proceed to save other properties if renaming was successful
             if (renamingSuccess) {
                 String graphicsDriver = StringUtils.parseIdentifier(sGraphicsDriver.getSelectedItem());
                 String currentGraphicsDriverVersion = shortcut.getExtra("graphicsDriverVersion", "default_version");
-                String newGraphicsDriverVersion = currentGraphicsDriverVersion;
+                String newGraphicsDriverVersion = "default_version"; // Initialize with default
 
-                // Logic for handling 'turnip' graphics driver version
                 if ("turnip".equals(graphicsDriver)) {
-                    newGraphicsDriverVersion = shortcut.getExtra("graphicsDriverVersion", containerDetailFragment.getGraphicsDriverVersion());
+                    // Directly fetch the selected version from the UI
+                    newGraphicsDriverVersion = containerDetailFragment.getGraphicsDriverVersion(); // Ensure this method fetches the current UI selection
+
                     if (newGraphicsDriverVersion != null && !newGraphicsDriverVersion.equals(currentGraphicsDriverVersion)) {
+                        Log.d("ShortcutSettingsDialog", "Updating graphicsDriverVersion to: " + newGraphicsDriverVersion);
+
                         shortcut.putExtra("graphicsDriverVersion", newGraphicsDriverVersion);
+                        shortcut.saveData();  // Save immediately
+
+                        Log.d("ShortcutSettingsDialog", "graphicsDriverVersion saved as: " + shortcut.getExtra("graphicsDriverVersion"));
+
                         overrideGraphicsDriver = true;
                     } else {
                         overrideGraphicsDriver = false;
                     }
                 } else {
+                    // Set to default if not using 'turnip'
                     newGraphicsDriverVersion = "default_version";
+                    shortcut.putExtra("graphicsDriverVersion", newGraphicsDriverVersion);
+                    shortcut.saveData();
+                    Log.d("ShortcutSettingsDialog", "graphicsDriverVersion set to default_version");
+
                     overrideGraphicsDriver = false;
                 }
 
+                // Update the graphics driver
                 shortcut.putExtra("graphicsDriver", graphicsDriver);
-                shortcut.putExtra("graphicsDriverVersion", newGraphicsDriverVersion);
+                Log.d("ShortcutSettingsDialog", "graphicsDriver updated to: " + graphicsDriver);
+                shortcut.saveData();
+
 
                 String dxwrapper = StringUtils.parseIdentifier(sDXWrapper.getSelectedItem());
                 dxwrapper = dxwrapper == null || dxwrapper.isEmpty() ? "default_dxwrapper" : dxwrapper;
@@ -330,6 +354,21 @@ public class ShortcutSettingsDialog extends ContentDialog {
 
     }
 
+    private void updateTurnipVersionText() {
+        // Retrieve the shortcut-specific graphics driver version
+        String turnipVersion = shortcut.getExtra("graphicsDriverVersion", null);
+
+        // Check if the shortcut version is empty or null, and fallback to the container's version only in that case
+        if (turnipVersion == null || turnipVersion.isEmpty()) {
+            // If no version is set, fallback to the container's default version
+            turnipVersion = shortcut.container.getGraphicsDriverVersion();
+        }
+
+        // Update the TextView with the correct version
+        tvTurnipVersion.setText(turnipVersion);
+    }
+
+
 
     private void showGraphicsDriverConfigDialog(View anchor) {
         Context context = fragment.getContext();
@@ -338,9 +377,14 @@ public class ShortcutSettingsDialog extends ContentDialog {
         String initialVersion = shortcut.getExtra("graphicsDriverVersion", container.getGraphicsDriverVersion());
 
         new GraphicsDriverConfigDialog(anchor, containerManager, container, initialVersion, version -> {
+            // Save the selected graphics driver version to the shortcut extras
             shortcut.putExtra("graphicsDriverVersion", version != null ? version : "");
+
+            // Update the displayed Turnip version dynamically
+            updateTurnipVersionText();
         }).show();
     }
+
 
     private void updateExtra(String extraName, String containerValue, String newValue) {
         String extraValue = shortcut.getExtra(extraName);

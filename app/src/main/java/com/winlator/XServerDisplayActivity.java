@@ -170,6 +170,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     private boolean overrideGraphicsDriver = false;
 
+    private String currentTurnipVersion;
+    private String originalContainerDriverVersion;
+
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -350,18 +353,26 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             lc_all = container.getLC_ALL();
 
             if (shortcut != null) {
-                // Get the graphics driver version directly
-                String selectedDriverVersion = shortcut.getExtra("graphicsDriverVersion", container.getGraphicsDriverVersion());
+                // Save the original container graphics driver version
+                String originalContainerDriverVersion = container.getGraphicsDriverVersion();
 
-                // Set graphicsDriverVersion and check if it should override
-                if (!selectedDriverVersion.equals(container.getGraphicsDriverVersion())) {
+                // Get the graphics driver version from the shortcut, fallback to container version only if shortcut version is missing
+                String selectedDriverVersion = shortcut.getExtra("graphicsDriverVersion", null);
+
+                if (selectedDriverVersion != null && !selectedDriverVersion.isEmpty()) {
+                    // If the shortcut version is set, use it and mark the override
                     overrideGraphicsDriver = true;
-                    container.setGraphicsDriverVersion(selectedDriverVersion); // Update the container's version
+                    container.setGraphicsDriverVersion(selectedDriverVersion); // Do not change container's version, just use shortcut's
+                    currentTurnipVersion = selectedDriverVersion; // Set the current version to the one in the shortcut
                 } else {
-                    overrideGraphicsDriver = false; // Reset if no override is needed
+                    // If the shortcut version is not set, fallback to the container's version
+                    overrideGraphicsDriver = false;
+                    currentTurnipVersion = originalContainerDriverVersion; // Use container's version
                 }
 
-                graphicsDriver = shortcut.getExtra("graphicsDriver", container.getGraphicsDriver()); // Keep this for logging or other use cases
+
+
+            graphicsDriver = shortcut.getExtra("graphicsDriver", container.getGraphicsDriver()); // Keep this for logging or other use cases
                 audioDriver = shortcut.getExtra("audioDriver", container.getAudioDriver());
                 midiSoundFont = shortcut.getExtra("midiSoundFont", container.getMIDISoundFont());
                 dxwrapper = shortcut.getExtra("dxwrapper", container.getDXWrapper());
@@ -458,6 +469,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 if (!isGenerateWineprefix()) {
                     setupWineSystemFiles();
                     extractGraphicsDriverFiles();
+                    container.setGraphicsDriverVersion(originalContainerDriverVersion);
+                    container.saveData();
                     changeWineAudioDriver();
                 }
                 setupXEnvironment();
@@ -1079,14 +1092,15 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         // Determine the selected driver version, respecting the override flag
         String selectedDriverVersion;
         if (overrideGraphicsDriver && shortcut != null) {
+            // Use the shortcut's version if the override flag is set
             selectedDriverVersion = shortcut.getExtra("graphicsDriverVersion");
-            // Log the version retrieved from the shortcut
             Log.d("GraphicsDriverExtraction", "Using graphicsDriverVersion from shortcut: " + selectedDriverVersion);
         } else {
+            // Use the container's version if no override is in place
             selectedDriverVersion = container.getGraphicsDriverVersion();
-            // Log the version retrieved from the container
             Log.d("GraphicsDriverExtraction", "Using graphicsDriverVersion from container: " + selectedDriverVersion);
         }
+
 
         // Adjust cacheId based on graphics driver and selected version
         if (graphicsDriver.equals("turnip")) {
