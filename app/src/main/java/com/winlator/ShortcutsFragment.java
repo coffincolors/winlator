@@ -493,8 +493,9 @@ public class ShortcutsFragment extends Fragment {
                 exportFile.delete();
             }
 
-            // Recreate the export file
-            exportFile = pickedDir.createFile("application/octet-stream", shortcut.file.getName());
+            // Recreate the export file without specifying a MIME type to avoid the .bin extension
+            exportFile = pickedDir.createFile(null, shortcut.file.getName());
+
 
             if (exportFile != null) {
                 try (OutputStream outStream = getContext().getContentResolver().openOutputStream(exportFile.getUri());

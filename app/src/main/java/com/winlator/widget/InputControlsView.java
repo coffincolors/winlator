@@ -2,6 +2,7 @@ package com.winlator.widget;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -13,12 +14,18 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.os.Handler;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.PointerIcon;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+
+import androidx.preference.PreferenceManager;
 
 import com.winlator.R;
 import com.winlator.inputcontrols.Binding;
@@ -59,6 +66,11 @@ public class InputControlsView extends View {
     private final PointF mouseMoveOffset = new PointF();
     private boolean showTouchscreenControls = true;
 
+    private Handler timeoutHandler; // Reference to the activity's timeout handler
+    private Runnable hideControlsRunnable; // Runnable to hide the controls
+
+    private SharedPreferences preferences;
+
     @SuppressLint("ResourceType")
     public InputControlsView(Context context) {
         super(context);
@@ -68,6 +80,21 @@ public class InputControlsView extends View {
         setBackgroundColor(0x00000000);
         setPointerIcon(PointerIcon.load(getResources(), R.drawable.hidden_pointer_arrow));
         setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        preferences = PreferenceManager.getDefaultSharedPreferences(this.getContext());
+    }
+
+    @SuppressLint("ResourceType")
+    public InputControlsView(Context context, Handler timeoutHandler, Runnable hideControlsRunnable) {
+        super(context);
+        this.timeoutHandler = timeoutHandler; // Store the reference to timeout handler
+        this.hideControlsRunnable = hideControlsRunnable; // Store the reference to the hide controls runnable
+        setClickable(true);
+        setFocusable(true);
+        setFocusableInTouchMode(true);
+        setBackgroundColor(0x00000000);
+        setPointerIcon(PointerIcon.load(getResources(), R.drawable.hidden_pointer_arrow));
+        setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        preferences = PreferenceManager.getDefaultSharedPreferences(this.getContext());
     }
 
     public void setEditMode(boolean editMode) {
@@ -320,6 +347,12 @@ public class InputControlsView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
+        boolean hapticsEnabled = preferences.getBoolean("touchscreen_haptics_enabled", true);
+
+        // Reset the timeout when touch events occur within InputControlsView
+        resetTouchscreenTimeout();
+
         if (editMode && readyToDraw) {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN: {
@@ -339,15 +372,15 @@ public class InputControlsView extends View {
                 }
                 case MotionEvent.ACTION_MOVE: {
                     if (selectedElement != null) {
-                        selectedElement.setX((int)Mathf.roundTo(event.getX() - offsetX, snappingSize));
-                        selectedElement.setY((int)Mathf.roundTo(event.getY() - offsetY, snappingSize));
+                        selectedElement.setX((int) Mathf.roundTo(event.getX() - offsetX, snappingSize));
+                        selectedElement.setY((int) Mathf.roundTo(event.getY() - offsetY, snappingSize));
                         invalidate();
                     }
                     break;
                 }
                 case MotionEvent.ACTION_UP: {
                     if (selectedElement != null && profile != null) profile.save();
-                    if (moveCursor) cursor.set((int)Mathf.roundTo(event.getX(), snappingSize), (int)Mathf.roundTo(event.getY(), snappingSize));
+                    if (moveCursor) cursor.set((int) Mathf.roundTo(event.getX(), snappingSize), (int) Mathf.roundTo(event.getY(), snappingSize));
                     invalidate();
                     break;
                 }
@@ -368,7 +401,23 @@ public class InputControlsView extends View {
 
                     touchpadView.setPointerButtonLeftEnabled(true);
                     for (ControlElement element : profile.getElements()) {
-                        if (element.handleTouchDown(pointerId, x, y)) handled = true;
+                        if (element.handleTouchDown(pointerId, x, y)) {
+                            handled = true;
+
+                            // Trigger haptic feedback for buttons, not for virtual analog sticks
+                            if ((element.isButton() || element.isDPad()) && hapticsEnabled) {
+                                Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+                                if (vibrator != null && vibrator.hasVibrator()) {
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                        vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
+                                    } else {
+                                        vibrator.vibrate(50); // Legacy method for older Android versions
+                                    }
+
+                                }
+
+                            }
+                        }
                         if (element.getBindingAt(0) == Binding.MOUSE_LEFT_BUTTON) {
                             touchpadView.setPointerButtonLeftEnabled(false);
                         }
@@ -377,7 +426,7 @@ public class InputControlsView extends View {
                     break;
                 }
                 case MotionEvent.ACTION_MOVE: {
-                    for (byte i = 0, count = (byte)event.getPointerCount(); i < count; i++) {
+                    for (byte i = 0, count = (byte) event.getPointerCount(); i < count; i++) {
                         float x = event.getX(i);
                         float y = event.getY(i);
 
@@ -391,13 +440,30 @@ public class InputControlsView extends View {
                 }
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_POINTER_UP:
-                case MotionEvent.ACTION_CANCEL:
-                    for (ControlElement element : profile.getElements()) if (element.handleTouchUp(pointerId)) handled = true;
+                case MotionEvent.ACTION_CANCEL: {
+                    for (ControlElement element : profile.getElements()) {
+                        if (element.handleTouchUp(pointerId)) handled = true;
+                    }
                     if (!handled) touchpadView.onTouchEvent(event);
                     break;
+                }
             }
         }
         return true;
+    }
+
+
+
+
+
+    private void resetTouchscreenTimeout() {
+        Log.d("InputControlsView", "Touch detected, resetting timeout.");
+        if (timeoutHandler != null && hideControlsRunnable != null) {
+            // Cancel any pending hide requests
+            timeoutHandler.removeCallbacks(hideControlsRunnable);
+            // Post a new request to hide the controls after 5 seconds
+            timeoutHandler.postDelayed(hideControlsRunnable, 5000); // Adjust timeout as necessary
+        }
     }
 
     public boolean onKeyEvent(KeyEvent event) {

@@ -158,6 +158,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private Runnable savePlaytimeRunnable;
     private static final long SAVE_INTERVAL_MS = 1000;
 
+    private Handler  timeoutHandler = new Handler(Looper.getMainLooper());
+    private Runnable hideControlsRunnable;
+
 
     private LinuxCommandExplorer commandExplorer = null;
 
@@ -214,12 +217,6 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             sensorManager.registerListener(gyroListener, gyroSensor, SensorManager.SENSOR_DELAY_GAME);
         }
 
-        // Initialize playtime tracking
-        playtimePrefs = getSharedPreferences("playtime_stats", MODE_PRIVATE);
-        shortcutName = getIntent().getStringExtra("shortcut_name");
-
-        // Increment play count at the start of a session
-        incrementPlayCount();
 
 
         // Record the start time
@@ -235,6 +232,19 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             }
         };
         handler.postDelayed(savePlaytimeRunnable, SAVE_INTERVAL_MS);
+
+        // Handler and Runnable to manage timeout for hiding controls
+
+        boolean isTimeoutEnabled = preferences.getBoolean("touchscreen_timeout_enabled", true);
+
+        hideControlsRunnable = () -> {
+            if (isTimeoutEnabled) {
+                inputControlsView.setVisibility(View.GONE);
+                Log.d("XServerDisplayActivity", "Touchscreen controls hidden after timeout.");
+            }
+        };
+
+
 
 
         contentsManager = new ContentsManager(this);
@@ -273,6 +283,26 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 containerId = parseContainerIdFromDesktopFile(shortcutFile);
                 Log.d("XServerDisplayActivity", "Parsed Container ID from .desktop file: " + containerId);
             }
+
+            // Initialize playtime tracking
+            playtimePrefs = getSharedPreferences("playtime_stats", MODE_PRIVATE);
+            shortcutName = getIntent().getStringExtra("shortcut_name");
+
+            // Ensure shortcutPath is not null before proceeding
+            if (shortcutPath != null && !shortcutPath.isEmpty()) {
+                if (shortcutName == null || shortcutName.isEmpty()) {
+                    shortcutName = parseShortcutNameFromDesktopFile(new File(shortcutPath));
+                    Log.d("XServerDisplayActivity", "Parsed Shortcut Name from .desktop file: " + shortcutName);
+                }
+            } else {
+                Log.d("XServerDisplayActivity", "No shortcut path provided, skipping shortcut parsing.");
+            }
+
+
+            // Increment play count at the start of a session
+            incrementPlayCount();
+
+
 
 // Retrieve the container first
             container = containerManager.getContainerById(containerId);
@@ -907,7 +937,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         rootView.addView(xServerView);
 
         globalCursorSpeed = preferences.getFloat("cursor_speed", 1.0f);
-        touchpadView = new TouchpadView(this, xServer);
+        touchpadView = new TouchpadView(this, xServer, timeoutHandler, hideControlsRunnable);
         touchpadView.setSensitivity(globalCursorSpeed);
         touchpadView.setFourFingersTapCallback(() -> {
             if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -916,12 +946,22 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         });
         rootView.addView(touchpadView);
 
-        inputControlsView = new InputControlsView(this);
+        inputControlsView = new InputControlsView(this, timeoutHandler, hideControlsRunnable);
         inputControlsView.setOverlayOpacity(preferences.getFloat("overlay_opacity", InputControlsView.DEFAULT_OVERLAY_OPACITY));
         inputControlsView.setTouchpadView(touchpadView);
         inputControlsView.setXServer(xServer);
         inputControlsView.setVisibility(View.GONE);
         rootView.addView(inputControlsView);
+
+
+        startTouchscreenTimeout();
+
+        // Inside onCreate(), after initializing controls
+        boolean isTimeoutEnabled = preferences.getBoolean("touchscreen_timeout_enabled", false);
+        if (isTimeoutEnabled) {
+            startTouchscreenTimeout();
+        }
+
 
         if (container != null && container.isShowFPS()) {
             frameRating = new FrameRating(this);
@@ -949,6 +989,25 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 }
             }
     );
+
+    private String parseShortcutNameFromDesktopFile(File desktopFile) {
+        String shortcutName = "";
+        if (desktopFile.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(desktopFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("Name=")) {
+                        shortcutName = line.split("=")[1].trim();
+                        break;
+                    }
+                }
+            } catch (IOException e) {
+                Log.e("XServerDisplayActivity", "Error reading shortcut name from .desktop file", e);
+            }
+        }
+        return shortcutName;
+    }
+
 
     private void showInputControlsDialog() {
         final ContentDialog dialog = new ContentDialog(this, R.layout.input_controls_dialog);
@@ -979,6 +1038,12 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         final CheckBox cbShowTouchscreenControls = dialog.findViewById(R.id.CBShowTouchscreenControls);
         cbShowTouchscreenControls.setChecked(inputControlsView.isShowTouchscreenControls());
 
+        final CheckBox cbEnableTimeout = dialog.findViewById(R.id.CBEnableTimeout);
+        cbEnableTimeout.setChecked(preferences.getBoolean("touchscreen_timeout_enabled", false));
+
+        final CheckBox cbEnableHaptics = dialog.findViewById(R.id.CBEnableHaptics);
+        cbEnableHaptics.setChecked(preferences.getBoolean("touchscreen_haptics_enabled", false));
+
         final Runnable updateProfile = () -> {
             int position = sProfile.getSelectedItemPosition();
             if (position > 0) {
@@ -1004,6 +1069,18 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         dialog.setOnConfirmCallback(() -> {
             xServer.setRelativeMouseMovement(cbRelativeMouseMovement.isChecked());
             inputControlsView.setShowTouchscreenControls(cbShowTouchscreenControls.isChecked());
+            boolean isTimeoutEnabled = cbEnableTimeout.isChecked();
+            boolean isHapticsEnabled = cbEnableHaptics.isChecked();
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("touchscreen_timeout_enabled", isTimeoutEnabled);
+            editor.putBoolean("touchscreen_haptics_enabled", isHapticsEnabled);
+            editor.apply();
+
+            if (isTimeoutEnabled) {
+                startTouchscreenTimeout(); // Start the timeout functionality if enabled
+            } else {
+                touchpadView.setOnTouchListener(null); // Disable the listener if timeout is disabled
+            }
             int position = sProfile.getSelectedItemPosition();
             if (position > 0) {
                 showInputControls(inputControlsManager.getProfiles().get(position - 1));
@@ -1015,6 +1092,45 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();
+    }
+
+    private void startTouchscreenTimeout() {
+        boolean isTimeoutEnabled = preferences.getBoolean("touchscreen_timeout_enabled", false);
+
+        if (isTimeoutEnabled) {
+            // Show controls initially and set up touch event listeners
+            inputControlsView.setVisibility(View.VISIBLE);
+            Log.d("XServerDisplayActivity", "Timeout is enabled, setting up timeout logic.");
+
+            // Attach the OnTouchListener to reset the timeout on touch events
+            touchpadView.setOnTouchListener((v, event) -> {
+                int action = event.getAction();
+                if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
+                    // Reset the timeout on any touch event
+                    Log.d("XServerDisplayActivity", "Touch detected, resetting timeout.");
+
+                    // Keep the controls visible
+                    inputControlsView.setVisibility(View.VISIBLE);
+
+                    // Remove any pending hide callbacks and reset the timeout
+                    timeoutHandler.removeCallbacks(hideControlsRunnable);
+                    timeoutHandler.postDelayed(hideControlsRunnable, 5000); // Reset timeout
+                }
+
+                return false; // Allow the touch event to propagate
+            });
+
+            // Reset the timeout when the controls are initially displayed
+            timeoutHandler.removeCallbacks(hideControlsRunnable);
+            timeoutHandler.postDelayed(hideControlsRunnable, 5000); // Hide after 5 seconds of inactivity
+        } else {
+            // If timeout is disabled, keep the controls always visible
+            Log.d("XServerDisplayActivity", "Timeout is disabled, controls will stay visible.");
+
+            inputControlsView.setVisibility(View.VISIBLE); // Ensure controls are visible
+            timeoutHandler.removeCallbacks(hideControlsRunnable); // Remove any existing hide callbacks
+            touchpadView.setOnTouchListener(null); // Remove the touch listener
+        }
     }
 
     private void showInputControls(ControlsProfile profile) {
@@ -1172,8 +1288,6 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     public boolean dispatchGenericMotionEvent(MotionEvent event) {
         return winHandler.onGenericMotionEvent(event) || (!navigationFocused && touchpadView.onExternalMouseEvent(event)) || super.dispatchGenericMotionEvent(event);
     }
-
-
 
 
     private static final int RECAPTURE_DELAY_MS = 10000; // 10 seconds

@@ -370,4 +370,6 @@
     <string name="use_secondary_executable">Use secondary executable?</string>
     <string name="secondary_exec">Secondary Executable</string>
     <string name="secondary_exe_path_subtext">(Spaces in paths must be wrapped in quotes)</string>
+    <string name="enable_touchscreen_timeout">Auto Hide Touchscreen Controls</string>
+    <string name="enable_touchscreen_haptics">Enable Touchscreen Haptic Feedback</string>
 </resources>

@@ -115,6 +115,14 @@ public class ControlElement {
         boundingBoxNeedsUpdate = true;
     }
 
+    public boolean isButton() {
+        return type == Type.BUTTON;
+    }
+
+    public boolean isDPad() {
+        return type == Type.D_PAD;
+    }
+
     public Type getType() {
         return type;
     }

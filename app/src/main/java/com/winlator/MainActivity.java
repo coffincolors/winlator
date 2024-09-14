@@ -2,6 +2,7 @@ package com.winlator;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.GameManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -65,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ContainerManager containerManager;
 
     private SaveEditDialog currentSaveEditDialog;
+    
+    
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +85,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             actionBar.setHomeAsUpIndicator(R.drawable.icon_action_bar_menu);
         }
 
+
+        GameManager gameManager = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            gameManager = getSystemService(GameManager.class);
+        }
+
+        // Returns the selected GameMode
+        int gameMode = 0;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            gameMode = gameManager.getGameMode();
+        }
+
+
+        Log.d("MainActivity", "onCreate called with gameMode: " + gameMode);
+        
         // Initialize SaveManager and ContainerManager
         saveManager = new SaveManager(this);
         containerManager = new ContainerManager(this);
