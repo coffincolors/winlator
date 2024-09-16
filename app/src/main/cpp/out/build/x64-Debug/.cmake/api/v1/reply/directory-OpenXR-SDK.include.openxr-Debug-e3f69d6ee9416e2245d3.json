@@ -1,0 +1,49 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"OpenXR-SDK/include/openxr/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 124,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Headers",
+			"destination" : "include/openxr",
+			"paths" : 
+			[
+				"OpenXR-SDK/include/openxr/openxr_platform_defines.h",
+				"OpenXR-SDK/include/openxr/openxr.h",
+				"OpenXR-SDK/include/openxr/openxr_loader_negotiation.h",
+				"OpenXR-SDK/include/openxr/openxr_platform.h",
+				"OpenXR-SDK/include/openxr/openxr_reflection.h",
+				"OpenXR-SDK/include/openxr/openxr_reflection_structs.h",
+				"OpenXR-SDK/include/openxr/openxr_reflection_parent_structs.h"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "OpenXR-SDK/include/openxr",
+		"source" : "OpenXR-SDK/include/openxr"
+	}
+}

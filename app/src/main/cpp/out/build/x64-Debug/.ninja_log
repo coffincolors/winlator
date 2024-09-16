@@ -1,0 +1,7 @@
+# ninja log v5
+63	142	7479285909673221	OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/android_utilities.cpp.obj	2246932540d677d9
+79	495	7479285913183281	OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/loader_init_data.cpp.obj	cff74685451b43f
+84	1014	7479285918297221	OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/loader_instance.cpp.obj	99589aa87662bfc3
+75	1027	7479285918471038	OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/loader_core.cpp.obj	ac0137b4cbadb5af
+89	1046	7479285918686059	OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/loader_logger.cpp.obj	7254baf5e5524b3e
+69	1055	7479285918776248	OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/api_layer_interface.cpp.obj	ee7040b97fb1d73c

@@ -1,0 +1,43 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"OpenXR-SDK/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 186,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "License",
+			"destination" : "share/doc/openxr",
+			"paths" : 
+			[
+				"OpenXR-SDK/LICENSE"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "OpenXR-SDK",
+		"source" : "OpenXR-SDK"
+	}
+}

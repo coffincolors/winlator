@@ -3,6 +3,7 @@ package com.winlator;
 import static androidx.core.content.ContextCompat.getSystemService;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,6 +32,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.winlator.container.Container;
 import com.winlator.container.ContainerManager;
 import com.winlator.container.Shortcut;
 import com.winlator.contentdialog.ContentDialog;
@@ -155,22 +157,34 @@ public class ShortcutsFragment extends Fragment {
                 }
                 else if (itemId == R.id.shortcut_remove) {
                     ContentDialog.confirm(context, R.string.do_you_want_to_remove_this_shortcut, () -> {
-                        // Attempt to delete the shortcut file
                         boolean fileDeleted = shortcut.file.delete();
                         boolean iconFileDeleted = shortcut.iconFile != null && shortcut.iconFile.delete();
 
                         if (fileDeleted) {
-                            // Successfully deleted the shortcut
-                            if (iconFileDeleted) {
-                                Log.d("ShortcutsFragment", "Icon file deleted successfully: " + shortcut.iconFile.getPath());
-                            }
                             disableShortcutOnScreen(requireContext(), shortcut);
                             loadShortcutsList();
                             Toast.makeText(context, "Shortcut removed successfully.", Toast.LENGTH_SHORT).show();
                         } else {
-                            // Handle failure case
                             Toast.makeText(context, "Failed to remove the shortcut. Please try again.", Toast.LENGTH_SHORT).show();
-                            Log.e("ShortcutsFragment", "Failed to delete shortcut file: " + shortcut.file.getPath());
+                        }
+                    });
+                }
+                else if (itemId == R.id.shortcut_clone_to_container) {
+                    // Use the ContainerManager to get the list of containers
+                    ContainerManager containerManager = new ContainerManager(context);
+                    ArrayList<Container> containers = containerManager.getContainers();
+
+                    // Show a container selection dialog
+                    showContainerSelectionDialog(containers, new OnContainerSelectedListener() {
+                        @Override
+                        public void onContainerSelected(Container selectedContainer) {
+                            // Use the selected container to clone the shortcut
+                            if (shortcut.cloneToContainer(selectedContainer)) {
+                                Toast.makeText(context, "Shortcut cloned successfully.", Toast.LENGTH_SHORT).show();
+                                loadShortcutsList(); // Reload the shortcuts to show the cloned one
+                            } else {
+                                Toast.makeText(context, "Failed to clone shortcut.", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
                 }
@@ -189,6 +203,37 @@ public class ShortcutsFragment extends Fragment {
             });
             listItemMenu.show();
         }
+
+
+        // Define the listener interface for selecting a container
+        public interface OnContainerSelectedListener {
+            void onContainerSelected(Container container);
+        }
+
+        private void showContainerSelectionDialog(ArrayList<Container> containers, OnContainerSelectedListener listener) {
+            // Create an AlertDialog to show the list of containers
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setTitle("Select a container");
+
+            // Create an array of container names to display
+            String[] containerNames = new String[containers.size()];
+            for (int i = 0; i < containers.size(); i++) {
+                containerNames[i] = containers.get(i).getName();
+            }
+
+            // Set up the list in the dialog
+            builder.setItems(containerNames, (dialog, which) -> {
+                // Call the listener when a container is selected
+                listener.onContainerSelected(containers.get(which));
+            });
+
+            // Show the dialog
+            builder.show();
+        }
+
+
+
+
 
 
         private void runFromShortcut(Shortcut shortcut) {

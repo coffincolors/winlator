@@ -410,4 +410,6 @@
     <string name="pip_mode">PiP Mode</string>
     <string name="configure">Configure</string>
     <string name="enable_legacy_input_mode">Enable 7.1.2 Legacy Input Mode</string>
+    <string name="enable_touchscreen_timeout">Touchscreen Timeout (Requires Restart)</string>
+    <string name="enable_touchscreen_haptics">Enable Touchscreen Haptic Feedback</string>
 </resources>

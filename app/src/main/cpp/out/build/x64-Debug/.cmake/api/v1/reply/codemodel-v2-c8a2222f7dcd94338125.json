@@ -1,0 +1,538 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						7
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22.1"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						33
+					]
+				},
+				{
+					"build" : "virglrenderer",
+					"jsonFile" : "directory-virglrenderer-Debug-96d434216b06614ac1d1.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22.1"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "virglrenderer",
+					"targetIndexes" : 
+					[
+						32
+					]
+				},
+				{
+					"build" : "OpenXR-SDK",
+					"childIndexes" : 
+					[
+						3,
+						5
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-OpenXR-SDK-Debug-6216bfe9ae7dbee8860f.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "OpenXR-SDK",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25,
+						26,
+						27,
+						31
+					]
+				},
+				{
+					"build" : "OpenXR-SDK/include",
+					"childIndexes" : 
+					[
+						4
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-OpenXR-SDK.include-Debug-ef8630b712b57f94676a.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 2,
+					"source" : "OpenXR-SDK/include"
+				},
+				{
+					"build" : "OpenXR-SDK/include/openxr",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-OpenXR-SDK.include.openxr-Debug-e3f69d6ee9416e2245d3.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 2,
+					"source" : "OpenXR-SDK/include/openxr",
+					"targetIndexes" : 
+					[
+						28
+					]
+				},
+				{
+					"build" : "OpenXR-SDK/src",
+					"childIndexes" : 
+					[
+						6
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-OpenXR-SDK.src-Debug-5c153febb4912adfbe62.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 2,
+					"source" : "OpenXR-SDK/src",
+					"targetIndexes" : 
+					[
+						34,
+						35
+					]
+				},
+				{
+					"build" : "OpenXR-SDK/src/loader",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-OpenXR-SDK.src.loader-Debug-629d6f484ceb711afef0.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 2,
+					"source" : "OpenXR-SDK/src/loader",
+					"targetIndexes" : 
+					[
+						29
+					]
+				},
+				{
+					"build" : "patchelf",
+					"jsonFile" : "directory-patchelf-Debug-587d08d94446bbb1eb75.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22.1"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 3,
+					"source" : "patchelf",
+					"targetIndexes" : 
+					[
+						30
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "Winlator",
+					"targetIndexes" : 
+					[
+						33
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "VirGLRenderer",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						32
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2,
+						3,
+						4,
+						5,
+						6
+					],
+					"name" : "OPENXR",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25,
+						26,
+						27,
+						28,
+						29,
+						31,
+						34,
+						35
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						7
+					],
+					"name" : "PatchElf",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						30
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 2,
+					"id" : "Continuous::@2caf46f5906458efc46b",
+					"jsonFile" : "target-Continuous-Debug-a5c855cd04c0de97fa73.json",
+					"name" : "Continuous",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ContinuousBuild::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ContinuousBuild-Debug-7b1069fc641d420bf425.json",
+					"name" : "ContinuousBuild",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ContinuousConfigure::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ContinuousConfigure-Debug-efbf3b2f69a014682397.json",
+					"name" : "ContinuousConfigure",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ContinuousCoverage::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ContinuousCoverage-Debug-1a5152cc4ed7540ce9dd.json",
+					"name" : "ContinuousCoverage",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ContinuousMemCheck::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ContinuousMemCheck-Debug-2248bae05b371cf222c1.json",
+					"name" : "ContinuousMemCheck",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ContinuousStart::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ContinuousStart-Debug-16580231dea60bbab928.json",
+					"name" : "ContinuousStart",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ContinuousSubmit::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ContinuousSubmit-Debug-51188be8cf50d115f22c.json",
+					"name" : "ContinuousSubmit",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ContinuousTest::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ContinuousTest-Debug-51094f050d692120b69c.json",
+					"name" : "ContinuousTest",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ContinuousUpdate::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ContinuousUpdate-Debug-52b7293b6c6696491e68.json",
+					"name" : "ContinuousUpdate",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "Experimental::@2caf46f5906458efc46b",
+					"jsonFile" : "target-Experimental-Debug-87a6b5abf089f8b8d626.json",
+					"name" : "Experimental",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ExperimentalBuild::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ExperimentalBuild-Debug-d2ccc83973ace5914471.json",
+					"name" : "ExperimentalBuild",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ExperimentalConfigure::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ExperimentalConfigure-Debug-60b28bf48168cfe838de.json",
+					"name" : "ExperimentalConfigure",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ExperimentalCoverage::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ExperimentalCoverage-Debug-c73b067bd0d3e526914a.json",
+					"name" : "ExperimentalCoverage",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ExperimentalMemCheck::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ExperimentalMemCheck-Debug-2eb6028a2de54dbac208.json",
+					"name" : "ExperimentalMemCheck",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ExperimentalStart::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ExperimentalStart-Debug-95da0b050993b0777b5f.json",
+					"name" : "ExperimentalStart",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ExperimentalSubmit::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ExperimentalSubmit-Debug-fea4ea1385418432401c.json",
+					"name" : "ExperimentalSubmit",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ExperimentalTest::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ExperimentalTest-Debug-100b462e601adeb5969d.json",
+					"name" : "ExperimentalTest",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ExperimentalUpdate::@2caf46f5906458efc46b",
+					"jsonFile" : "target-ExperimentalUpdate-Debug-55b18072ab593469aefe.json",
+					"name" : "ExperimentalUpdate",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "Nightly::@2caf46f5906458efc46b",
+					"jsonFile" : "target-Nightly-Debug-c894643918642f1a204c.json",
+					"name" : "Nightly",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "NightlyBuild::@2caf46f5906458efc46b",
+					"jsonFile" : "target-NightlyBuild-Debug-87a5bae8f18791f86c2a.json",
+					"name" : "NightlyBuild",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "NightlyConfigure::@2caf46f5906458efc46b",
+					"jsonFile" : "target-NightlyConfigure-Debug-ff98bb9d69a37d682f60.json",
+					"name" : "NightlyConfigure",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "NightlyCoverage::@2caf46f5906458efc46b",
+					"jsonFile" : "target-NightlyCoverage-Debug-0dfb64b879390a7c1875.json",
+					"name" : "NightlyCoverage",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "NightlyMemCheck::@2caf46f5906458efc46b",
+					"jsonFile" : "target-NightlyMemCheck-Debug-036ff9eb001e4dcb53b6.json",
+					"name" : "NightlyMemCheck",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "NightlyMemoryCheck::@2caf46f5906458efc46b",
+					"jsonFile" : "target-NightlyMemoryCheck-Debug-cc1561b33564f053cf3b.json",
+					"name" : "NightlyMemoryCheck",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "NightlyStart::@2caf46f5906458efc46b",
+					"jsonFile" : "target-NightlyStart-Debug-3682f5b7e009673a8dea.json",
+					"name" : "NightlyStart",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "NightlySubmit::@2caf46f5906458efc46b",
+					"jsonFile" : "target-NightlySubmit-Debug-976c1c7e0d28f79b4087.json",
+					"name" : "NightlySubmit",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "NightlyTest::@2caf46f5906458efc46b",
+					"jsonFile" : "target-NightlyTest-Debug-9287634cbdad73ec666c.json",
+					"name" : "NightlyTest",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "NightlyUpdate::@2caf46f5906458efc46b",
+					"jsonFile" : "target-NightlyUpdate-Debug-a51896b07e5eafbeb408.json",
+					"name" : "NightlyUpdate",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "generate_openxr_header::@d4f616a0f5a09c8f6cee",
+					"jsonFile" : "target-generate_openxr_header-Debug-ebe89de43b046313c551.json",
+					"name" : "generate_openxr_header",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "openxr_loader::@ba736ccf72c0afa5022f",
+					"jsonFile" : "target-openxr_loader-Debug-c5be469d32787a74d050.json",
+					"name" : "openxr_loader",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "patchelf::@34e0f137fc7625edf7c9",
+					"jsonFile" : "target-patchelf-Debug-a8069dfc1eda5456fc94.json",
+					"name" : "patchelf",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "uninstall::@2caf46f5906458efc46b",
+					"jsonFile" : "target-uninstall-Debug-97b4dc3a8e2bbda1f584.json",
+					"name" : "uninstall",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "virglrenderer::@b02222b02b17b4412ae0",
+					"jsonFile" : "target-virglrenderer-Debug-a8cca2172ad3ce6ce778.json",
+					"name" : "virglrenderer",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "winlator::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-winlator-Debug-522cc01b2e2798d46e1d.json",
+					"name" : "winlator",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "xr_common_generated_files::@03a6682eb0933245f65a",
+					"jsonFile" : "target-xr_common_generated_files-Debug-e4654b98d6abec834e5e.json",
+					"name" : "xr_common_generated_files",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "xr_global_generated_files::@03a6682eb0933245f65a",
+					"jsonFile" : "target-xr_global_generated_files-Debug-ee96448c4e3e284177af.json",
+					"name" : "xr_global_generated_files",
+					"projectIndex" : 2
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/cpp/out/build/x64-Debug",
+		"source" : "C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/cpp"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}

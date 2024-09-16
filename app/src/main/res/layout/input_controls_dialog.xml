@@ -39,6 +39,21 @@
             android:checked="true"
             android:text="@string/show_touchscreen_controls" />
 
+
+        <CheckBox
+            android:id="@+id/CBEnableTimeout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/enable_touchscreen_timeout"
+            android:checked="false" />
+
+        <CheckBox
+            android:id="@+id/CBEnableHaptics"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/enable_touchscreen_haptics"
+            android:checked="false" />
+
         <CheckBox
             android:id="@+id/CBRelativeMouseMovement"
             android:layout_width="wrap_content"

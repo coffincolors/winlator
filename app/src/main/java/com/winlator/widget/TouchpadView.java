@@ -2,6 +2,7 @@ package com.winlator.widget;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.StateListDrawable;
@@ -13,6 +14,8 @@ import android.view.PointerIcon;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+
+import androidx.preference.PreferenceManager;
 
 import com.winlator.R;
 import com.winlator.core.AppUtils;
@@ -56,15 +59,22 @@ public class TouchpadView extends View {
     private float resolutionScale;
     private static final int UPDATE_FORM_DELAYED_TIME = 50;
 
+    private Handler timeoutHandler; // Reference to the activity's timeout handler
+    private Runnable hideControlsRunnable; // Runnable to hide the controls
+
     private SharedPreferences preferences;
 
 
     // Flag to control touchpad vs touchscreen mode
 
     @SuppressLint("ResourceType")
-    public TouchpadView(Context context, XServer xServer) {
+    public TouchpadView(Context context, XServer xServer, Handler timeoutHandler, Runnable hideControlsRunnable) {
         super(context);
         this.xServer = xServer;
+
+        this.timeoutHandler = timeoutHandler; // Store the reference to timeout handler
+        this.hideControlsRunnable = hideControlsRunnable; // Store the reference to the hide controls runnable
+
         setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setBackground(createTransparentBg());
         setClickable(true);
@@ -74,6 +84,10 @@ public class TouchpadView extends View {
         updateXform(AppUtils.getScreenWidth(), AppUtils.getScreenHeight(), xServer.screenInfo.width, xServer.screenInfo.height);
         // Initialize SharedPreferences here
         this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        this.timeoutHandler = timeoutHandler; // Store the reference to timeout handler
+        this.hideControlsRunnable = hideControlsRunnable; // Store the reference to the hide controls runnable
+
         // Set up the generic motion listener for hover events
         setOnGenericMotionListener(new OnGenericMotionListener() {
             @Override
@@ -159,6 +173,11 @@ public class TouchpadView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean isTouchscreenMode = preferences.getBoolean("touchscreen_toggle", false);
+
+        // Reset the timeout timer to keep controls visible
+        resetTouchscreenTimeout();  // <-- Ensure the controls stay visible
+
+        // Continue handling touch events as usual
         int toolType = event.getToolType(0);
 
         if (toolType == MotionEvent.TOOL_TYPE_STYLUS) {
@@ -170,6 +189,15 @@ public class TouchpadView extends View {
         }
     }
 
+    private void resetTouchscreenTimeout() {
+        Log.d("TouchpadView", "Touch detected, resetting timeout.");
+        if (timeoutHandler != null && hideControlsRunnable != null) {
+            // Cancel any pending hide requests
+            timeoutHandler.removeCallbacks(hideControlsRunnable);
+            // Post a new request to hide the controls after 5 seconds
+            timeoutHandler.postDelayed(hideControlsRunnable, 5000); // Adjust timeout as necessary
+        }
+    }
     private boolean handleStylusHoverEvent(MotionEvent event) {
         int action = event.getActionMasked();
 

@@ -1,0 +1,39 @@
+{
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target"
+		],
+		"files" : 
+		[
+			"OpenXR-SDK/src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 515,
+				"parent" : 0
+			}
+		]
+	},
+	"folder" : 
+	{
+		"name" : "Generated"
+	},
+	"id" : "xr_global_generated_files::@03a6682eb0933245f65a",
+	"name" : "xr_global_generated_files",
+	"paths" : 
+	{
+		"build" : "OpenXR-SDK/src",
+		"source" : "OpenXR-SDK/src"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

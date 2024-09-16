@@ -1,0 +1,90 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"OpenXR-SDK/src/loader/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 386,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 409,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 429,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Loader",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"OpenXR-SDK/src/loader/openxr_loaderd.lib"
+			],
+			"targetId" : "openxr_loader::@ba736ccf72c0afa5022f",
+			"targetIndex" : 29,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "CMakeConfigs",
+			"destination" : "cmake",
+			"exportName" : "openxr_loader_export",
+			"exportTargets" : 
+			[
+				{
+					"id" : "openxr_loader::@ba736ccf72c0afa5022f",
+					"index" : 29
+				},
+				{
+					"id" : "headers::@d4f616a0f5a09c8f6cee",
+					"index" : 0
+				}
+			],
+			"paths" : 
+			[
+				"OpenXR-SDK/src/loader/CMakeFiles/Export/272ceadb8458515b2ae4b5630a6029cc/OpenXRTargets.cmake"
+			],
+			"type" : "export"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "CMakeConfigs",
+			"destination" : "cmake",
+			"paths" : 
+			[
+				"out/build/x64-Debug/OpenXR-SDK/src/loader/OpenXRConfig.cmake",
+				"out/build/x64-Debug/OpenXR-SDK/src/loader/OpenXRConfigVersion.cmake"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "OpenXR-SDK/src/loader",
+		"source" : "OpenXR-SDK/src/loader"
+	}
+}
