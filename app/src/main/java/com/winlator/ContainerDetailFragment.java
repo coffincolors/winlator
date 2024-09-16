@@ -225,6 +225,9 @@ public class ContainerDetailFragment extends Fragment {
         final CheckBox cbShowFPS = view.findViewById(R.id.CBShowFPS);
         cbShowFPS.setChecked(isEditMode() && container.isShowFPS());
 
+        final CheckBox cbFullscreenStretched = view.findViewById(R.id.CBFullscreenStretched);
+        cbFullscreenStretched.setChecked(isEditMode() && container.isFullscreenStretched());
+
         final Runnable showInputWarning = () -> ContentDialog.alert(context, R.string.enable_xinput_and_dinput_same_time, null);
         final CheckBox cbEnableXInput = view.findViewById(R.id.CBEnableXInput);
         final CheckBox cbEnableDInput = view.findViewById(R.id.CBEnableDInput);
@@ -312,6 +315,7 @@ public class ContainerDetailFragment extends Fragment {
                 String wincomponents = getWinComponents(view);
                 String drives = getDrives(view);
                 boolean showFPS = cbShowFPS.isChecked();
+                boolean fullscreenStretched = cbFullscreenStretched.isChecked();
                 String cpuList = cpuListView.getCheckedCPUListAsString();
                 String cpuListWoW64 = cpuListViewWoW64.getCheckedCPUListAsString();
                 boolean wow64Mode = cbWoW64Mode.isChecked();
@@ -342,6 +346,7 @@ public class ContainerDetailFragment extends Fragment {
                     container.setWinComponents(wincomponents);
                     container.setDrives(drives);
                     container.setShowFPS(showFPS);
+                    container.setFullscreenStretched(fullscreenStretched);
                     container.setInputType(finalInputType);
                     container.setWoW64Mode(wow64Mode);
                     container.setStartupSelection(startupSelection);
@@ -367,6 +372,7 @@ public class ContainerDetailFragment extends Fragment {
                     data.put("wincomponents", wincomponents);
                     data.put("drives", drives);
                     data.put("showFPS", showFPS);
+                    data.put("fullscreenStretched", fullscreenStretched);
                     data.put("inputType", finalInputType);
                     data.put("wow64Mode", wow64Mode);
                     data.put("startupSelection", startupSelection);

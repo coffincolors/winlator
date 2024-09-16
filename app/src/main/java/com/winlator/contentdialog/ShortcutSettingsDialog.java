@@ -92,6 +92,11 @@ public class ShortcutSettingsDialog extends ContentDialog {
             llSecondaryExecOptions.setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
 
+        final CheckBox cbFullscreenStretched =  findViewById(R.id.CBFullscreenStretched);
+        boolean fullscreenStretched = shortcut.getExtra("fullscreenStretched", "0").equals("1");
+        cbFullscreenStretched.setChecked(fullscreenStretched);
+
+
         final Runnable showInputWarning = () -> ContentDialog.alert(context, R.string.enable_xinput_and_dinput_same_time, null);
         final CheckBox cbEnableXInput = findViewById(R.id.CBEnableXInput);
         final CheckBox cbEnableDInput = findViewById(R.id.CBEnableDInput);
@@ -207,6 +212,8 @@ public class ShortcutSettingsDialog extends ContentDialog {
                     shortcut.putExtra("secondaryExec", null);
                     shortcut.putExtra("execDelay", null);
                 }
+
+                shortcut.putExtra("fullscreenStretched", cbFullscreenStretched.isChecked() ? "1" : null);
 
                 String wincomponents = ContainerDetailFragment.getWinComponents(getContentView());
                 shortcut.putExtra("wincomponents", !wincomponents.equals(shortcut.container.getWinComponents()) ? wincomponents : null);

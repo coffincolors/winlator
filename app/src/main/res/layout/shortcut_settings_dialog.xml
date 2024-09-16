@@ -253,6 +253,12 @@
                 android:src="@drawable/icon_menu" />
         </LinearLayout>
 
+        <CheckBox
+            android:id="@+id/CBFullscreenStretched"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fullscreen_stretched" />
+
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/TabLayout"
             android:layout_width="match_parent"

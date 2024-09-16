@@ -43,6 +43,7 @@ public class Container {
     private String drives = DEFAULT_DRIVES;
     private String wineVersion = WineInfo.MAIN_WINE_VERSION.identifier();
     private boolean showFPS;
+    private boolean fullscreenStretched;
     private boolean wow64Mode = true;
     private byte startupSelection = STARTUP_SELECTION_ESSENTIAL;
     private String cpuList;
@@ -168,9 +169,13 @@ public class Container {
         return showFPS;
     }
 
+    public boolean isFullscreenStretched() { return fullscreenStretched; }
+
     public void setShowFPS(boolean showFPS) {
         this.showFPS = showFPS;
     }
+
+    public void setFullscreenStretched(boolean fullscreenStretched) { this.fullscreenStretched = fullscreenStretched; }
 
     public boolean isWoW64Mode() {
         return wow64Mode;
@@ -354,6 +359,7 @@ public class Container {
             data.put("wincomponents", wincomponents);
             data.put("drives", drives);
             data.put("showFPS", showFPS);
+            data.put("fullscreenStretched", fullscreenStretched);
             data.put("inputType", inputType);
             data.put("wow64Mode", wow64Mode);
             data.put("startupSelection", startupSelection);
@@ -414,6 +420,9 @@ public class Container {
                     break;
                 case "showFPS" :
                     setShowFPS(data.getBoolean(key));
+                    break;
+                case "fullscreenStretched" :
+                    setFullscreenStretched(data.getBoolean(key));
                     break;
                 case "inputType" :
                     setInputType(data.getInt(key));

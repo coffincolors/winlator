@@ -92,7 +92,7 @@ public class InputControlsView extends View {
         setFocusable(true);
         setFocusableInTouchMode(true);
         setBackgroundColor(0x00000000);
-        setPointerIcon(PointerIcon.load(getResources(), R.drawable.hidden_pointer_arrow));
+        // setPointerIcon(PointerIcon.load(getResources(), R.drawable.hidden_pointer_arrow));
         setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         preferences = PreferenceManager.getDefaultSharedPreferences(this.getContext());
     }
@@ -404,8 +404,8 @@ public class InputControlsView extends View {
                         if (element.handleTouchDown(pointerId, x, y)) {
                             handled = true;
 
-                            // Trigger haptic feedback for buttons, not for virtual analog sticks
-                            if ((element.isButton() || element.isDPad()) && hapticsEnabled) {
+                            // Trigger haptic feedback for input controls
+                            if (hapticsEnabled) {
                                 Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
                                 if (vibrator != null && vibrator.hasVibrator()) {
                                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {

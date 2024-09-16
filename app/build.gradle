@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         applicationId 'com.cmodded.winlator'
-        minSdkVersion 26
+        minSdkVersion 28
         targetSdkVersion 28
         versionCode 18
         versionName "7.1.3-cmod-proot-v8"

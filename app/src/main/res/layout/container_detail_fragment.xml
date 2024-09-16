@@ -235,6 +235,13 @@
                 android:text="@string/show_fps"
                 android:layout_marginTop="8dp" />
 
+            <CheckBox
+                android:id="@+id/CBFullscreenStretched"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/fullscreen_stretched"
+                android:layout_marginTop="8dp" />
+
 
 
             <com.google.android.material.tabs.TabLayout

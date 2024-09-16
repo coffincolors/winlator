@@ -447,9 +447,15 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         });
 
 
+        // Check if a profile is defined by the shortcut
+        String controlsProfile = shortcut != null ? shortcut.getExtra("controlsProfile", "") : "";
 
         Runnable runnable = () -> {
             setupUI();
+            if (controlsProfile.isEmpty()) {
+                // No profile defined, run the simulated dialog confirmation for input controls
+                simulateConfirmInputControlsDialog();
+            }
 
             Executors.newSingleThreadExecutor().execute(() -> {
                 if (!isGenerateWineprefix()) {
@@ -969,6 +975,26 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             rootView.addView(frameRating);
         }
 
+        // Get the fullscreen stretched extra from the shortcut if available
+        String shortcutFullscreenStretched = shortcut != null ? shortcut.getExtra("fullscreenStretched") : null;
+
+        // Proceed based on container and shortcut settings
+        boolean shouldStretch = false;
+
+        if (shortcut != null && shortcutFullscreenStretched != null) {
+            // Shortcut exists and has a valid setting
+            shouldStretch = shortcutFullscreenStretched.equals("1");
+        } else if (container != null && container.isFullscreenStretched()) {
+            // No shortcut or shortcut doesn't override, use the container's setting
+            shouldStretch = true;
+        }
+
+        if (shouldStretch) {
+            // Toggle fullscreen mode based on the final decision
+            renderer.toggleFullscreen();
+            touchpadView.toggleFullscreen();
+        }
+
         if (shortcut != null) {
             String controlsProfile = shortcut.getExtra("controlsProfile");
             if (!controlsProfile.isEmpty()) {
@@ -1094,44 +1120,100 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         dialog.show();
     }
 
+    private void simulateConfirmInputControlsDialog() {
+        // Simulate setting the relative mouse movement and touchscreen controls from preferences
+        boolean isRelativeMouseMovement = preferences.getBoolean("relative_mouse_movement_enabled", false);
+        xServer.setRelativeMouseMovement(isRelativeMouseMovement);
+
+        boolean isShowTouchscreenControls = preferences.getBoolean("show_touchscreen_controls_enabled", false); // default is false (hidden)
+        inputControlsView.setShowTouchscreenControls(isShowTouchscreenControls);
+
+        boolean isTimeoutEnabled = preferences.getBoolean("touchscreen_timeout_enabled", false);
+        boolean isHapticsEnabled = preferences.getBoolean("touchscreen_haptics_enabled", false);
+
+        // Apply these settings as if the user confirmed the dialog
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("touchscreen_timeout_enabled", isTimeoutEnabled);
+        editor.putBoolean("touchscreen_haptics_enabled", isHapticsEnabled);
+        editor.apply();
+
+        // If no profile is selected, hide the controls
+        int selectedProfileIndex = preferences.getInt("selected_profile_index", -1); // Default to -1 for no profile
+
+        if (selectedProfileIndex >= 0 && selectedProfileIndex < inputControlsManager.getProfiles().size()) {
+            // A profile is selected, show the controls
+            ControlsProfile profile = inputControlsManager.getProfiles().get(selectedProfileIndex);
+            showInputControls(profile);
+        } else {
+            // No profile selected, ensure the controls are hidden
+            hideInputControls();
+        }
+
+        // Timeout logic should only apply if the controls are visible
+        if (isTimeoutEnabled && inputControlsView.getVisibility() == View.VISIBLE) {
+            startTouchscreenTimeout(); // Start timeout if enabled and controls are visible
+        } else {
+            touchpadView.setOnTouchListener(null); // Disable the timeout listener if not needed
+        }
+
+        Log.d("XServerDisplayActivity", "Input controls simulated confirmation executed.");
+    }
+
+
+
     private void startTouchscreenTimeout() {
         boolean isTimeoutEnabled = preferences.getBoolean("touchscreen_timeout_enabled", false);
 
         if (isTimeoutEnabled) {
-            // Show controls initially and set up touch event listeners
+            // Show controls initially
             inputControlsView.setVisibility(View.VISIBLE);
             Log.d("XServerDisplayActivity", "Timeout is enabled, setting up timeout logic.");
 
-            // Attach the OnTouchListener to reset the timeout on touch events
+            // Attach an OnTouchListener to the root view to detect touch events anywhere on the screen
+            View rootView = findViewById(android.R.id.content); // Get the root view of the activity
+            rootView.setOnTouchListener((v, event) -> {
+                int action = event.getAction();
+                if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
+                    // Keep the controls visible when the screen is touched
+                    inputControlsView.setVisibility(View.VISIBLE);
+
+                    // Reset the timeout to hide controls after 5 seconds of inactivity
+                    timeoutHandler.removeCallbacks(hideControlsRunnable);
+                    timeoutHandler.postDelayed(hideControlsRunnable, 5000);
+                    Log.d("XServerDisplayActivity", "Touch detected on root view, resetting timeout.");
+                }
+                return false; // Allow the touch event to propagate to child views
+            });
+
+            // Attach a specific OnTouchListener to the touchpadView to ensure touchpad works properly
             touchpadView.setOnTouchListener((v, event) -> {
                 int action = event.getAction();
                 if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
-                    // Reset the timeout on any touch event
-                    Log.d("XServerDisplayActivity", "Touch detected, resetting timeout.");
-
-                    // Keep the controls visible
+                    // Reset the timeout when interacting with the touchpad
                     inputControlsView.setVisibility(View.VISIBLE);
-
-                    // Remove any pending hide callbacks and reset the timeout
                     timeoutHandler.removeCallbacks(hideControlsRunnable);
-                    timeoutHandler.postDelayed(hideControlsRunnable, 5000); // Reset timeout
+                    timeoutHandler.postDelayed(hideControlsRunnable, 5000);
+
+                    Log.d("XServerDisplayActivity", "Touchpad interaction detected, resetting timeout.");
                 }
 
-                return false; // Allow the touch event to propagate
+                // Let the touchpad handle its native events and functionality
+                return false; // Ensure the touch event propagates to native touchpad handling
             });
 
-            // Reset the timeout when the controls are initially displayed
+            // Ensure that the timeout resets when the controls are initially displayed
             timeoutHandler.removeCallbacks(hideControlsRunnable);
-            timeoutHandler.postDelayed(hideControlsRunnable, 5000); // Hide after 5 seconds of inactivity
+            timeoutHandler.postDelayed(hideControlsRunnable, 5000); // Hide controls after 5 seconds of inactivity
+
         } else {
             // If timeout is disabled, keep the controls always visible
             Log.d("XServerDisplayActivity", "Timeout is disabled, controls will stay visible.");
-
             inputControlsView.setVisibility(View.VISIBLE); // Ensure controls are visible
             timeoutHandler.removeCallbacks(hideControlsRunnable); // Remove any existing hide callbacks
             touchpadView.setOnTouchListener(null); // Remove the touch listener
         }
     }
+
 
     private void showInputControls(ControlsProfile profile) {
         inputControlsView.setVisibility(View.VISIBLE);
