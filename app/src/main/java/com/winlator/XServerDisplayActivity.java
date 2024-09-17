@@ -1242,14 +1242,27 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         String cacheId = graphicsDriver;
         String selectedDriverVersion = container.getGraphicsDriverVersion(); // Fetch the selected version
 
-        // Adjust cacheId based on graphics driver
-        if (graphicsDriver.equals("turnip")) {
-            cacheId += "-" + DefaultVersion.TURNIP + "-" + DefaultVersion.ZINK;
-        } else if (graphicsDriver.equals("virgl")) {
-            cacheId += "-" + DefaultVersion.VIRGL;
+        if (shortcut != null) {
+            selectedDriverVersion = shortcut.getExtra("graphicsDriverVersion", container.getGraphicsDriverVersion());
         }
 
+        // Adjust cacheId based on the graphics driver and version
+        if (graphicsDriver.equals("turnip")) {
+            cacheId += "-" + selectedDriverVersion;  // Append version if using Turnip driver
+            cacheId += "-" + DefaultVersion.ZINK;    // Append Zink version for Turnip driver
+        } else if (graphicsDriver.equals("virgl")) {
+            cacheId += "-" + DefaultVersion.VIRGL;   // Append version for VirGL driver
+        }
+
+        Log.d("GraphicsDriverExtraction", "Cache ID: " + cacheId);
+
         boolean changed = !cacheId.equals(container.getExtra("graphicsDriver"));
+
+        // If launching without a shortcut (container-only launch), always extract to reset to the container's default
+        if (shortcut == null) {
+            changed = true;  // Force extraction when no shortcut is present to ensure correct driver is used
+        }
+
         File rootDir = imageFs.getRootDir(); // Target the root directory of imagefs
 
         if (changed) {
@@ -1260,6 +1273,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             container.putExtra("graphicsDriver", cacheId);
             container.saveData();
         }
+
+
 
         if (graphicsDriver.equals("turnip")) {
             if (dxwrapper.equals("dxvk")) {
@@ -1289,7 +1304,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
             boolean extractionSucceeded = false;
             if (changed) {
-                extractionSucceeded = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/turnip-" + DefaultVersion.TURNIP + ".tzst", rootDir) &&
+                // Use selectedDriverVersion instead of DefaultVersion.TURNIP
+                extractionSucceeded = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/turnip-" + selectedDriverVersion + ".tzst", rootDir) &&
                         TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/zink-" + DefaultVersion.ZINK + ".tzst", rootDir);
 
                 if (extractionSucceeded) {
@@ -1298,6 +1314,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                     Log.e("GraphicsDriverExtraction", "Extraction from .tzst files failed, will attempt to use the contents directory.");
                 }
             }
+
 
             if (!extractionSucceeded) {
                 // Parse version string for the actual version number, removing "Turnip-"

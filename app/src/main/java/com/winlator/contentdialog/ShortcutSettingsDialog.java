@@ -1,5 +1,7 @@
 package com.winlator.contentdialog;
 
+
+
 import android.content.Context;
 import android.graphics.drawable.Icon;
 import android.view.Menu;
@@ -34,6 +36,8 @@ public class ShortcutSettingsDialog extends ContentDialog {
     private final Shortcut shortcut;
     private InputControlsManager inputControlsManager;
 
+    private String graphicsDriverVersion;
+
     public ShortcutSettingsDialog(ShortcutsFragment fragment, Shortcut shortcut) {
         super(fragment.getContext(), R.layout.shortcut_settings_dialog);
         this.fragment = fragment;
@@ -64,6 +68,14 @@ public class ShortcutSettingsDialog extends ContentDialog {
         ContentsManager contentsManager = new ContentsManager(context);
         contentsManager.syncContents();
         ContainerDetailFragment.updateGraphicsDriverSpinner(context, contentsManager, sGraphicsDriver);
+
+        final View vGraphicsDriverConfig = findViewById(R.id.BTGraphicsDriverConfig);
+        vGraphicsDriverConfig.setTag(shortcut.getExtra("graphicsDriverVersion", shortcut.container.getGraphicsDriverVersion()));
+        vGraphicsDriverConfig.setOnClickListener((v) -> {
+
+            showGraphicsDriverConfigDialog(vGraphicsDriverConfig);
+
+        });
 
         final View vDXWrapperConfig = findViewById(R.id.BTDXWrapperConfig);
         vDXWrapperConfig.setTag(shortcut.getExtra("dxwrapperConfig", shortcut.container.getDXWrapperConfig()));
@@ -182,6 +194,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
             }
             else {
                 String graphicsDriver = StringUtils.parseIdentifier(sGraphicsDriver.getSelectedItem());
+                String graphicsDriverConfig = vGraphicsDriverConfig.getTag().toString();
                 String dxwrapper = StringUtils.parseIdentifier(sDXWrapper.getSelectedItem());
                 String dxwrapperConfig = vDXWrapperConfig.getTag().toString();
                 String audioDriver = StringUtils.parseIdentifier(sAudioDriver.getSelectedItem());
@@ -197,11 +210,14 @@ public class ShortcutSettingsDialog extends ContentDialog {
                 shortcut.putExtra("execArgs", !execArgs.isEmpty() ? execArgs : null);
                 shortcut.putExtra("screenSize", !screenSize.equals(shortcut.container.getScreenSize()) ? screenSize : null);
                 shortcut.putExtra("graphicsDriver", !graphicsDriver.equals(shortcut.container.getGraphicsDriver()) ? graphicsDriver : null);
+                shortcut.putExtra("graphicsDriverVersion", graphicsDriverConfig);
                 shortcut.putExtra("dxwrapper", !dxwrapper.equals(shortcut.container.getDXWrapper()) ? dxwrapper : null);
                 shortcut.putExtra("dxwrapperConfig", !dxwrapperConfig.equals(shortcut.container.getDXWrapperConfig()) ? dxwrapperConfig : null);
                 shortcut.putExtra("audioDriver", !audioDriver.equals(shortcut.container.getAudioDriver())? audioDriver : null);
                 shortcut.putExtra("forceFullscreen", cbForceFullscreen.isChecked() ? "1" : null);
                 updateExtra("lc_all", shortcut.container.getLC_ALL(), lc_all);
+
+
 
                 if (cbUseSecondaryExec.isChecked()) {
                     String secondaryExec = etSecondaryExec.getText().toString().trim();
@@ -237,6 +253,13 @@ public class ShortcutSettingsDialog extends ContentDialog {
                 shortcut.saveData();
             }
         });
+    }
+
+    private void showGraphicsDriverConfigDialog(View anchor) {
+        new GraphicsDriverConfigDialog(anchor, graphicsDriverVersion, shortcut, version -> {
+            // Capture the selected version
+            graphicsDriverVersion = version;
+        }).show();
     }
 
     private void updateExtra(String extraName, String containerValue, String newValue) {
