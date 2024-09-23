@@ -412,4 +412,7 @@
     <string name="enable_legacy_input_mode">Enable 7.1.2 Legacy Input Mode</string>
     <string name="enable_touchscreen_timeout">Touchscreen Timeout (Requires Restart)</string>
     <string name="enable_touchscreen_haptics">Enable Touchscreen Haptic Feedback</string>
+    <string name="help_steamgrid">SteamGrid API Key</string>
+    <string name="disable_xinput_for_shortcut">Disable Xinput (For Exclusive M/KB Control)</string>
+    <string name="fullscreen_stretched">Enable Fullscreen (Stretched)</string>
 </resources>

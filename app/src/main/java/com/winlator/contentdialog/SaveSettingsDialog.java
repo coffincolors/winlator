@@ -1,10 +1,8 @@
 package com.winlator.contentdialog;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -13,6 +11,8 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import androidx.preference.PreferenceManager;
 
 import com.winlator.MainActivity;
 import com.winlator.R;
@@ -38,6 +38,8 @@ public class SaveSettingsDialog extends ContentDialog {
     private EditText etTitle;
     private Save saveToEdit;  // Store the save object being edited
 
+    private boolean isDarkMode;
+
 
     public SaveSettingsDialog(Activity activity, SaveManager saveManager, ContainerManager containerManager) {
         super(activity, R.layout.save_settings_dialog);
@@ -53,7 +55,11 @@ public class SaveSettingsDialog extends ContentDialog {
         // Reload spinner data whenever the dialog is shown
         setOnShowListener(dialog -> {
             Spinner sContainer = findViewById(R.id.SContainer);
+
+            sContainer.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
             loadContainerSpinner(sContainer);
+
 
             // Set the selected container if in edit mode
             if (saveToEdit != null && selectedContainer != null) {
@@ -80,10 +86,18 @@ public class SaveSettingsDialog extends ContentDialog {
 
     private void createContentView() {
         final Context context = getContext();
+
+        isDarkMode = PreferenceManager.getDefaultSharedPreferences(getContext())
+                .getBoolean("dark_mode", false);
+
         LinearLayout llContent = findViewById(R.id.LLContent);
         llContent.getLayoutParams().width = AppUtils.getPreferredDialogWidth(context);
 
         etTitle = findViewById(R.id.ETTitle);
+
+        // Set the background resource based on isDarkMode
+        etTitle.setBackgroundResource(isDarkMode ? R.drawable.edit_text_dark : R.drawable.edit_text);
+
         tvSavePath = findViewById(R.id.TVPath);
         tvSavePath.setVisibility(View.GONE);
 
@@ -131,6 +145,8 @@ public class SaveSettingsDialog extends ContentDialog {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, containerNames);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sContainer.setAdapter(adapter);
+
+        sContainer.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
 
         sContainer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override

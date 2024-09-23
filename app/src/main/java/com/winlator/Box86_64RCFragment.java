@@ -3,6 +3,8 @@ package com.winlator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -27,6 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -63,11 +66,17 @@ public class Box86_64RCFragment extends Fragment {
     private Spinner sRCFile;
     private Callback<RCFile> importRCFileCallback;
 
+    private boolean isDarkMode;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(false);
         manager = new RCManager(getContext());
+
+        // Initialize isDarkMode based on shared preferences or theme
+        isDarkMode = PreferenceManager.getDefaultSharedPreferences(getContext())
+                .getBoolean("dark_mode", false);
     }
 
     @Override
@@ -100,6 +109,10 @@ public class Box86_64RCFragment extends Fragment {
         rbgFilter.setOnCheckedChangeListener(checkedChangeListener);
 
         EditText etFilter = layout.findViewById(R.id.ETFilter);
+
+        // Set the background resource based on isDarkMode
+        etFilter.setBackgroundResource(isDarkMode ? R.drawable.edit_text_dark : R.drawable.edit_text);
+
         etFilter.addTextChangedListener(textWatcher);
 
         recyclerView = layout.findViewById(R.id.RecyclerView);
@@ -119,6 +132,10 @@ public class Box86_64RCFragment extends Fragment {
         }
 
         spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, values));
+
+        // Set popup background based on theme
+        spinner.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -446,6 +463,10 @@ public class Box86_64RCFragment extends Fragment {
             etGroupName = layout.findViewById(R.id.ETGroupName);
             etGroupName.setText(group.getGroupName());
 
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+            boolean isDarkMode = prefs.getBoolean("dark_mode", false);
+            applyDarkThemeToEditText(etGroupName, isDarkMode);
+
             final View btNewItem = layout.findViewById(R.id.BTNewItem);
             btNewItem.setOnClickListener(v -> ContentDialog.prompt(getContext(), R.string.process_name, null, (name) -> {
                 group.getItems().add(new RCItem(name, "", null));
@@ -699,7 +720,16 @@ public class Box86_64RCFragment extends Fragment {
                 public void buildView(Context context) {
                     LinearLayout layout = (LinearLayout) LayoutInflater.from(context).inflate(R.layout.box86_64_rc_var, null);
                     etKey = layout.findViewById(R.id.ETKey);
+
+                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+                    boolean isDarkMode = prefs.getBoolean("dark_mode", false);
+                    applyDarkThemeToEditText(etKey, isDarkMode);
+
+
                     etValue = layout.findViewById(R.id.ETValue);
+
+                    applyDarkThemeToEditText(etValue, isDarkMode);
+
                     btRemove = layout.findViewById(R.id.BTRemoveVar);
                     btVarMenu = layout.findViewById(R.id.BTVarMenu);
                     btValueMenu = layout.findViewById(R.id.BTValueMenu);
@@ -710,6 +740,18 @@ public class Box86_64RCFragment extends Fragment {
                     view = layout;
                 }
             }
+        }
+    }
+
+    private static void applyDarkThemeToEditText(EditText editText, boolean isDarkMode) {
+        if (isDarkMode) {
+            editText.setTextColor(Color.WHITE); // Set text color to white for dark theme
+            editText.setHintTextColor(Color.GRAY); // Set hint color to gray
+            editText.setBackgroundResource(R.drawable.edit_text_dark); // Custom dark background drawable
+        } else {
+            editText.setTextColor(Color.BLACK); // Default text color
+            editText.setHintTextColor(Color.GRAY); // Default hint color
+            editText.setBackgroundResource(R.drawable.edit_text); // Custom light background drawable
         }
     }
 }

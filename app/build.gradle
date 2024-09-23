@@ -16,7 +16,7 @@ plugins {
 
 android {
     namespace 'com.winlator'
-    compileSdk 31
+    compileSdk 34
 
     defaultConfig {
         applicationId 'com.winlator'
@@ -74,7 +74,25 @@ dependencies {
     implementation 'androidx.activity:activity-ktx:1.4.0'
     implementation 'androidx.fragment:fragment-ktx:1.4.0'
     implementation files('libs/MidiSynth/MidiSynth.jar')
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'com.google.code.gson:gson:2.8.8'
+    implementation 'org.conscrypt:conscrypt-android:2.5.2' // for Conscrypt
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.68' // for BouncyCastle
+    implementation 'org.openjsse:openjsse:1.1.7'
+    implementation 'androidx.core:core:1.13.1'// for OpenJSSE
+
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.jetbrains.kotlin') {
+            details.useVersion "1.8.22" // or the Kotlin version you're using
+        }
+    }
 }

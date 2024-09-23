@@ -280,22 +280,62 @@ public class ContainerManager {
     }
 
 
-    public boolean extractGraphicsDriverFiles(String driverVersion, File containerDir, OnExtractFileListener onExtractFileListener) {
-        // Log the start of the extraction process
-        Log.d("GraphicsDriverExtraction", "Starting extraction for driver version: " + driverVersion);
+//    public boolean extractGraphicsDriverFiles(String driverVersion, File containerDir, OnExtractFileListener onExtractFileListener) {
+//        // Log the start of the extraction process
+//        Log.d("GraphicsDriverExtraction", "Starting extraction for driver version: " + driverVersion);
+//
+//        // Access the AssetManager to get the graphics driver from assets
+//        AssetManager assetManager = context.getAssets();
+//        String fileName = "graphics_driver/turnip-" + driverVersion + ".tzst";
+//
+//        try (InputStream inputStream = assetManager.open(fileName)) {
+//            Log.d("GraphicsDriverExtraction", "Driver file found in assets: " + fileName);
+//
+//            // Define the destination file path in the container directory
+//            File destinationFile = new File(containerDir, "turnip-" + driverVersion + ".tzst");
+//
+//            // Copy the asset file to the destination
+//            try (OutputStream outputStream = new FileOutputStream(destinationFile)) {
+//                byte[] buffer = new byte[1024];
+//                int length;
+//                while ((length = inputStream.read(buffer)) > 0) {
+//                    outputStream.write(buffer, 0, length);
+//                }
+//            }
+//
+//            // Log the extraction result
+//            boolean result = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, destinationFile, containerDir, onExtractFileListener);
+//
+//            if (result) {
+//                Log.d("GraphicsDriverExtraction", "Extraction successful for driver version: " + driverVersion);
+//            } else {
+//                Log.e("GraphicsDriverExtraction", "Extraction failed for driver version: " + driverVersion);
+//            }
+//
+//            return result;
+//        } catch (IOException e) {
+//            Log.e("GraphicsDriverExtraction", "Driver file not found in assets: " + fileName, e);
+//            return false;
+//        }
+//    }
 
+    public boolean extractGraphicsDriverFiles(String driverVersion, File imageFsRootDir, OnExtractFileListener onExtractFileListener) {
         // Access the AssetManager to get the graphics driver from assets
         AssetManager assetManager = context.getAssets();
-        String fileName = "graphics_driver/turnip-" + driverVersion + ".tzst";
+        String assetFileName = "graphics_driver/turnip-" + driverVersion + ".tzst";
 
-        try (InputStream inputStream = assetManager.open(fileName)) {
-            Log.d("GraphicsDriverExtraction", "Driver file found in assets: " + fileName);
+        // Log the intended paths for extraction
+        Log.d("ContainerManager", "Extracting graphics driver from assets: " + assetFileName);
 
-            // Define the destination file path in the container directory
-            File destinationFile = new File(containerDir, "turnip-" + driverVersion + ".tzst");
+        try (InputStream inputStream = assetManager.open(assetFileName)) {
+            // Define the temporary file path within the imagefs root directory
+            File tempFile = new File(imageFsRootDir, "turnip-" + driverVersion + ".tzst");
 
-            // Copy the asset file to the destination
-            try (OutputStream outputStream = new FileOutputStream(destinationFile)) {
+            // Log the destination path for extraction
+            Log.d("ContainerManager", "Copying asset file to temporary location: " + tempFile.getAbsolutePath());
+
+            // Copy the asset file to the temporary location
+            try (OutputStream outputStream = new FileOutputStream(tempFile)) {
                 byte[] buffer = new byte[1024];
                 int length;
                 while ((length = inputStream.read(buffer)) > 0) {
@@ -303,21 +343,57 @@ public class ContainerManager {
                 }
             }
 
-            // Log the extraction result
-            boolean result = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, destinationFile, containerDir, onExtractFileListener);
+            // Perform the extraction to the imageFs root directory
+            boolean result = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, tempFile, imageFsRootDir, onExtractFileListener);
 
+            // Log the result of the extraction
             if (result) {
-                Log.d("GraphicsDriverExtraction", "Extraction successful for driver version: " + driverVersion);
+                Log.d("ContainerManager", "Extraction succeeded for version: " + driverVersion);
             } else {
-                Log.e("GraphicsDriverExtraction", "Extraction failed for driver version: " + driverVersion);
+                Log.e("ContainerManager", "Extraction failed for version: " + driverVersion);
             }
 
+            // Clean up the copied asset file after extraction
+            if (tempFile.exists()) {
+                boolean deleted = tempFile.delete();
+                if (!deleted) {
+                    Log.w("ContainerManager", "Failed to delete temporary asset file: " + tempFile.getAbsolutePath());
+                }
+            }
+
+            // Return the result of the extraction
             return result;
+
         } catch (IOException e) {
-            Log.e("GraphicsDriverExtraction", "Driver file not found in assets: " + fileName, e);
+            // Log the exception if the asset file cannot be opened or copied
+            Log.e("ContainerManager", "Failed to extract graphics driver from assets: " + assetFileName, e);
             return false;
         }
     }
 
+
+
+
+    private void logDirectoryContents(File dir) {
+        Log.d("ContainerManager", "Directory: " + dir.getAbsolutePath());
+        if (dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    Log.d("ContainerManager", "File/Dir: " + file.getAbsolutePath() + " (" + (file.isDirectory() ? "Dir" : "File") + ")");
+                }
+            }
+        }
+    }
+
+    public Container getContainerForShortcut(Shortcut shortcut) {
+        // Search for the container by its ID
+        for (Container container : containers) {
+            if (container.id == shortcut.getContainerId()) {
+                return container;
+            }
+        }
+        return null;  // Return null if no matching container is found
+    }
 
 }

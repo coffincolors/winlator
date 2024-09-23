@@ -3,6 +3,7 @@ package com.winlator.core;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
@@ -550,6 +551,18 @@ public abstract class FileUtils {
         }
 
         return fileName;
+    }
+
+    public static boolean saveBitmapToFile(Bitmap bitmap, File file) {
+        try (FileOutputStream out = new FileOutputStream(file)) {
+            // Compress the bitmap and write to the specified file
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            return true;
+        } catch (IOException e) {
+            Log.e(TAG, "Error saving bitmap to file: " + file.getAbsolutePath(), e);
+            return false;
+        }
     }
 
 }

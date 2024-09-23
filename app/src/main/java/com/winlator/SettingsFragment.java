@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -74,6 +75,7 @@ public class SettingsFragment extends Fragment {
     private Callback<Uri> selectWineFileCallback;
     private Callback<Uri> installSoundFontCallback;
     private PreloaderDialog preloaderDialog;
+    public static final String DEFAULT_EXPORT_PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/Winlator/Frontend";
     private SharedPreferences preferences;
 
 	// Disable or enable True Mouse Control
@@ -95,6 +97,17 @@ public class SettingsFragment extends Fragment {
 
     private boolean enableLegacyInputMode = false;
 
+    private CheckBox cbEnableBigPictureMode;
+    private CheckBox cbEnableCustomApiKey;
+    private EditText etCustomApiKey;
+
+    private CheckBox cbDarkMode;
+    boolean isDarkMode;
+
+    private static final int REQUEST_CODE_FRONTEND_EXPORT_PATH = 1002;
+    private static final int REQUEST_CODE_INSTALL_SOUNDFONT = 1001;
+
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,6 +118,9 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Apply dynamic styles to all labels
+        applyDynamicStylesRecursively(view);
 
         Button btnConfigureGyro = view.findViewById(R.id.BTConfigureGyro);
         btnConfigureGyro.setOnClickListener(v -> showGyroConfigDialog());
@@ -120,6 +136,31 @@ public class SettingsFragment extends Fragment {
         View view = inflater.inflate(R.layout.settings_fragment, container, false);
         final Context context = getContext();
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        // Check for Dark Mode preference
+        isDarkMode = preferences.getBoolean("dark_mode", false);
+        // Apply dynamic styles
+        applyDynamicStyles(view, isDarkMode);
+
+        // Initialize the Dark Mode checkbox
+        cbDarkMode = view.findViewById(R.id.CBDarkMode);
+        cbDarkMode.setChecked(preferences.getBoolean("dark_mode", false));
+
+        cbDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Save dark mode preference
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("dark_mode", isChecked);
+            editor.apply();
+
+            // Update the UI or activity theme if necessary
+            updateTheme(isChecked);
+        });
+
+        // Initialize Big Picture Mode Checkbox
+        cbEnableBigPictureMode = view.findViewById(R.id.CBEnableBigPictureMode);
+        cbEnableBigPictureMode.setChecked(preferences.getBoolean("enable_big_picture_mode", false));
+
+        initCustomApiKeySettings(view);
 
         // Initialize the cursor lock checkbox
         cbCursorLock = view.findViewById(R.id.CBCursorLock);
@@ -152,6 +193,29 @@ public class SettingsFragment extends Fragment {
         CheckBox cbProcessGyroWithLeftTrigger = view.findViewById(R.id.CBProcessGyroWithLeftTrigger);
         cbProcessGyroWithLeftTrigger.setChecked(preferences.getBoolean("process_gyro_with_left_trigger", false));
 
+        // Configure Frontend Export Path button
+
+        Button btnChooseFrontendExportPath = view.findViewById(R.id.BTChooseFrontendExportPath);
+        TextView tvFrontendExportPath = view.findViewById(R.id.TVFrontendExportPath);
+
+        // Get the saved export path from SharedPreferences or use the default
+        String savedUriString = preferences.getString("frontend_export_uri", null);
+        if (savedUriString == null) {
+            // No saved path, set default path
+            tvFrontendExportPath.setText(DEFAULT_EXPORT_PATH);
+        } else {
+            // Parse and display the saved URI path
+            Uri savedUri = Uri.parse(savedUriString);
+            String displayPath = FileUtils.getFilePathFromUri(getContext(), savedUri);
+            tvFrontendExportPath.setText(displayPath != null ? displayPath : savedUriString);
+        }
+
+        // Set the click listener for the "Choose Frontend Export Path" button
+        btnChooseFrontendExportPath.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE); // Launch File Picker for directory selection
+            startActivityForResult(intent, REQUEST_CODE_FRONTEND_EXPORT_PATH);
+        });
+
         final Spinner sBox86Version = view.findViewById(R.id.SBox86Version);
         String box86Version = preferences.getString("box86_version", DefaultVersion.BOX86);
         if (!AppUtils.setSpinnerSelectionFromIdentifier(sBox86Version, box86Version)) {
@@ -174,6 +238,9 @@ public class SettingsFragment extends Fragment {
         loadBox86_64PresetSpinners(view, sBox86Preset, sBox64Preset);
 
         final Spinner sMIDISoundFont = view.findViewById(R.id.SMIDISoundFont);
+
+        sMIDISoundFont.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
         final View btInstallSF = view.findViewById(R.id.BTInstallSF);
         final View btRemoveSF = view.findViewById(R.id.BTRemoveSF);
 
@@ -204,8 +271,11 @@ public class SettingsFragment extends Fragment {
                     }
                 });
             };
-            openFile();
+
+            // Open the file picker with the request code for SoundFont installation
+            openFile(REQUEST_CODE_INSTALL_SOUNDFONT);
         });
+
         btRemoveSF.setOnClickListener(v -> {
             if (sMIDISoundFont.getSelectedItemPosition() != 0) {
                 ContentDialog.confirm(context, R.string.do_you_want_to_remove_this_sound_font, () -> {
@@ -292,6 +362,10 @@ public class SettingsFragment extends Fragment {
 
         view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
             SharedPreferences.Editor editor = preferences.edit();
+
+            // Save Dark Mode setting
+            editor.putBoolean("dark_mode", cbDarkMode.isChecked());
+
             editor.putString("box86_version", StringUtils.parseIdentifier(sBox86Version.getSelectedItem()));
             editor.putString("box64_version", StringUtils.parseIdentifier(sBox64Version.getSelectedItem()));
             editor.putString("box86_preset", Box86_64PresetManager.getSpinnerSelectedId(sBox86Preset));
@@ -320,6 +394,10 @@ public class SettingsFragment extends Fragment {
 
             editor.putBoolean("legacy_mode_enabled", enableLegacyInputMode); // Save the 7.1.2 legacy mode state
 
+            // Save Big Picture Mode setting
+            editor.putBoolean("enable_big_picture_mode", ((CheckBox) view.findViewById(R.id.CBEnableBigPictureMode)).isChecked());
+            saveCustomApiKeySettings(editor);
+
             if (editor.commit()) {
                 // Now perform the extraction based on the saved state
 
@@ -336,7 +414,139 @@ public class SettingsFragment extends Fragment {
             }
         });
 
+
+
         return view;
+    }
+
+    private void updateTheme(boolean isDarkMode) {
+        if (isDarkMode) {
+            getActivity().setTheme(R.style.AppTheme_Dark);
+        } else {
+            getActivity().setTheme(R.style.AppTheme);
+        }
+
+        // Recreate the activity to apply the new theme
+        getActivity().recreate();
+    }
+
+
+    private void applyDynamicStyles(View view, boolean isDarkMode) {
+
+        Spinner sBox86Version = view.findViewById(R.id.SBox86Version);
+        sBox86Version.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sBox64Version = view.findViewById(R.id.SBox64Version);
+        sBox64Version.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sBox86Preset = view.findViewById(R.id.SBox86Preset);
+        sBox86Preset.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sBox64Preset = view.findViewById(R.id.SBox64Preset);
+        sBox64Preset.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+    }
+
+    private void applyDynamicStylesRecursively(View view) {
+
+        // Find TextViews by ID and apply dynamic styles
+        TextView installedWineLabel = view.findViewById(R.id.TVInstalledWine);
+        applyFieldSetLabelStyle(installedWineLabel, isDarkMode);
+
+        TextView box86box64Label = view.findViewById(R.id.TVBox86Box64);
+        applyFieldSetLabelStyle(box86box64Label, isDarkMode);
+
+        TextView soundLabel = view.findViewById(R.id.TVSound);
+        applyFieldSetLabelStyle(soundLabel, isDarkMode);
+
+        TextView themeLabel = view.findViewById(R.id.TVTheme);
+        applyFieldSetLabelStyle(themeLabel, isDarkMode);
+
+        TextView shortcutSettingsLabel = view.findViewById(R.id.TVShortcutSettings);
+        applyFieldSetLabelStyle(shortcutSettingsLabel, isDarkMode);
+
+        TextView bigPictureModeLabel = view.findViewById(R.id.TVBigPictureMode);
+        applyFieldSetLabelStyle(bigPictureModeLabel, isDarkMode);
+
+        TextView tvCustomApiKey = view.findViewById(R.id.TVCustomApiKey);
+        applyFieldSetLabelStyle(tvCustomApiKey, isDarkMode);
+
+//        TextView shortcutSettingsLabel = view.findViewById(R.id.TVShortcutSettings);
+//        applyFieldSetLabelStyle(shortcutSettingsLabel, isDarkMode);
+
+        // Inputs tab labels
+        TextView xServerLabel = view.findViewById(R.id.TVXServer);
+        applyFieldSetLabelStyle(xServerLabel, isDarkMode);
+
+        TextView gyroSettingsLabel = view.findViewById(R.id.TVGyroSettings);
+        applyFieldSetLabelStyle(gyroSettingsLabel, isDarkMode);
+
+        TextView gameControllerLabel = view.findViewById(R.id.TVGameControllerLabel);
+        applyFieldSetLabelStyle(gameControllerLabel, isDarkMode);
+
+        // Advanced tab labels
+        TextView logsLabel = view.findViewById(R.id.TVLogs);
+        applyFieldSetLabelStyle(logsLabel, isDarkMode);
+
+        TextView experimentalLabel = view.findViewById(R.id.TVExperimental);
+        applyFieldSetLabelStyle(experimentalLabel, isDarkMode);
+
+        TextView ImageFsLabel = view.findViewById(R.id.TVImageFs);
+        applyFieldSetLabelStyle(ImageFsLabel, isDarkMode);
+
+    }
+
+    private void applyFieldSetLabelStyle(TextView textView, boolean isDarkMode) {
+//        Context context = textView.getContext();
+
+        if (isDarkMode) {
+            // Apply dark mode-specific attributes
+            textView.setTextColor(Color.parseColor("#cccccc")); // Set text color to #cccccc
+            textView.setBackgroundResource(R.color.window_background_color_dark); // Set dark background color
+        } else {
+            // Apply light mode-specific attributes (original FieldSetLabel)
+            textView.setTextColor(Color.parseColor("#bdbdbd")); // Set text color to #bdbdbd
+            textView.setBackgroundResource(R.color.window_background_color); // Set light background color
+        }
+    }
+
+    private void initCustomApiKeySettings(View view) {
+        cbEnableCustomApiKey = view.findViewById(R.id.CBEnableCustomApiKey);
+        etCustomApiKey = view.findViewById(R.id.ETCustomApiKey);
+
+        // Load saved preferences
+        boolean isCustomApiKeyEnabled = preferences.getBoolean("enable_custom_api_key", false);
+        String customApiKey = preferences.getString("custom_api_key", "");
+
+        cbEnableCustomApiKey.setChecked(isCustomApiKeyEnabled);
+        etCustomApiKey.setText(customApiKey);
+
+        // Show/hide the EditText based on checkbox state
+        etCustomApiKey.setVisibility(isCustomApiKeyEnabled ? View.VISIBLE : View.GONE);
+
+        cbEnableCustomApiKey.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            etCustomApiKey.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+        });
+
+        // Help button listener to open API documentation
+        view.findViewById(R.id.BTHelpApiKey).setOnClickListener(v -> {
+            String url = "https://www.steamgriddb.com/profile/preferences/api";
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(intent);
+        });
+    }
+
+    private void saveCustomApiKeySettings(SharedPreferences.Editor editor) {
+        // Save custom API key preferences
+        boolean isCustomApiKeyEnabled = cbEnableCustomApiKey.isChecked();
+        editor.putBoolean("enable_custom_api_key", isCustomApiKeyEnabled);
+
+        if (isCustomApiKeyEnabled) {
+            String customApiKey = etCustomApiKey.getText().toString().trim();
+            editor.putString("custom_api_key", customApiKey);
+        } else {
+            editor.remove("custom_api_key");
+        }
     }
 
     private void loadBox86_64PresetSpinners(View view, final Spinner sBox86Preset, final Spinner sBox64Preset) {
@@ -471,15 +681,19 @@ public class SettingsFragment extends Fragment {
                 }
             });
         };
-        openFile();
+        openFile(MainActivity.OPEN_FILE_REQUEST_CODE);
     }
 
-    private void openFile() {
+
+    private void openFile(int requestCode) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
-        getActivity().startActivityFromFragment(this, intent, MainActivity.OPEN_FILE_REQUEST_CODE);
+
+        // Start activity for result based on the provided request code
+        getActivity().startActivityFromFragment(this, intent, requestCode);
     }
+
 
     private void installWine(final WineInfo wineInfo) {
         Context context = getContext();
@@ -744,38 +958,63 @@ public class SettingsFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == MainActivity.OPEN_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
             Uri uri = data.getData();
 
             if (uri != null) {
-                // Handle restoring data from backup
-                if (isRestoreAction) {
-                    restoreAppData(uri);
-                    isRestoreAction = false;  // Reset the flag
-                }
-                // Handle selecting a Wine file
-                else if (selectWineFileCallback != null) {
-                    try {
-                        selectWineFileCallback.call(uri);
-                    } catch (Exception e) {
-                        AppUtils.showToast(getContext(), R.string.unable_to_import_profile);
-                    } finally {
-                        selectWineFileCallback = null;
-                    }
-                }
-                // Handle installing a SoundFont
-                else if (installSoundFontCallback != null) {
-                    try {
-                        installSoundFontCallback.call(uri);
-                    } catch (Exception e) {
-                        AppUtils.showToast(getContext(), R.string.unable_to_install_soundfont);
-                    } finally {
-                        installSoundFontCallback = null;
-                    }
+                switch (requestCode) {
+                    // Case for File Picker to restore data
+                    case MainActivity.OPEN_FILE_REQUEST_CODE:
+                        if (isRestoreAction) {
+                            restoreAppData(uri);
+                            isRestoreAction = false;  // Reset the flag
+                        } else if (selectWineFileCallback != null) {
+                            try {
+                                selectWineFileCallback.call(uri);
+                            } catch (Exception e) {
+                                AppUtils.showToast(getContext(), R.string.unable_to_import_profile);
+                            } finally {
+                                selectWineFileCallback = null;
+                            }
+                        }
+                        break;
+
+                    // Case for FilePicker to select frontend export path
+                    case REQUEST_CODE_FRONTEND_EXPORT_PATH:
+                        // Save the selected URI as a string in SharedPreferences
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putString("frontend_export_uri", uri.toString());
+                        editor.apply();
+
+                        // Convert the URI to an absolute path and display it
+                        String fullPath = FileUtils.getFilePathFromUri(getContext(), uri);
+
+                        // Update the TextView with the absolute path or URI string if conversion fails
+                        TextView tvFrontendExportPath = getView().findViewById(R.id.TVFrontendExportPath);
+                        tvFrontendExportPath.setText(fullPath != null ? fullPath : uri.toString());
+                        break;
+
+                    // Case for installing a SoundFont
+                    case REQUEST_CODE_INSTALL_SOUNDFONT:
+                        if (installSoundFontCallback != null) {
+                            try {
+                                installSoundFontCallback.call(uri);
+                            } catch (Exception e) {
+                                AppUtils.showToast(getContext(), R.string.unable_to_install_soundfont);
+                            } finally {
+                                installSoundFontCallback = null;
+                            }
+                        }
+                        break;
+
+                    // Add future cases here for other request codes...
+                    default:
+                        break;
                 }
             }
         }
     }
+
 
 
 

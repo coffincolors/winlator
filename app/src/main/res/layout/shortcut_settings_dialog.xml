@@ -125,7 +125,7 @@
                 android:layout_height="48dp"
                 android:padding="8dp"
                 android:src="@drawable/icon_settings"
-                android:visibility="gone" />
+                android:visibility="visible" />
         </LinearLayout>
 
         <LinearLayout
@@ -437,7 +437,15 @@
                         android:id="@+id/SControlsProfile"
                         android:layout_width="match_parent" />
 
+                    <CheckBox
+                        android:id="@+id/CBDisabledXInput"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/disable_xinput_for_shortcut" />
+
                 </LinearLayout>
+
+
 
                 <TextView
                     style="@style/FieldSetLabel"
@@ -550,6 +558,12 @@
                             android:id="@+id/BTExtraArgsMenu"
                             android:src="@drawable/icon_menu" />
                     </LinearLayout>
+
+                    <CheckBox
+                        android:id="@+id/CBFullscreenStretched"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/fullscreen_stretched" />
 
                     <CheckBox
                         android:id="@+id/CBForceFullscreen"

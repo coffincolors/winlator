@@ -38,6 +38,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/TVInstalledWine"
                     style="@style/FieldSetLabel"
                     android:text="@string/installed_wine" />
             </FrameLayout>
@@ -155,6 +156,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/TVBox86Box64"
                     style="@style/FieldSetLabel"
                     android:text="@string/box86_box64" />
             </FrameLayout>
@@ -197,8 +199,119 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/TVSound"
                     style="@style/FieldSetLabel"
                     android:text="@string/sound" />
+            </FrameLayout>
+
+            <!-- Theme Settings -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <LinearLayout style="@style/FieldSet">
+                    <CheckBox
+                        android:id="@+id/CBDarkMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Enable Dark Mode" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/TVTheme"
+                    style="@style/FieldSetLabel"
+                    android:text="Theme" />
+            </FrameLayout>
+
+            <!-- Shortcuts -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <LinearLayout style="@style/FieldSet">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Frontend Export Path" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:id="@+id/TVFrontendExportPath"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Default Path: Downloads/Winlator/Frontend" />
+                        <Button
+                            android:id="@+id/BTChooseFrontendExportPath"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Choose Path" />
+                    </LinearLayout>
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/TVShortcutSettings"
+                    style="@style/FieldSetLabel"
+                    android:text="Shortcut Settings" />
+            </FrameLayout>
+
+
+            <!-- Big Picture Mode -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <LinearLayout style="@style/FieldSet">
+                    <CheckBox
+                        android:id="@+id/CBEnableBigPictureMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Enable Big Picture Mode on App Launch" />
+
+                    <!-- SteamGridDB API Key Section -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <LinearLayout style="@style/FieldSet">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <CheckBox
+                                    android:id="@+id/CBEnableCustomApiKey"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Set SteamGrid API Key? (Cover Art)" />
+
+                                <ImageView
+                                    android:id="@+id/BTHelpApiKey"
+                                    style="@style/HelpButton"
+                                    android:contentDescription="@string/help_steamgrid"
+                                    android:src="@drawable/icon_help" />
+                            </LinearLayout>
+
+                            <EditText
+                                android:id="@+id/ETCustomApiKey"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:hint="Enter your API Key here"
+                                android:visibility="gone" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/TVCustomApiKey"
+                            style="@style/FieldSetLabel"
+                            android:text="SteamGridDB API Key" />
+                    </FrameLayout>
+
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/TVBigPictureMode"
+                    style="@style/FieldSetLabel"
+                    android:text="Big Picture Mode" />
             </FrameLayout>
 
             <FrameLayout
@@ -263,6 +376,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/TVXServer"
                     style="@style/FieldSetLabel"
                     android:text="@string/xserver" />
             </FrameLayout>
@@ -299,6 +413,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/TVGyroSettings"
                     style="@style/FieldSetLabel"
                     android:text="Gyro Settings" />
 
@@ -338,6 +453,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/TVLogs"
                     style="@style/FieldSetLabel"
                     android:text="@string/logs" />
             </FrameLayout>
@@ -403,6 +519,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/TVGameControllerLabel"
                     style="@style/FieldSetLabel"
                     android:text="@string/game_controller" />
             </FrameLayout>
@@ -440,6 +557,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/TVExperimental"
                     style="@style/FieldSetLabel"
                     android:text="@string/experimental" />
             </FrameLayout>
@@ -477,6 +595,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/TVImageFs"
                     style="@style/FieldSetLabel"
                     android:text="@string/imagefs" />
             </FrameLayout>

@@ -1,6 +1,7 @@
 package com.winlator.winhandler;
 
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
@@ -55,6 +56,8 @@ public class WinHandler {
     private byte triggerType;
 
     private boolean xinputDisabled; // Used for exclusive mouse control
+    private boolean xinputDisabledInitialized = false;
+
 
     private boolean useLegacyInputMethod = false; // Default to using the new input method
     // Add this field near the other field declarations at the top of the class
@@ -377,7 +380,11 @@ public class WinHandler {
 
                 // Load and apply trigger mode and xinput toggle settings
                 triggerType = (byte) preferences.getInt("trigger_type", ExternalController.TRIGGER_IS_AXIS);
-                xinputDisabled = preferences.getBoolean("xinput_toggle", false);
+
+                // Only set xinputDisabled if it hasn't been set explicitly by XServerDisplayActivity
+                if (!xinputDisabledInitialized) {
+                    xinputDisabled = preferences.getBoolean("xinput_toggle", false);
+                }
 
                 // Load the flag to use legacy input method
                 useLegacyInputMethod = preferences.getBoolean("useLegacyInputMethod", false);
@@ -397,6 +404,7 @@ public class WinHandler {
                 }
                 break;
             }
+
             case RequestCodes.GET_PROCESS: {
                 if (onGetProcessInfoListener == null) return;
                 receiveData.position(receiveData.position() + 4);
@@ -546,7 +554,7 @@ public class WinHandler {
     }
 
     public void sendGamepadState() {
-        if (!initReceived || gamepadClients.isEmpty() || xinputDisabled) return; // Add this check
+        if (!initReceived || gamepadClients.isEmpty() || xinputDisabled ) return; // Add this check
         final ControlsProfile profile = activity.getInputControlsView().getProfile();
         final boolean useVirtualGamepad = profile != null && profile.isVirtualGamepad();
         final boolean enabled = currentController != null || useVirtualGamepad;
@@ -572,6 +580,14 @@ public class WinHandler {
             });
         }
     }
+
+    public void setXInputDisabled(boolean disabled) {
+        this.xinputDisabled = disabled;
+        this.xinputDisabledInitialized = true; // Mark as initialized
+        Log.d("WinHandler", "XInput Disabled set to: " + xinputDisabled);
+    }
+
+
 
     public boolean onGenericMotionEvent(MotionEvent event) {
         boolean handled = false;

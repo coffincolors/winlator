@@ -1,6 +1,8 @@
 package com.winlator.box86_64;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -11,6 +13,7 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
+import androidx.preference.PreferenceManager;
 
 import com.winlator.R;
 import com.winlator.contentdialog.ContentDialog;
@@ -33,6 +36,8 @@ public class Box86_64EditPresetDialog extends ContentDialog {
     private final boolean readonly;
     private Runnable onConfirmCallback;
 
+    private boolean isDarkMode;
+
     public Box86_64EditPresetDialog(@NonNull Context context, String prefix, String presetId) {
         super(context, R.layout.box86_64_edit_preset_dialog);
         this.context = context;
@@ -42,6 +47,13 @@ public class Box86_64EditPresetDialog extends ContentDialog {
         setTitle(StringUtils.getString(context, prefix+"_preset"));
         setIcon(R.drawable.icon_env_var);
 
+        // Load the user's preferred theme
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        isDarkMode = sharedPreferences.getBoolean("dark_mode", false);
+
+        TextView environmentVariablesLabel = findViewById(R.id.TVEnvironmentVariables);
+        applyFieldSetLabelStyle(environmentVariablesLabel, isDarkMode);  // Apply the dark or light mode styles
+
         final EditText etName = findViewById(R.id.ETName);
         etName.getLayoutParams().width = AppUtils.getPreferredDialogWidth(context);
         etName.setEnabled(!readonly);
@@ -49,6 +61,9 @@ public class Box86_64EditPresetDialog extends ContentDialog {
             etName.setText(preset.name);
         }
         else etName.setText(context.getString(R.string.preset)+"-"+Box86_64PresetManager.getNextPresetId(context, prefix));
+
+        applyDarkThemeToEditText(etName);
+
         loadEnvVarsList();
 
         super.setOnConfirmCallback(() -> {
@@ -112,6 +127,7 @@ public class Box86_64EditPresetDialog extends ContentDialog {
                     if (readonly) toggleButton.setAlpha(0.5f);
                 }
                 else {
+                    spinner.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
                     spinner.setVisibility(View.VISIBLE);
                     spinner.setEnabled(!readonly);
                     spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, values));
@@ -122,5 +138,31 @@ public class Box86_64EditPresetDialog extends ContentDialog {
             }
         }
         catch (JSONException e) {}
+    }
+
+    private static void applyFieldSetLabelStyle(TextView textView, boolean isDarkMode) {
+//        Context context = textView.getContext();
+
+        if (isDarkMode) {
+            // Apply dark mode-specific attributes
+            textView.setTextColor(Color.parseColor("#cccccc")); // Set text color to #cccccc
+            textView.setBackgroundResource(R.color.content_dialog_background_dark); // Set dark background color
+        } else {
+            // Apply light mode-specific attributes (original FieldSetLabel)
+            textView.setTextColor(Color.parseColor("#bdbdbd")); // Set text color to #bdbdbd
+            textView.setBackgroundResource(R.color.window_background_color); // Set light background color
+        }
+    }
+
+    private void applyDarkThemeToEditText(EditText editText) {
+        if (isDarkMode) {
+            editText.setTextColor(Color.WHITE); // Set text color to white for dark theme
+            editText.setHintTextColor(Color.GRAY); // Set hint color to gray
+            editText.setBackgroundResource(R.drawable.edit_text_dark); // Custom dark background drawable
+        } else {
+            editText.setTextColor(Color.BLACK); // Default text color
+            editText.setHintTextColor(Color.GRAY); // Default hint color
+            editText.setBackgroundResource(R.drawable.edit_text); // Custom light background drawable
+        }
     }
 }

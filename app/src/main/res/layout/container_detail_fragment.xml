@@ -20,9 +20,11 @@
                 android:text="@string/name" />
 
             <EditText
-                style="@style/EditText"
+                style="@style/AppTheme"
                 android:id="@+id/ETName"
-                android:inputType="textCapSentences" />
+                android:inputType="textCapSentences"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -69,8 +71,9 @@
                             android:text="@string/width" />
 
                         <EditText
-                            style="@style/EditText"
+                            style="@style/AppTheme"
                             android:layout_width="78dp"
+                            android:layout_height="wrap_content"
                             android:id="@+id/ETScreenWidth"
                             android:inputType="number" />
                     </LinearLayout>
@@ -97,8 +100,9 @@
                             android:text="@string/height" />
 
                         <EditText
-                            style="@style/EditText"
+                            style="@style/AppTheme"
                             android:layout_width="78dp"
+                            android:layout_height="wrap_content"
                             android:id="@+id/ETScreenHeight"
                             android:inputType="number" />
                     </LinearLayout>
@@ -215,9 +219,10 @@
                 android:orientation="horizontal">
 
                 <EditText
-                    style="@style/EditText"
+                    style="@style/AppTheme"
                     android:layout_gravity="center"
                     android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:id="@+id/ETlcall" />
 
@@ -233,6 +238,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/show_fps"
+                android:layout_marginTop="8dp" />
+
+            <CheckBox
+                android:id="@+id/CBFullscreenStretched"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/fullscreen_stretched"
                 android:layout_marginTop="8dp" />
 
             <com.google.android.material.tabs.TabLayout
@@ -333,6 +345,7 @@
 
                     <TextView
                         style="@style/FieldSetLabel"
+                        android:id="@+id/TVDesktop"
                         android:text="@string/desktop" />
                 </FrameLayout>
 
@@ -410,6 +423,7 @@
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/TVRegistryKeys"
                         style="@style/FieldSetLabel"
                         android:text="@string/registry_keys" />
                 </FrameLayout>
@@ -432,6 +446,7 @@
                         android:id="@+id/LLWinComponentsDirectX" />
 
                     <TextView
+                        android:id="@+id/TVDirectX"
                         style="@style/FieldSetLabel"
                         android:text="@string/directx" />
                 </FrameLayout>
@@ -446,6 +461,7 @@
                         android:id="@+id/LLWinComponentsGeneral" />
 
                     <TextView
+                        android:id="@+id/TVGeneral"
                         style="@style/FieldSetLabel"
                         android:text="@string/general" />
                 </FrameLayout>
@@ -577,6 +593,7 @@
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/TVBox86Box64"
                         style="@style/FieldSetLabel"
                         android:text="@string/box86_box64" />
                 </FrameLayout>
@@ -609,6 +626,7 @@
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/TVSystem"
                         style="@style/FieldSetLabel"
                         android:text="@string/system" />
                 </FrameLayout>
@@ -687,6 +705,7 @@
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/TVGameController"
                         style="@style/FieldSetLabel"
                         android:text="@string/game_controller" />
                 </FrameLayout>

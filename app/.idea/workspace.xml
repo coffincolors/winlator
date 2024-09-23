@@ -29,6 +29,11 @@
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/box86_64_edit_preset_dialog.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/box86_64_rc_group_list_item.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
@@ -136,7 +141,7 @@
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/save_edit_dialog.xml">
         <config>
-          <theme>@android:style/Theme.Material.Light</theme>
+          <theme>@style/AppTheme.Dark</theme>
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/save_settings_dialog.xml">
@@ -156,7 +161,7 @@
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/settings_fragment.xml">
         <config>
-          <theme>@android:style/Theme.Material.Light</theme>
+          <theme>@style/AppTheme.Dark</theme>
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/shortcut_list_item.xml">
@@ -171,7 +176,7 @@
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/shortcut_settings_dialog.xml">
         <config>
-          <theme>@android:style/Theme.Material.Light</theme>
+          <theme>@style/AppTheme</theme>
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/shortcuts_fragment.xml">
@@ -180,6 +185,11 @@
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/task_manager_dialog.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/vkd3d_config_dialog.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
@@ -255,7 +265,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="Fixed issues with Turnip Driver Switching per shortcut being erased if a Graphics Driver Version is not set, added selected turnip version to display in Shortcut Settings Dialog, fixed issue where Container Turnip driver was overridden by the Shortcut Driver version selection">
+    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="Added Playtime and Playcount Stats Tracking for Homescreen Shortcuts and Frontends, added auto touchscreen controls timeout, added haptic feedback for touchscreen controls, added new option to shortcuts to clone shortcuts to other containers">
       <change afterPath="$PROJECT_DIR$/src/main/assets/box64_env_vars.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.7.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.8.tzst" afterDir="false" />
@@ -298,6 +308,8 @@
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.2.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.3.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.4.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.5.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.6.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/virgl-23.1.9.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/zink-22.2.5.tzst" afterDir="false" />
@@ -362,134 +374,80 @@
       <change afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/wmdecoder.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/wine_debug_channels.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/wine_startmenu.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/CMake Overview" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/ProjectSettings.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/VSWorkspaceState.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/cmake.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/cpp/FileContentIndex/be2854a9-a197-496f-9391-142a9a679eec.vsidx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/cpp/v17/.wsuo" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/cpp/v17/Browse.VC.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/cpp/v17/DocumentLayout.backup.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/cpp/v17/DocumentLayout.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/cpp/v17/Solution.VC.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/cpp/v17/ipch/AutoPCH/26b1d4f34dbc482a/PATCHELF.ipch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/cpp/v17/workspaceFileList.bin" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/.vs/slnx.sqlite" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/query/client-MicrosoftVS/query.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/cache-v2-3c54c23f3a79e5f8c6e3.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/cmakeFiles-v1-eea5317865dcafe6e537.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/codemodel-v2-c8a2222f7dcd94338125.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/directory-.-Debug-d0094a50bb2071803777.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/directory-OpenXR-SDK-Debug-6216bfe9ae7dbee8860f.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/directory-OpenXR-SDK.include-Debug-ef8630b712b57f94676a.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/directory-OpenXR-SDK.include.openxr-Debug-e3f69d6ee9416e2245d3.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/directory-OpenXR-SDK.src-Debug-5c153febb4912adfbe62.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/directory-OpenXR-SDK.src.loader-Debug-629d6f484ceb711afef0.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/directory-patchelf-Debug-587d08d94446bbb1eb75.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/directory-virglrenderer-Debug-96d434216b06614ac1d1.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/index-2024-09-13T11-04-27-0438.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-Continuous-Debug-a5c855cd04c0de97fa73.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ContinuousBuild-Debug-7b1069fc641d420bf425.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ContinuousConfigure-Debug-efbf3b2f69a014682397.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ContinuousCoverage-Debug-1a5152cc4ed7540ce9dd.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ContinuousMemCheck-Debug-2248bae05b371cf222c1.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ContinuousStart-Debug-16580231dea60bbab928.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ContinuousSubmit-Debug-51188be8cf50d115f22c.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ContinuousTest-Debug-51094f050d692120b69c.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ContinuousUpdate-Debug-52b7293b6c6696491e68.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-Experimental-Debug-87a6b5abf089f8b8d626.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ExperimentalBuild-Debug-d2ccc83973ace5914471.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ExperimentalConfigure-Debug-60b28bf48168cfe838de.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ExperimentalCoverage-Debug-c73b067bd0d3e526914a.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ExperimentalMemCheck-Debug-2eb6028a2de54dbac208.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ExperimentalStart-Debug-95da0b050993b0777b5f.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ExperimentalSubmit-Debug-fea4ea1385418432401c.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ExperimentalTest-Debug-100b462e601adeb5969d.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-ExperimentalUpdate-Debug-55b18072ab593469aefe.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-Nightly-Debug-c894643918642f1a204c.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-NightlyBuild-Debug-87a5bae8f18791f86c2a.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-NightlyConfigure-Debug-ff98bb9d69a37d682f60.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-NightlyCoverage-Debug-0dfb64b879390a7c1875.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-NightlyMemCheck-Debug-036ff9eb001e4dcb53b6.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-NightlyMemoryCheck-Debug-cc1561b33564f053cf3b.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-NightlyStart-Debug-3682f5b7e009673a8dea.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-NightlySubmit-Debug-976c1c7e0d28f79b4087.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-NightlyTest-Debug-9287634cbdad73ec666c.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-NightlyUpdate-Debug-a51896b07e5eafbeb408.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-generate_openxr_header-Debug-ebe89de43b046313c551.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-openxr_loader-Debug-c5be469d32787a74d050.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-patchelf-Debug-a8069dfc1eda5456fc94.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-uninstall-Debug-97b4dc3a8e2bbda1f584.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-virglrenderer-Debug-a8cca2172ad3ce6ce778.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-winlator-Debug-522cc01b2e2798d46e1d.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-xr_common_generated_files-Debug-e4654b98d6abec834e5e.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/target-xr_global_generated_files-Debug-ee96448c4e3e284177af.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.cmake/api/v1/reply/toolchains-v1-d19162570acee6f721be.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.ninja_deps" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/.ninja_log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeCache.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CMakeCCompiler.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CMakeCXXCompiler.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CMakeDetermineCompilerABI_C.bin" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CMakeDetermineCompilerABI_CXX.bin" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CMakeRCCompiler.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CMakeSystem.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CompilerIdC/CMakeCCompilerId.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CompilerIdC/CMakeCCompilerId.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CompilerIdC/CMakeCCompilerId.obj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CompilerIdCXX/CMakeCXXCompilerId.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CompilerIdCXX/CMakeCXXCompilerId.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/3.29.5-msvc4/CompilerIdCXX/CMakeCXXCompilerId.obj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/CMakeConfigureLog.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/ShowIncludes/foo.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/ShowIncludes/main.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/ShowIncludes/main.obj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/TargetDirectories.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/cmake.check_cache" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/rules.ninja" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/CMakeFiles/winlator.dir/vc140.pdb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/CTestTestfile.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/DartConfiguration.tcl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/cmake_install.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/cmake_uninstall.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/include/CTestTestfile.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/include/cmake_install.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/include/openxr/CTestTestfile.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/include/openxr/cmake_install.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/CTestTestfile.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/cmake_install.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/common_config.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/CMakeFiles/Export/272ceadb8458515b2ae4b5630a6029cc/OpenXRTargets-debug.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/CMakeFiles/Export/272ceadb8458515b2ae4b5630a6029cc/OpenXRTargets.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/android_utilities.cpp.obj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/api_layer_interface.cpp.obj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/loader_core.cpp.obj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/loader_init_data.cpp.obj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/loader_instance.cpp.obj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/loader_logger.cpp.obj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/CMakeFiles/openxr_loader.dir/openxr_loader.pdb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/CTestTestfile.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/OpenXRConfig.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/OpenXRConfigVersion.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/OpenXRTargets.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/OpenXR-SDK/src/loader/cmake_install.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/Testing/Temporary/LastTest.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/VSInheritEnvironments.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/build.ninja" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/cmake_install.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/patchelf/CMakeFiles/patchelf.dir/vc140.pdb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/patchelf/cmake_install.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/cpp/out/build/x64-Debug/virglrenderer/cmake_install.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/BigPictureActivity.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/BigPictureAdapter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/CarouselItemDecoration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/steamgrid/SteamGridDBApi.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/steamgrid/SteamGridGridsResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/steamgrid/SteamGridGridsResponseDeserializer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/steamgrid/SteamGridSearchResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/anim/fade_in.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/anim/fade_out.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/anim/slide_in_down.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/anim/slide_in_up.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/anim/slide_out_down.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/anim/slide_out_up.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/combo_box_normal_dark.9.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/combo_box_pressed_dark.9.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/content_dialog_background_dark.9.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/edit_text_focused_dark.9.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/edit_text_normal_dark.9.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/edit_text_pressed_dark.9.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/bordered_panel_dark.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/combo_box_dark.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/cover_art_placeholder.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/edit_text_dark.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ic_big_picture_mode.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/tab_layout_background_dark.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout-land/big_picture_activity.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/big_picture_activity.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/big_picture_list_item.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/Box86_64RCFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/Box86_64RCFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ContainerDetailFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ContainerDetailFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ContainersFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ContainersFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ContentsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ContentsFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ControlsEditorActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ControlsEditorActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ExternalControllerBindingsActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ExternalControllerBindingsActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/InputControlsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/InputControlsFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/MainActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/MainActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/SavesFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/SavesFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/SettingsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/SettingsFragment.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ShortcutsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ShortcutsFragment.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/box86_64/Box86_64EditPresetDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/box86_64/Box86_64EditPresetDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/container/Container.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/container/Container.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/container/ContainerManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/container/ContainerManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/container/Shortcut.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/container/Shortcut.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/widget/InputControlsView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/widget/InputControlsView.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/widget/TouchpadView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/widget/TouchpadView.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/layout/input_controls_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/input_controls_dialog.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/menu/shortcut_popup_menu.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/menu/shortcut_popup_menu.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/AddEnvVarDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/AddEnvVarDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ContentDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ContentDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/GraphicsDriverConfigDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/GraphicsDriverConfigDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ImportGroupDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ImportGroupDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/SaveEditDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/SaveEditDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/SaveSettingsDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/SaveSettingsDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ShortcutSettingsDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ShortcutSettingsDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/core/FileUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/core/FileUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/saves/CustomFilePickerActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/saves/CustomFilePickerActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/widget/EnvVarsView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/widget/EnvVarsView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/winhandler/WinHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/winhandler/WinHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/box86_64_edit_preset_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/box86_64_edit_preset_dialog.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/container_detail_fragment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/container_detail_fragment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/dxvk_config_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/dxvk_config_dialog.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/graphics_driver_config_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/graphics_driver_config_dialog.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/save_edit_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/save_edit_dialog.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/saves_list_item.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/saves_list_item.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/settings_fragment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/settings_fragment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/shortcut_settings_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/shortcut_settings_dialog.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/vkd3d_config_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/vkd3d_config_dialog.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/menu/containers_menu.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/menu/containers_menu.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/menu/extra_args_popup_menu.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/menu/extra_args_popup_menu.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/values-v27/styles.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values-v27/styles.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/values/arrays.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/arrays.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/values/colors.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/colors.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/values/styles.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/styles.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -500,7 +458,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=PhysicalDevice, isTemplate=false, identifier=serial=R5CX10LYMLW)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -579,17 +537,18 @@
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_directory_selection": "C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/res/drawable",
-    "last_opened_file_path": "C:/Users/alexs/Documents/Tools/Winlator/Projects/winlator/app/src/main/java/com/winlator/XServerDisplayActivity.java",
+    "last_opened_file_path": "C:/Users/alexs/Documents/Tools/Winlator/Projects/winlator/app/src/main/java/com/winlator/container/Container.java",
     "project.structure.last.edited": "Variables",
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.2",
     "settings.editor.selected.configurable": "device.mirroring",
-    "two.files.diff.last.used.file": "C:/Users/alexs/Documents/Tools/Winlator/Projects/winlator/app/src/main/java/com/winlator/XServerDisplayActivity.java"
+    "two.files.diff.last.used.file": "C:/Users/alexs/Documents/Tools/Winlator/Projects/winlator/app/src/main/java/com/winlator/container/Container.java"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\drawable" />
+      <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\java\com\winlator" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\layout" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\menu" />
     </key>
@@ -817,8 +776,26 @@
       <option name="project" value="LOCAL" />
       <updated>1726073112871</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Added Playtime and Playcount Stats Tracking for Homescreen Shortcuts and Frontends, added auto touchscreen controls timeout, added haptic feedback for touchscreen controls, added new option to shortcuts to clone shortcuts to other containers">
+      <option name="closed" value="true" />
+      <created>1726492413524</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1726492413524</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+      </list>
+    </option>
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -841,7 +818,8 @@
     <MESSAGE value="many bug fixes with shortcuts and turnip driver switching, fixed renaming shortcuts, added legacy 7.1.2 dinput xinput mode, many more things I can't remember because I couldn't make commits for a week and a half with no github" />
     <MESSAGE value="Fix: Removed large files from the history" />
     <MESSAGE value="Fixed issues with Turnip Driver Switching per shortcut being erased if a Graphics Driver Version is not set, added selected turnip version to display in Shortcut Settings Dialog, fixed issue where Container Turnip driver was overridden by the Shortcut Driver version selection" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed issues with Turnip Driver Switching per shortcut being erased if a Graphics Driver Version is not set, added selected turnip version to display in Shortcut Settings Dialog, fixed issue where Container Turnip driver was overridden by the Shortcut Driver version selection" />
+    <MESSAGE value="Added Playtime and Playcount Stats Tracking for Homescreen Shortcuts and Frontends, added auto touchscreen controls timeout, added haptic feedback for touchscreen controls, added new option to shortcuts to clone shortcuts to other containers" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added Playtime and Playcount Stats Tracking for Homescreen Shortcuts and Frontends, added auto touchscreen controls timeout, added haptic feedback for touchscreen controls, added new option to shortcuts to clone shortcuts to other containers" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

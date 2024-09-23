@@ -48,6 +48,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="com.winlator.BigPictureActivity"
+            android:theme="@style/Theme.AppCompat"
+            android:screenOrientation="landscape"
+            android:exported="false" />
+
         <activity android:name="com.winlator.XServerDisplayActivity"
             android:exported="true"
             android:theme="@style/AppThemeFullscreen"

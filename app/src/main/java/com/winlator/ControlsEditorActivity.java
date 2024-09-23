@@ -362,4 +362,11 @@ public class ControlsEditorActivity extends AppCompatActivity implements View.On
             parent.addView(imageView);
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_up);  // Custom slide animations for exiting
+    }
+
 }

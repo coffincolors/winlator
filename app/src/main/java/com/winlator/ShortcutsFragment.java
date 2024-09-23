@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.graphics.drawable.Icon;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -27,7 +28,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,6 +40,7 @@ import com.winlator.container.ContainerManager;
 import com.winlator.container.Shortcut;
 import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.ShortcutSettingsDialog;
+import com.winlator.core.FileUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -244,17 +248,42 @@ public class ShortcutsFragment extends Fragment {
                 intent.putExtra("container_id", shortcut.container.id);
                 intent.putExtra("shortcut_path", shortcut.file.getPath());
                 intent.putExtra("shortcut_name", shortcut.name); // Add this line to pass the shortcut name
+                // Check if the shortcut has the disableXinput value; if not, default to false.
+                String disableXinputValue = shortcut.getExtra("disableXinput", "0"); // Get value from shortcut or use "0" (false) by default
+                intent.putExtra("disableXinput", disableXinputValue); // Use the actual value from the shortcut
                 activity.startActivity(intent);
             }
             else XrActivity.openIntent(activity, shortcut.container.id, shortcut.file.getPath());
         }
 
         private void exportShortcutToFrontend(Shortcut shortcut) {
-            // Create the directory if it doesn't exist
-            File frontendDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Winlator/Frontend");
-            if (!frontendDir.exists()) {
-                frontendDir.mkdirs();
+            // Check for a custom frontend export path in shared preferences
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+            String uriString = sharedPreferences.getString("frontend_export_uri", null);
+
+            File frontendDir;
+
+            if (uriString != null) {
+                // If custom URI is set, use it
+                Uri folderUri = Uri.parse(uriString);
+                DocumentFile pickedDir = DocumentFile.fromTreeUri(getContext(), folderUri);
+
+                if (pickedDir == null || !pickedDir.canWrite()) {
+                    Toast.makeText(getContext(), "Cannot write to the selected folder", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Convert DocumentFile to a File object for further processing
+                frontendDir = new File(FileUtils.getFilePathFromUri(getContext(), folderUri));
+            } else {
+                // Default to Downloads\Winlator\Frontend if no custom URI is set
+                frontendDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Winlator/Frontend");
+                if (!frontendDir.exists() && !frontendDir.mkdirs()) {
+                    Toast.makeText(getContext(), "Failed to create default directory", Toast.LENGTH_SHORT).show();
+                    return;
+                }
             }
+
 
             // Check for FRONTEND_INSTRUCTIONS.txt
             File instructionsFile = new File(frontendDir, "FRONTEND_INSTRUCTIONS.txt");
@@ -363,8 +392,6 @@ public class ShortcutsFragment extends Fragment {
                 Log.e("ShortcutsFragment", "Failed to export shortcut", e);
                 Toast.makeText(getContext(), "Failed to export shortcut", Toast.LENGTH_LONG).show();
             }
-
-
         }
 
         private void showShortcutProperties(Shortcut shortcut) {

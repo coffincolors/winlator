@@ -90,6 +90,7 @@
             style="@style/ComboBox"
             android:layout_width="match_parent"
             android:id="@+id/SMaxDeviceMemory"
-            android:entries="@array/dxvk_max_device_memory_entries" />
+            android:entries="@array/dxvk_max_device_memory_entries"
+            android:spinnerMode="dialog"/>
     </LinearLayout>
 </ScrollView>

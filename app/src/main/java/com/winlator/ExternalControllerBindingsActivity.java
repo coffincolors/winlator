@@ -3,6 +3,7 @@ package com.winlator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,6 +24,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -42,10 +44,17 @@ public class ExternalControllerBindingsActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ControllerBindingsAdapter adapter;
 
+    private boolean isDarkMode;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.external_controller_bindings_activity);
+
+        Context context = this;
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        isDarkMode = sharedPreferences.getBoolean("dark_mode", false);
 
         Intent intent = getIntent();
         int profileId = intent.getIntExtra("profile_id", 0);
@@ -68,6 +77,18 @@ public class ExternalControllerBindingsActivity extends AppCompatActivity {
 
         emptyTextView = findViewById(R.id.TVEmptyText);
         recyclerView = findViewById(R.id.RecyclerView);
+
+        // Set background color and text color for dark mode
+        if (isDarkMode) {
+            recyclerView.setBackgroundColor(ContextCompat.getColor(this, R.color.content_dialog_background_dark));
+            emptyTextView.setTextColor(ContextCompat.getColor(this, R.color.white));
+        } else {
+//            recyclerView.setBackgroundColor(ContextCompat.getColor(this, R.color.light_background));
+//            pickerTitle.setTextColor(ContextCompat.getColor(this, R.color.black));
+//            confirmButton.setBackgroundResource(R.drawable.button_light);
+//            upButton.setBackgroundResource(R.drawable.button_light);
+        }
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         recyclerView.setAdapter(adapter = new ControllerBindingsAdapter());
@@ -175,6 +196,12 @@ public class ExternalControllerBindingsActivity extends AppCompatActivity {
                 this.bindingType = view.findViewById(R.id.SBindingType);
                 this.binding = view.findViewById(R.id.SBinding);
                 this.removeButton = view.findViewById(R.id.BTRemove);
+
+                // Set style for dark mode
+                if (isDarkMode) {
+                    this.title.setTextColor(ContextCompat.getColor(ExternalControllerBindingsActivity.this, R.color.white));
+                    bindingType.getContext().setTheme(R.style.AppTheme_Dark);
+                }
             }
         }
 

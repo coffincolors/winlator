@@ -2,6 +2,9 @@ package com.winlator;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -77,7 +80,15 @@ public class ContainersFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
+        // Clear any existing menu items to prevent duplication
+        menu.clear();
         menuInflater.inflate(R.menu.containers_menu, menu);
+        MenuItem bigPictureItem = menu.findItem(R.id.action_big_picture_mode);
+        Drawable icon = bigPictureItem.getIcon();
+        if (icon != null) {
+            icon.mutate(); // Ensure we don't modify other instances of this drawable
+            icon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
+        }
     }
 
     @Override
@@ -86,13 +97,27 @@ public class ContainersFragment extends Fragment {
             if (!ImageFs.find(getContext()).isValid()) return false;
             FragmentManager fragmentManager = getParentFragmentManager();
             fragmentManager.beginTransaction()
-                .addToBackStack(null)
-                .replace(R.id.FLFragmentContainer, new ContainerDetailFragment())
-                .commit();
+                    .setCustomAnimations(R.anim.slide_in_up, R.anim.slide_out_down, R.anim.slide_in_down, R.anim.slide_out_up)  // Add this line
+                    .addToBackStack(null)
+                    .replace(R.id.FLFragmentContainer, new ContainerDetailFragment())
+                    .commit();
+            return true;
+        } else if (menuItem.getItemId() == R.id.action_big_picture_mode) {
+            // Switch to Big Picture Mode
+            toggleBigPictureMode();
             return true;
         }
         else return super.onOptionsItemSelected(menuItem);
     }
+
+    private void toggleBigPictureMode() {
+        // Start BigPictureActivity without passing shortcut data explicitly
+        Intent intent = new Intent(getContext(), BigPictureActivity.class);
+        startActivity(intent);
+        getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+    }
+
+
 
     private class ContainersAdapter extends RecyclerView.Adapter<ContainersAdapter.ViewHolder> {
         private final List<Container> data;
@@ -157,9 +182,10 @@ public class ContainersFragment extends Fragment {
                     case R.id.container_edit:
                         FragmentManager fragmentManager = getParentFragmentManager();
                         fragmentManager.beginTransaction()
-                            .addToBackStack(null)
-                            .replace(R.id.FLFragmentContainer, new ContainerDetailFragment(container.id))
-                            .commit();
+                                .setCustomAnimations(R.anim.slide_in_up, R.anim.slide_out_down, R.anim.slide_in_down, R.anim.slide_out_up)  // Add this line
+                                .addToBackStack(null)
+                                .replace(R.id.FLFragmentContainer, new ContainerDetailFragment(container.id))
+                                .commit();
                         break;
                     case R.id.container_duplicate:
                         ContentDialog.confirm(getContext(), R.string.do_you_want_to_duplicate_this_container, () -> {

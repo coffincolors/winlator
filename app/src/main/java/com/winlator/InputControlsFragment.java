@@ -55,6 +55,8 @@ public class InputControlsFragment extends Fragment {
     private Callback<ControlsProfile> importProfileCallback;
     private final int selectedProfileId;
 
+    private boolean isDarkMode;
+
     public InputControlsFragment(int selectedProfileId) {
         this.selectedProfileId = selectedProfileId;
     }
@@ -64,6 +66,9 @@ public class InputControlsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(false);
         manager = new InputControlsManager(getContext());
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        isDarkMode = sharedPreferences.getBoolean("dark_mode", false);
     }
 
     @Override
@@ -96,6 +101,9 @@ public class InputControlsFragment extends Fragment {
         currentProfile = selectedProfileId > 0 ? manager.getProfile(selectedProfileId) : null;
 
         final Spinner sProfile = view.findViewById(R.id.SProfile);
+
+        sProfile.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
         loadProfileSpinner(sProfile);
 
         final TextView tvCursorSpeed = view.findViewById(R.id.TVCursorSpeed);
@@ -221,8 +229,10 @@ public class InputControlsFragment extends Fragment {
                 Intent intent = new Intent(context, ControlsEditorActivity.class);
                 intent.putExtra("profile_id", currentProfile.id);
                 startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_down);  // Custom slide animations
+            } else {
+                AppUtils.showToast(context, R.string.no_profile_selected);
             }
-            else AppUtils.showToast(context, R.string.no_profile_selected);
         });
 
         return view;
@@ -354,6 +364,7 @@ public class InputControlsFragment extends Fragment {
                         intent.putExtra("profile_id", currentProfile.id);
                         intent.putExtra("controller_id", controller.getId());
                         startActivity(intent);
+                        getActivity().overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_down);  // Custom slide animations
                     }
                     else AppUtils.showToast(getContext(), R.string.no_profile_selected);
                 });

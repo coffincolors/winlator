@@ -1,0 +1,164 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center_horizontal"
+    android:background="@android:color/black">
+
+    <!-- Smaller ImageView for cover art with padding -->
+    <ImageView
+        android:id="@+id/IVCoverArt"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:maxHeight="250dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp" />
+
+    <!-- Horizontal layout for title, play button, and playtime details -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:paddingTop="8dp"
+        android:paddingBottom="25dp"
+        android:weightSum="2">
+
+        <!-- Game title aligned to the left -->
+        <TextView
+            android:id="@+id/TVGameTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@android:color/white"
+            android:textStyle="bold" />
+
+        <!-- Play Button in between title and playtime -->
+        <ImageButton
+            android:id="@+id/playButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/icon_play"
+            android:background="?android:attr/selectableItemBackground"
+            android:layout_gravity="center"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_weight="0" />
+
+        <!-- Playtime stats aligned to the right -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/TVPlayCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@android:color/white" />
+
+            <TextView
+                android:id="@+id/TVPlaytime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Hidden extras in portrait mode, but they exist to avoid crashes -->
+    <TextView
+        android:id="@+id/TVGraphicsDriver"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Graphics Driver:"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/TVGraphicsDriverVersion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Turnip Driver Version:"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/TVDXWrapper"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DX Wrapper:"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/TVDXWrapperConfig"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DXVK/VKD3D Config:"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/TVAudioDriver"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Audio Driver:"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/TVBox86Preset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Box86 Preset:"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/TVBox64Preset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Box64 Preset:"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
+
+    <!-- RecyclerView for carousel -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/RecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:layout_marginTop="8dp" />
+
+    <!-- TextView for displaying the empty state message -->
+    <TextView
+        android:id="@+id/TVEmptyState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="Nothing here. Launch your container and create a Shortcut to get started!"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:visibility="gone"
+        android:padding="16dp" />
+</LinearLayout>
