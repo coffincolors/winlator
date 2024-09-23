@@ -9,13 +9,16 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.text.Html;
+import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,6 +35,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.preference.PreferenceManager;
 
 import com.google.android.material.navigation.NavigationView;
 import com.winlator.container.ContainerManager;
@@ -66,12 +70,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ContainerManager containerManager;
 
     private SaveEditDialog currentSaveEditDialog;
-    
+
+    private boolean isDarkMode;
     
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Get shared preferences
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // Check if Big Picture Mode is enabled
+        boolean isBigPictureModeEnabled = sharedPreferences.getBoolean("enable_big_picture_mode", false);
+
+        if (isBigPictureModeEnabled) {
+            // If enabled, launch the BigPictureActivity and finish MainActivity
+            Intent intent = new Intent(MainActivity.this, BigPictureActivity.class);
+            startActivity(intent);
+        }
+
+        // Load the user's preferred theme
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        isDarkMode = sharedPreferences.getBoolean("dark_mode", false);
+
+        // Apply the theme based on the preference
+        if (isDarkMode) {
+            setTheme(R.style.AppTheme_Dark);
+        } else {
+            setTheme(R.style.AppTheme);
+        }
+
         setContentView(R.layout.main_activity);
 
         drawerLayout = findViewById(R.id.DrawerLayout);
@@ -84,6 +113,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.icon_action_bar_menu);
         }
+
+        // Determine text color based on dark mode
+        int textColor = isDarkMode ? Color.WHITE : Color.BLACK;
+        setNavigationViewItemTextColor(navigationView, textColor);
 
 
         GameManager gameManager = null;
@@ -181,8 +214,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // Method to show SaveEditDialog
     public void showSaveEditDialog(Save saveToEdit) {
         saveEditDialog = new SaveEditDialog(this, saveManager, containerManager, saveToEdit);
+
+        // Check for dark mode and set the background accordingly
+        if (isDarkMode) {
+            saveEditDialog.getWindow().setBackgroundDrawableResource(R.drawable.content_dialog_background_dark);
+        } else {
+            saveEditDialog.getWindow().setBackgroundDrawableResource(R.drawable.content_dialog_background);
+        }
+
         saveEditDialog.show();
     }
+
 
     public void onSaveAdded() {
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.FLFragmentContainer);
@@ -202,8 +244,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
 
-        show(new ContainersFragment());
+        show(new ContainersFragment(), true);  // Pass `true` to trigger the reverse animation
     }
+
 
     public void setOpenFileCallback(Callback<Uri> openFileCallback) {
         this.openFileCallback = openFileCallback;
@@ -244,20 +287,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             // Create and show SaveEditDialog or SaveSettingsDialog as appropriate
             if (saveToEdit != null) {
-                // Ensure previous dialog is dismissed before showing a new one
                 if (saveEditDialog != null && saveEditDialog.isShowing()) {
                     saveEditDialog.dismiss();
                 }
-                showSaveEditDialog(saveToEdit); // Use the correct method to show SaveEditDialog
+                showSaveEditDialog(saveToEdit);
             } else {
                 saveSettingsDialog = new SaveSettingsDialog(this, saveManager, containerManager);
+
+                // Check for dark mode and set the background accordingly
+                if (isDarkMode) {
+                    saveSettingsDialog.getWindow().setBackgroundDrawableResource(R.drawable.content_dialog_background_dark);
+                } else {
+                    saveSettingsDialog.getWindow().setBackgroundDrawableResource(R.drawable.content_dialog_background);
+                }
+
                 saveSettingsDialog.show();
             }
             return true;
-        } else {
+        } {
             return super.onOptionsItemSelected(menuItem);
         }
     }
+
+
 
     public void toggleDrawer() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -276,28 +328,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         switch (item.getItemId()) {
             case R.id.main_menu_shortcuts:
-                show(new ShortcutsFragment());
+                show(new ShortcutsFragment(), false);  // Forward animation
                 break;
             case R.id.main_menu_containers:
-                show(new ContainersFragment());
+                show(new ContainersFragment(), false);  // Forward animation
                 break;
             case R.id.main_menu_input_controls:
-                show(new InputControlsFragment(selectedProfileId));
+                show(new InputControlsFragment(selectedProfileId), false);  // Forward animation
                 break;
             case R.id.main_menu_box_rc:
-                show(new Box86_64RCFragment());
+                show(new Box86_64RCFragment(), false);  // Forward animation
                 break;
             case R.id.main_menu_contents:
-                show(new ContentsFragment());
+                show(new ContentsFragment(), false);  // Forward animation
                 break;
             case R.id.main_menu_saves:
-                show(new SavesFragment());
+                show(new SavesFragment(), false);  // Forward animation
                 break;
             case R.id.main_menu_settings:
-                show(new SettingsFragment());
+                show(new SettingsFragment(), false);  // Forward animation
                 break;
             case R.id.main_menu_about:
-                showAboutDialog();
+                showAboutDialog();  // No animation for dialog
                 break;
             case R.id.main_menu_toggle_orientation:
                 if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
@@ -310,17 +362,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    private void show(Fragment fragment) {
+
+//    private void show(Fragment fragment) {
+//        FragmentManager fragmentManager = getSupportFragmentManager();
+//        fragmentManager.beginTransaction()
+//                .replace(R.id.FLFragmentContainer, fragment)
+//                .commit();
+//
+//        drawerLayout.closeDrawer(GravityCompat.START);
+//    }
+
+    private void show(Fragment fragment, boolean reverse) {
         FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.FLFragmentContainer, fragment)
-                .commit();
+        if (reverse) {
+            fragmentManager.beginTransaction()
+                    .setCustomAnimations(R.anim.slide_in_down, R.anim.slide_out_up)  // Reverse animation
+                    .replace(R.id.FLFragmentContainer, fragment)
+                    .commit();
+        } else {
+            fragmentManager.beginTransaction()
+                    .setCustomAnimations(R.anim.slide_in_up, R.anim.slide_out_down)  // Forward animation
+                    .replace(R.id.FLFragmentContainer, fragment)
+                    .commit();
+        }
 
         drawerLayout.closeDrawer(GravityCompat.START);
     }
+
+
+
     private void showAboutDialog() {
         ContentDialog dialog = new ContentDialog(this, R.layout.about_dialog);
         dialog.findViewById(R.id.LLBottomBar).setVisibility(View.GONE);
+
+        if (isDarkMode) {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.content_dialog_background_dark);
+        } else {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.content_dialog_background);
+        }
 
         try {
             final PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
@@ -353,4 +432,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         dialog.show();
     }
+
+    private void setNavigationViewItemTextColor(NavigationView navigationView, int color) {
+        for (int i = 0; i < navigationView.getMenu().size(); i++) {
+            MenuItem menuItem = navigationView.getMenu().getItem(i);
+            setMenuItemTextColor(menuItem, color);
+
+            // If the menu item has sub-items, iterate through them
+            if (menuItem.hasSubMenu()) {
+                for (int j = 0; j < menuItem.getSubMenu().size(); j++) {
+                    MenuItem subMenuItem = menuItem.getSubMenu().getItem(j);
+                    setMenuItemTextColor(subMenuItem, color);
+                }
+            }
+        }
+    }
+
+    private void setMenuItemTextColor(MenuItem menuItem, int color) {
+        SpannableString spanString = new SpannableString(menuItem.getTitle());
+        spanString.setSpan(new ForegroundColorSpan(color), 0, spanString.length(), 0);
+        menuItem.setTitle(spanString);
+    }
+
+
 }

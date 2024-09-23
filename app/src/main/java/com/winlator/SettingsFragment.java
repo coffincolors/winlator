@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,7 +31,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 
-import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.tabs.TabLayout;
 import com.winlator.box86_64.Box86_64EditPresetDialog;
 import com.winlator.box86_64.Box86_64Preset;
 import com.winlator.box86_64.Box86_64PresetManager;
@@ -90,6 +91,18 @@ public class SettingsFragment extends Fragment {
 
     private LinuxCommandExplorer commandExplorer = null;
 
+    private CheckBox cbEnableBigPictureMode;
+
+    private TabLayout tabLayout;
+    private LinearLayout tabInterface, tabInput, tabAdvanced;
+
+    private CheckBox cbDarkMode;
+    boolean isDarkMode;
+
+    private CheckBox cbEnableCustomApiKey;
+    private EditText etCustomApiKey;
+
+
     public SettingsFragment() {
         Context context = getContext();
         commandExplorer = new LinuxCommandExplorer(context);
@@ -106,8 +119,48 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Find views
+        tabLayout = view.findViewById(R.id.TabLayout);
+        tabInterface = view.findViewById(R.id.LLTabInterface);
+        tabInput = view.findViewById(R.id.LLTabInput);
+        tabAdvanced = view.findViewById(R.id.LLTabAdvanced);
+
+        // Set initial visibility (make Interface tab visible by default)
+        showTab(tabInterface, tabInput, tabAdvanced, tabInterface);  // Start with the "Interface" tab visible
+
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                switch (tab.getPosition()) {
+                    case 0: // Interface tab
+                        showTab(tabInterface, tabInput, tabAdvanced, tabInterface);
+                        break;
+                    case 1: // Input tab
+                        showTab(tabInterface, tabInput, tabAdvanced, tabInput);
+                        break;
+                    case 2: // Advanced tab
+                        showTab(tabInterface, tabInput, tabAdvanced, tabAdvanced);
+                        break;
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
+
+        // Apply dynamic styles to all labels
+        applyDynamicStylesRecursively(view);
+
+        // Configure Gyro button
+
         Button btnConfigureGyro = view.findViewById(R.id.BTConfigureGyro);
         btnConfigureGyro.setOnClickListener(v -> showGyroConfigDialog());
+
+        // Configure Frontend Export Path button
 
         Button btnChooseFrontendExportPath = view.findViewById(R.id.BTChooseFrontendExportPath);
         TextView tvFrontendExportPath = view.findViewById(R.id.TVFrontendExportPath);
@@ -133,6 +186,62 @@ public class SettingsFragment extends Fragment {
         });
     }
 
+    private void applyDynamicStylesRecursively(View view) {
+
+        // Find TextViews by ID and apply dynamic styles
+        TextView installedWineLabel = view.findViewById(R.id.TVInstalledWine);
+        applyFieldSetLabelStyle(installedWineLabel, isDarkMode);
+
+        TextView box86box64Label = view.findViewById(R.id.TVBox86Box64);
+        applyFieldSetLabelStyle(box86box64Label, isDarkMode);
+
+        TextView themeLabel = view.findViewById(R.id.TVTheme);
+        applyFieldSetLabelStyle(themeLabel, isDarkMode);
+
+        TextView bigPictureModeLabel = view.findViewById(R.id.TVBigPictureMode);
+        applyFieldSetLabelStyle(bigPictureModeLabel, isDarkMode);
+
+        TextView tvCustomApiKey = view.findViewById(R.id.TVCustomApiKey);
+        applyFieldSetLabelStyle(tvCustomApiKey, isDarkMode);
+
+        TextView shortcutSettingsLabel = view.findViewById(R.id.TVShortcutSettings);
+        applyFieldSetLabelStyle(shortcutSettingsLabel, isDarkMode);
+
+        // Inputs tab labels
+        TextView xServerLabel = view.findViewById(R.id.TVXServer);
+        applyFieldSetLabelStyle(xServerLabel, isDarkMode);
+
+        TextView gyroSettingsLabel = view.findViewById(R.id.TVGyroSettings);
+        applyFieldSetLabelStyle(gyroSettingsLabel, isDarkMode);
+
+        TextView gameControllerLabel = view.findViewById(R.id.TVGameControllerLabel);
+        applyFieldSetLabelStyle(gameControllerLabel, isDarkMode);
+
+        // Advanced tab labels
+        TextView logsLabel = view.findViewById(R.id.TVLogs);
+        applyFieldSetLabelStyle(logsLabel, isDarkMode);
+
+        TextView experimentalLabel = view.findViewById(R.id.TVExperimental);
+        applyFieldSetLabelStyle(experimentalLabel, isDarkMode);
+
+        TextView ImageFsLabel = view.findViewById(R.id.TVImageFs);
+        applyFieldSetLabelStyle(ImageFsLabel, isDarkMode);
+
+    }
+
+    private void applyFieldSetLabelStyle(TextView textView, boolean isDarkMode) {
+//        Context context = textView.getContext();
+
+        if (isDarkMode) {
+            // Apply dark mode-specific attributes
+            textView.setTextColor(Color.parseColor("#cccccc")); // Set text color to #cccccc
+            textView.setBackgroundResource(R.color.window_background_color_dark); // Set dark background color
+        } else {
+            // Apply light mode-specific attributes (original FieldSetLabel)
+            textView.setTextColor(Color.parseColor("#bdbdbd")); // Set text color to #bdbdbd
+            textView.setBackgroundResource(R.color.window_background_color); // Set light background color
+        }
+    }
 
 
     @Override
@@ -184,7 +293,173 @@ public class SettingsFragment extends Fragment {
     }
 
 
-
+//    @Nullable
+//    @Override
+//    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+//
+//        commandExplorer.runCommandTests();
+//
+//        View view = inflater.inflate(R.layout.settings_fragment, container, false);
+//        final Context context = getContext();
+//        preferences = PreferenceManager.getDefaultSharedPreferences(context);
+//
+//        // Add the Big Picture Mode checkbox initialization
+//        cbEnableBigPictureMode = view.findViewById(R.id.CBEnableBigPictureMode);
+//        cbEnableBigPictureMode.setChecked(preferences.getBoolean("enable_big_picture_mode", false));
+//
+//        // Initialize the cursor lock checkbox
+//        cbCursorLock = view.findViewById(R.id.CBCursorLock);
+//        cbCursorLock.setChecked(preferences.getBoolean("cursor_lock", true));
+//
+//        // Initialize the xinput toggle checkbox
+//        cbXinputToggle = view.findViewById(R.id.CBXinputToggle);
+//        cbXinputToggle.setChecked(preferences.getBoolean("xinput_toggle", false));
+//
+//        // Initialize the Touchscreen mode toggle
+//        cbXTouchscreenToggle = view.findViewById(R.id.CBXTouchscreenToggle);
+//        cbXTouchscreenToggle.setChecked(preferences.getBoolean("touchscreen_toggle", false));
+//
+//        // Initialize gyro enable checkbox
+//        cbGyroEnabled = view.findViewById(R.id.CBGyroEnabled);
+//        cbGyroEnabled.setChecked(preferences.getBoolean("gyro_enabled", false));
+//
+//        CheckBox cbProcessGyroWithLeftTrigger = view.findViewById(R.id.CBProcessGyroWithLeftTrigger);
+//        cbProcessGyroWithLeftTrigger.setChecked(preferences.getBoolean("process_gyro_with_left_trigger", false));
+//
+//
+//
+//        // Initialize version spinners
+//        final Spinner sBox86Version = view.findViewById(R.id.SBox86Version);
+//        String box86Version = preferences.getString("box86_version", DefaultVersion.BOX86);
+//        if (!AppUtils.setSpinnerSelectionFromIdentifier(sBox86Version, box86Version)) {
+//            AppUtils.setSpinnerSelectionFromIdentifier(sBox86Version, DefaultVersion.BOX86);
+//        }
+//
+//        final Spinner sBox64Version = view.findViewById(R.id.SBox64Version);
+//        String box64Version = preferences.getString("box64_version", DefaultVersion.BOX64);
+//
+//        ContentsManager contentsManager = new ContentsManager(context);
+//        contentsManager.syncContents();
+//        loadBox64VersionSpinner(context, contentsManager, sBox64Version);
+//
+//        if (!AppUtils.setSpinnerSelectionFromIdentifier(sBox64Version, box64Version)) {
+//            AppUtils.setSpinnerSelectionFromIdentifier(sBox64Version, DefaultVersion.BOX64);
+//        }
+//
+//        // Initialize presets spinners
+//        final Spinner sBox86Preset = view.findViewById(R.id.SBox86Preset);
+//        final Spinner sBox64Preset = view.findViewById(R.id.SBox64Preset);
+//        loadBox86_64PresetSpinners(view, sBox86Preset, sBox64Preset);
+//
+//        // Initialize DRI3 checkbox
+//        final CheckBox cbUseDRI3 = view.findViewById(R.id.CBUseDRI3);
+//        cbUseDRI3.setChecked(preferences.getBoolean("use_dri3", true));
+//
+//        // Initialize Wine debug checkbox and load channels
+//        final CheckBox cbEnableWineDebug = view.findViewById(R.id.CBEnableWineDebug);
+//        cbEnableWineDebug.setChecked(preferences.getBoolean("enable_wine_debug", false));
+//        final ArrayList<String> wineDebugChannels = new ArrayList<>(Arrays.asList(preferences.getString("wine_debug_channels", DEFAULT_WINE_DEBUG_CHANNELS).split(",")));
+//        loadWineDebugChannels(view, wineDebugChannels);
+//
+//        // Initialize Box86/64 logs checkbox
+//        final CheckBox cbEnableBox86_64Logs = view.findViewById(R.id.CBEnableBox86_64Logs);
+//        cbEnableBox86_64Logs.setChecked(preferences.getBoolean("enable_box86_64_logs", false));
+//
+//        // Initialize cursor speed SeekBar and TextView
+//        final TextView tvCursorSpeed = view.findViewById(R.id.TVCursorSpeed);
+//        final SeekBar sbCursorSpeed = view.findViewById(R.id.SBCursorSpeed);
+//        sbCursorSpeed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//            @Override
+//            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+//                tvCursorSpeed.setText(progress + "%");
+//            }
+//
+//            @Override
+//            public void onStartTrackingTouch(SeekBar seekBar) {}
+//
+//            @Override
+//            public void onStopTrackingTouch(SeekBar seekBar) {}
+//        });
+//        sbCursorSpeed.setProgress((int) (preferences.getFloat("cursor_speed", 1.0f) * 100));
+//
+//        // Initialize trigger mode RadioGroup
+//        final RadioGroup rgTriggerType = view.findViewById(R.id.RGTriggerType);
+//        final View btHelpTriggerMode = view.findViewById(R.id.BTHelpTriggerMode);
+//        List<Integer> triggerRbIds = List.of(R.id.RBTriggerIsButton, R.id.RBTriggerIsAxis, R.id.RBTriggerIsMixed);
+//        int triggerType = preferences.getInt("trigger_type", ExternalController.TRIGGER_IS_AXIS);
+//
+//        if (triggerType >= 0 && triggerType < triggerRbIds.size()) {
+//            ((RadioButton) (rgTriggerType.findViewById(triggerRbIds.get(triggerType)))).setChecked(true);
+//        }
+//        btHelpTriggerMode.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_trigger_mode));
+//
+//        final CheckBox cbEnableFileProvider = view.findViewById(R.id.CBEnableFileProvider);
+//        cbEnableFileProvider.setChecked(preferences.getBoolean("enable_file_provider", false));
+//        cbEnableFileProvider.setOnClickListener(v -> AppUtils.showToast(context, R.string.take_effect_next_startup));
+//
+//        // Load installed Wine list
+//        loadInstalledWineList(view);
+//
+//        // Set up Wine file selection button
+//        view.findViewById(R.id.BTSelectWineFile).setOnClickListener((v) -> {
+//            ContentDialog.alert(context, R.string.msg_warning_install_wine, this::selectWineFileForInstall);
+//        });
+//
+//        view.findViewById(R.id.BTReInstallImagefs).setOnClickListener(v -> {
+//            ContentDialog.confirm(context, R.string.do_you_want_to_reinstall_imagefs, () -> ImageFsInstaller.installFromAssets((MainActivity) getActivity()));
+//        });
+//
+//        // Add backup button
+//        Button btnBackupData = view.findViewById(R.id.BTBackupData);
+//        btnBackupData.setOnClickListener(v -> {
+//            showBackupConfirmationDialog();
+//        });
+//
+//        // Add restore button
+//        Button btnRestoreData = view.findViewById(R.id.BTRestoreData);
+//        btnRestoreData.setOnClickListener(v -> {
+//            selectBackupFileForRestore();
+//        });
+//
+//        view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
+//            SharedPreferences.Editor editor = preferences.edit();
+//            editor.putString("box86_version", StringUtils.parseIdentifier(sBox86Version.getSelectedItem()));
+//            editor.putString("box64_version", StringUtils.parseIdentifier(sBox64Version.getSelectedItem()));
+//            editor.putString("box86_preset", Box86_64PresetManager.getSpinnerSelectedId(sBox86Preset));
+//            editor.putString("box64_preset", Box86_64PresetManager.getSpinnerSelectedId(sBox64Preset));
+//            editor.putBoolean("use_dri3", cbUseDRI3.isChecked());
+//            editor.putFloat("cursor_speed", sbCursorSpeed.getProgress() / 100.0f);
+//            editor.putBoolean("enable_wine_debug", cbEnableWineDebug.isChecked());
+//            editor.putBoolean("enable_box86_64_logs", cbEnableBox86_64Logs.isChecked());
+//            editor.putInt("trigger_type", triggerRbIds.indexOf(rgTriggerType.getCheckedRadioButtonId()));
+//            editor.putBoolean("cursor_lock", cbCursorLock.isChecked());
+//            editor.putBoolean("xinput_toggle", cbXinputToggle.isChecked());
+//            editor.putBoolean("touchscreen_toggle", cbXTouchscreenToggle.isChecked());
+//            editor.putBoolean("enable_file_provider", cbEnableFileProvider.isChecked());
+//
+//            editor.putBoolean("enable_big_picture_mode", cbEnableBigPictureMode.isChecked());
+//
+//            // Save gyro settings
+//            editor.putBoolean("gyro_enabled", cbGyroEnabled.isChecked());
+//            editor.putBoolean("process_gyro_with_left_trigger", cbProcessGyroWithLeftTrigger.isChecked());
+//            if (!wineDebugChannels.isEmpty()) {
+//                editor.putString("wine_debug_channels", String.join(",", wineDebugChannels));
+//            } else if (preferences.contains("wine_debug_channels")) {
+//                editor.remove("wine_debug_channels");
+//            }
+//
+//            if (editor.commit()) {
+//                NavigationView navigationView = getActivity().findViewById(R.id.NavigationView);
+//                navigationView.setCheckedItem(R.id.main_menu_containers);
+//                FragmentManager fragmentManager = getParentFragmentManager();
+//                fragmentManager.beginTransaction()
+//                        .replace(R.id.FLFragmentContainer, new ContainersFragment())
+//                        .commit();
+//            }
+//        });
+//
+//        return view;
+//    }
 
     @Nullable
     @Override
@@ -196,27 +471,89 @@ public class SettingsFragment extends Fragment {
         final Context context = getContext();
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
-        // Initialize the cursor lock checkbox
+        // Check for Dark Mode preference
+        isDarkMode = preferences.getBoolean("dark_mode", false);
+        // Apply dynamic styles
+        applyDynamicStyles(view, isDarkMode);
+
+        // Initialize UI Components
+        initBasicSettings(view);
+        initSpinners(view, context);
+        initGyroSettings(view);
+        initTriggerSettings(view);
+        initWineSettings(view, context);
+        initBackupRestoreButtons(view);
+        initCustomApiKeySettings(view);
+        initTabs(view);  // For tab layout and handling tab switching
+
+
+        // Confirm button
+        view.findViewById(R.id.BTConfirm).setOnClickListener(v -> saveSettings(view));
+
+        return view;
+    }
+
+    private void applyDynamicStyles(View view, boolean isDarkMode) {
+
+    Spinner sBox86Version = view.findViewById(R.id.SBox86Version);
+    sBox86Version.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+    Spinner sBox64Version = view.findViewById(R.id.SBox64Version);
+    sBox64Version.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+    Spinner sBox86Preset = view.findViewById(R.id.SBox86Preset);
+    sBox86Preset.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+    Spinner sBox64Preset = view.findViewById(R.id.SBox64Preset);
+    sBox64Preset.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+    }
+
+        private void initBasicSettings(View view) {
+        cbEnableBigPictureMode = view.findViewById(R.id.CBEnableBigPictureMode);
+        cbEnableBigPictureMode.setChecked(preferences.getBoolean("enable_big_picture_mode", false));
+
+        // Initialize the Dark Mode checkbox
+        cbDarkMode = view.findViewById(R.id.CBDarkMode);
+        cbDarkMode.setChecked(preferences.getBoolean("dark_mode", false));
+
+        cbDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Save dark mode preference
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("dark_mode", isChecked);
+            editor.apply();
+
+            // Update the UI or activity theme if necessary
+            updateTheme(isChecked);
+        });
+
         cbCursorLock = view.findViewById(R.id.CBCursorLock);
         cbCursorLock.setChecked(preferences.getBoolean("cursor_lock", true));
 
-        // Initialize the xinput toggle checkbox
         cbXinputToggle = view.findViewById(R.id.CBXinputToggle);
         cbXinputToggle.setChecked(preferences.getBoolean("xinput_toggle", false));
 
-        // Initialize the Touchscreen mode toggle
         cbXTouchscreenToggle = view.findViewById(R.id.CBXTouchscreenToggle);
         cbXTouchscreenToggle.setChecked(preferences.getBoolean("touchscreen_toggle", false));
 
-        // Initialize gyro enable checkbox
-        cbGyroEnabled = view.findViewById(R.id.CBGyroEnabled);
-        cbGyroEnabled.setChecked(preferences.getBoolean("gyro_enabled", false));
+        final CheckBox cbEnableFileProvider = view.findViewById(R.id.CBEnableFileProvider);
+        cbEnableFileProvider.setChecked(preferences.getBoolean("enable_file_provider", false));
+        cbEnableFileProvider.setOnClickListener(v -> AppUtils.showToast(getContext(), R.string.take_effect_next_startup));
+    }
 
-        CheckBox cbProcessGyroWithLeftTrigger = view.findViewById(R.id.CBProcessGyroWithLeftTrigger);
-        cbProcessGyroWithLeftTrigger.setChecked(preferences.getBoolean("process_gyro_with_left_trigger", false));
+    private void updateTheme(boolean isDarkMode) {
+        if (isDarkMode) {
+            getActivity().setTheme(R.style.AppTheme_Dark);
+        } else {
+            getActivity().setTheme(R.style.AppTheme);
+        }
+
+        // Recreate the activity to apply the new theme
+        getActivity().recreate();
+    }
 
 
-
+    private void initSpinners(View view, Context context) {
         // Initialize version spinners
         final Spinner sBox86Version = view.findViewById(R.id.SBox86Version);
         String box86Version = preferences.getString("box86_version", DefaultVersion.BOX86);
@@ -243,16 +580,14 @@ public class SettingsFragment extends Fragment {
         // Initialize DRI3 checkbox
         final CheckBox cbUseDRI3 = view.findViewById(R.id.CBUseDRI3);
         cbUseDRI3.setChecked(preferences.getBoolean("use_dri3", true));
+    }
 
-        // Initialize Wine debug checkbox and load channels
-        final CheckBox cbEnableWineDebug = view.findViewById(R.id.CBEnableWineDebug);
-        cbEnableWineDebug.setChecked(preferences.getBoolean("enable_wine_debug", false));
-        final ArrayList<String> wineDebugChannels = new ArrayList<>(Arrays.asList(preferences.getString("wine_debug_channels", DEFAULT_WINE_DEBUG_CHANNELS).split(",")));
-        loadWineDebugChannels(view, wineDebugChannels);
+    private void initGyroSettings(View view) {
+        cbGyroEnabled = view.findViewById(R.id.CBGyroEnabled);
+        cbGyroEnabled.setChecked(preferences.getBoolean("gyro_enabled", false));
 
-        // Initialize Box86/64 logs checkbox
-        final CheckBox cbEnableBox86_64Logs = view.findViewById(R.id.CBEnableBox86_64Logs);
-        cbEnableBox86_64Logs.setChecked(preferences.getBoolean("enable_box86_64_logs", false));
+        CheckBox cbProcessGyroWithLeftTrigger = view.findViewById(R.id.CBProcessGyroWithLeftTrigger);
+        cbProcessGyroWithLeftTrigger.setChecked(preferences.getBoolean("process_gyro_with_left_trigger", false));
 
         // Initialize cursor speed SeekBar and TextView
         final TextView tvCursorSpeed = view.findViewById(R.id.TVCursorSpeed);
@@ -270,11 +605,179 @@ public class SettingsFragment extends Fragment {
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
         sbCursorSpeed.setProgress((int) (preferences.getFloat("cursor_speed", 1.0f) * 100));
+    }
+
+    private void initWineSettings(View view, Context context) {
+        // Initialize Wine debug checkbox and load channels
+        final CheckBox cbEnableWineDebug = view.findViewById(R.id.CBEnableWineDebug);
+        cbEnableWineDebug.setChecked(preferences.getBoolean("enable_wine_debug", false));
+        final ArrayList<String> wineDebugChannels = new ArrayList<>(Arrays.asList(preferences.getString("wine_debug_channels", DEFAULT_WINE_DEBUG_CHANNELS).split(",")));
+        loadWineDebugChannels(view, wineDebugChannels);
+
+        // Initialize Box86/64 logs checkbox
+        final CheckBox cbEnableBox86_64Logs = view.findViewById(R.id.CBEnableBox86_64Logs);
+        cbEnableBox86_64Logs.setChecked(preferences.getBoolean("enable_box86_64_logs", false));
+
+        // Load installed Wine list
+        loadInstalledWineList(view);
+
+        // Set up Wine file selection button
+        view.findViewById(R.id.BTSelectWineFile).setOnClickListener(v -> {
+            ContentDialog.alert(context, R.string.msg_warning_install_wine, this::selectWineFileForInstall);
+        });
+
+        view.findViewById(R.id.BTReInstallImagefs).setOnClickListener(v -> {
+            ContentDialog.confirm(context, R.string.do_you_want_to_reinstall_imagefs, () -> ImageFsInstaller.installFromAssets((MainActivity) getActivity()));
+        });
+    }
+
+    private void initBackupRestoreButtons(View view) {
+        Button btnBackupData = view.findViewById(R.id.BTBackupData);
+        btnBackupData.setOnClickListener(v -> showBackupConfirmationDialog());
+
+        Button btnRestoreData = view.findViewById(R.id.BTRestoreData);
+        btnRestoreData.setOnClickListener(v -> selectBackupFileForRestore());
+    }
+
+    private void initTriggerSettings(View view) {
+        final RadioGroup rgTriggerType = view.findViewById(R.id.RGTriggerType);
+        List<Integer> triggerRbIds = List.of(R.id.RBTriggerIsButton, R.id.RBTriggerIsAxis, R.id.RBTriggerIsMixed);
+        int triggerType = preferences.getInt("trigger_type", ExternalController.TRIGGER_IS_AXIS);
+
+        if (triggerType >= 0 && triggerType < triggerRbIds.size()) {
+            ((RadioButton) (rgTriggerType.findViewById(triggerRbIds.get(triggerType)))).setChecked(true);
+        }
+
+        final View btHelpTriggerMode = view.findViewById(R.id.BTHelpTriggerMode);
+        btHelpTriggerMode.setOnClickListener(v -> AppUtils.showHelpBox(getContext(), v, R.string.help_trigger_mode));
+    }
+
+    private void initCustomApiKeySettings(View view) {
+        cbEnableCustomApiKey = view.findViewById(R.id.CBEnableCustomApiKey);
+        etCustomApiKey = view.findViewById(R.id.ETCustomApiKey);
+
+        // Load saved preferences
+        boolean isCustomApiKeyEnabled = preferences.getBoolean("enable_custom_api_key", false);
+        String customApiKey = preferences.getString("custom_api_key", "");
+
+        cbEnableCustomApiKey.setChecked(isCustomApiKeyEnabled);
+        etCustomApiKey.setText(customApiKey);
+
+        // Show/hide the EditText based on checkbox state
+        etCustomApiKey.setVisibility(isCustomApiKeyEnabled ? View.VISIBLE : View.GONE);
+
+        cbEnableCustomApiKey.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            etCustomApiKey.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+        });
+
+        // Help button listener to open API documentation
+        view.findViewById(R.id.BTHelpApiKey).setOnClickListener(v -> {
+            String url = "https://www.steamgriddb.com/profile/preferences/api";
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(intent);
+        });
+    }
+
+    private void saveCustomApiKeySettings(SharedPreferences.Editor editor) {
+        // Save custom API key preferences
+        boolean isCustomApiKeyEnabled = cbEnableCustomApiKey.isChecked();
+        editor.putBoolean("enable_custom_api_key", isCustomApiKeyEnabled);
+
+        if (isCustomApiKeyEnabled) {
+            String customApiKey = etCustomApiKey.getText().toString().trim();
+            editor.putString("custom_api_key", customApiKey);
+        } else {
+            editor.remove("custom_api_key");
+        }
+    }
+
+
+    private void initTabs(View view) {
+        // TabLayout and content views
+        TabLayout tabLayout = view.findViewById(R.id.TabLayout);
+
+        if (isDarkMode) {
+            tabLayout.setBackgroundResource(R.drawable.tab_layout_background_dark);
+        } else {
+            tabLayout.setBackgroundResource(R.drawable.tab_layout_background);
+        }
+
+        LinearLayout tabInterface = view.findViewById(R.id.LLTabInterface);
+        LinearLayout tabInput = view.findViewById(R.id.LLTabInput);
+        LinearLayout tabAdvanced = view.findViewById(R.id.LLTabAdvanced);
+
+
+        // Show the first tab by default
+        showTab(tabInterface, tabInput, tabAdvanced, tabInterface);
+
+        // Set up TabLayout listener
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                switch (tab.getPosition()) {
+                    case 0:
+                        showTab(tabInterface, tabInput, tabAdvanced, tabInterface);
+                        break;
+                    case 1:
+                        showTab(tabInterface, tabInput, tabAdvanced, tabInput);
+                        break;
+                    case 2:
+                        showTab(tabInterface, tabInput, tabAdvanced, tabAdvanced);
+                        break;
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
+    }
+
+    // Helper method to show the selected tab content
+    private void showTab(LinearLayout tabInterface, LinearLayout tabInput, LinearLayout tabAdvanced, LinearLayout toShow) {
+        tabInterface.setVisibility(View.GONE);
+        tabInput.setVisibility(View.GONE);
+        tabAdvanced.setVisibility(View.GONE);
+
+        toShow.setVisibility(View.VISIBLE);
+    }
+
+    private void saveSettings(View view) {
+        SharedPreferences.Editor editor = preferences.edit();
+
+        final Context context = getContext();
+
+        // Save spinners, checkboxes, etc.
+        final Spinner sBox86Version = view.findViewById(R.id.SBox86Version);
+        final Spinner sBox64Version = view.findViewById(R.id.SBox64Version);
+        final Spinner sBox86Preset = view.findViewById(R.id.SBox86Preset);
+        final Spinner sBox64Preset = view.findViewById(R.id.SBox64Preset);
+
+        // Save Dark Mode setting
+        editor.putBoolean("dark_mode", cbDarkMode.isChecked());
+
+        // Box86/64 version and preset settings
+        editor.putString("box86_version", StringUtils.parseIdentifier(sBox86Version.getSelectedItem()));
+        editor.putString("box64_version", StringUtils.parseIdentifier(sBox64Version.getSelectedItem()));
+        editor.putString("box86_preset", Box86_64PresetManager.getSpinnerSelectedId(sBox86Preset));
+        editor.putString("box64_preset", Box86_64PresetManager.getSpinnerSelectedId(sBox64Preset));
+
+        // DRI3 and debug settings
+        editor.putBoolean("use_dri3", ((CheckBox) view.findViewById(R.id.CBUseDRI3)).isChecked());
+        editor.putBoolean("enable_wine_debug", ((CheckBox) view.findViewById(R.id.CBEnableWineDebug)).isChecked());
+        editor.putBoolean("enable_box86_64_logs", ((CheckBox) view.findViewById(R.id.CBEnableBox86_64Logs)).isChecked());
+
+        // Cursor speed settings
+        editor.putFloat("cursor_speed", ((SeekBar) view.findViewById(R.id.SBCursorSpeed)).getProgress() / 100.0f);
 
         // Initialize trigger mode RadioGroup
         final RadioGroup rgTriggerType = view.findViewById(R.id.RGTriggerType);
         final View btHelpTriggerMode = view.findViewById(R.id.BTHelpTriggerMode);
         List<Integer> triggerRbIds = List.of(R.id.RBTriggerIsButton, R.id.RBTriggerIsAxis, R.id.RBTriggerIsMixed);
+        editor.putInt("trigger_type", triggerRbIds.indexOf(rgTriggerType.getCheckedRadioButtonId()));
+
         int triggerType = preferences.getInt("trigger_type", ExternalController.TRIGGER_IS_AXIS);
 
         if (triggerType >= 0 && triggerType < triggerRbIds.size()) {
@@ -282,71 +785,43 @@ public class SettingsFragment extends Fragment {
         }
         btHelpTriggerMode.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_trigger_mode));
 
-        final CheckBox cbEnableFileProvider = view.findViewById(R.id.CBEnableFileProvider);
-        cbEnableFileProvider.setChecked(preferences.getBoolean("enable_file_provider", false));
-        cbEnableFileProvider.setOnClickListener(v -> AppUtils.showToast(context, R.string.take_effect_next_startup));
+        // Save cursor lock, xinput, and touchscreen settings
+        editor.putBoolean("cursor_lock", ((CheckBox) view.findViewById(R.id.CBCursorLock)).isChecked());
+        editor.putBoolean("xinput_toggle", ((CheckBox) view.findViewById(R.id.CBXinputToggle)).isChecked());
+        editor.putBoolean("touchscreen_toggle", ((CheckBox) view.findViewById(R.id.CBXTouchscreenToggle)).isChecked());
 
-        // Load installed Wine list
-        loadInstalledWineList(view);
+        // Save Big Picture Mode setting
+        editor.putBoolean("enable_big_picture_mode", ((CheckBox) view.findViewById(R.id.CBEnableBigPictureMode)).isChecked());
 
-        // Set up Wine file selection button
-        view.findViewById(R.id.BTSelectWineFile).setOnClickListener((v) -> {
-            ContentDialog.alert(context, R.string.msg_warning_install_wine, this::selectWineFileForInstall);
-        });
 
-        view.findViewById(R.id.BTReInstallImagefs).setOnClickListener(v -> {
-            ContentDialog.confirm(context, R.string.do_you_want_to_reinstall_imagefs, () -> ImageFsInstaller.installFromAssets((MainActivity) getActivity()));
-        });
+        // Save gyro settings
+        editor.putBoolean("gyro_enabled", ((CheckBox) view.findViewById(R.id.CBGyroEnabled)).isChecked());
+        editor.putBoolean("process_gyro_with_left_trigger", ((CheckBox) view.findViewById(R.id.CBProcessGyroWithLeftTrigger)).isChecked());
 
-        // Add backup button
-        Button btnBackupData = view.findViewById(R.id.BTBackupData);
-        btnBackupData.setOnClickListener(v -> {
-            showBackupConfirmationDialog();
-        });
+        // Save Wine debug channels
+        final ArrayList<String> wineDebugChannels = new ArrayList<>(Arrays.asList(preferences.getString("wine_debug_channels", DEFAULT_WINE_DEBUG_CHANNELS).split(",")));
+        if (!wineDebugChannels.isEmpty()) {
+            editor.putString("wine_debug_channels", String.join(",", wineDebugChannels));
+        } else if (preferences.contains("wine_debug_channels")) {
+            editor.remove("wine_debug_channels");
+        }
 
-        // Add restore button
-        Button btnRestoreData = view.findViewById(R.id.BTRestoreData);
-        btnRestoreData.setOnClickListener(v -> {
-            selectBackupFileForRestore();
-        });
+        // Save the FileProvider setting
+        editor.putBoolean("enable_file_provider", ((CheckBox) view.findViewById(R.id.CBEnableFileProvider)).isChecked());
 
-        view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("box86_version", StringUtils.parseIdentifier(sBox86Version.getSelectedItem()));
-            editor.putString("box64_version", StringUtils.parseIdentifier(sBox64Version.getSelectedItem()));
-            editor.putString("box86_preset", Box86_64PresetManager.getSpinnerSelectedId(sBox86Preset));
-            editor.putString("box64_preset", Box86_64PresetManager.getSpinnerSelectedId(sBox64Preset));
-            editor.putBoolean("use_dri3", cbUseDRI3.isChecked());
-            editor.putFloat("cursor_speed", sbCursorSpeed.getProgress() / 100.0f);
-            editor.putBoolean("enable_wine_debug", cbEnableWineDebug.isChecked());
-            editor.putBoolean("enable_box86_64_logs", cbEnableBox86_64Logs.isChecked());
-            editor.putInt("trigger_type", triggerRbIds.indexOf(rgTriggerType.getCheckedRadioButtonId()));
-            editor.putBoolean("cursor_lock", cbCursorLock.isChecked());
-            editor.putBoolean("xinput_toggle", cbXinputToggle.isChecked());
-            editor.putBoolean("touchscreen_toggle", cbXTouchscreenToggle.isChecked());
-            editor.putBoolean("enable_file_provider", cbEnableFileProvider.isChecked());
+        saveCustomApiKeySettings(editor);
 
-            // Save gyro settings
-            editor.putBoolean("gyro_enabled", cbGyroEnabled.isChecked());
-            editor.putBoolean("process_gyro_with_left_trigger", cbProcessGyroWithLeftTrigger.isChecked());
-            if (!wineDebugChannels.isEmpty()) {
-                editor.putString("wine_debug_channels", String.join(",", wineDebugChannels));
-            } else if (preferences.contains("wine_debug_channels")) {
-                editor.remove("wine_debug_channels");
-            }
 
-            if (editor.commit()) {
-                NavigationView navigationView = getActivity().findViewById(R.id.NavigationView);
-                navigationView.setCheckedItem(R.id.main_menu_containers);
-                FragmentManager fragmentManager = getParentFragmentManager();
-                fragmentManager.beginTransaction()
-                        .replace(R.id.FLFragmentContainer, new ContainersFragment())
-                        .commit();
-            }
-        });
+        // Apply changes
+        editor.apply();
 
-        return view;
+        // Switch back to ContainersFragment after saving settings
+        FragmentManager fragmentManager = getParentFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.FLFragmentContainer, new ContainersFragment()).commit();
     }
+
+
+
 
     private void loadBox86_64PresetSpinners(View view, final Spinner sBox86Preset, final Spinner sBox64Preset) {
         final ArrayMap<String, Spinner> spinners = new ArrayMap<String, Spinner>() {{
@@ -485,6 +960,8 @@ public class SettingsFragment extends Fragment {
         intent.setType("*/*");
         getActivity().startActivityFromFragment(this, intent, MainActivity.OPEN_FILE_REQUEST_CODE);
     }
+
+
 
     private void installWine(final WineInfo wineInfo) {
         Context context = getContext();

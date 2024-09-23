@@ -373,4 +373,5 @@
     <string name="enable_touchscreen_timeout">Auto Hide Touchscreen Controls</string>
     <string name="enable_touchscreen_haptics">Enable Touchscreen Haptic Feedback</string>
     <string name="fullscreen_stretched">Enable Fullscreen (Stretched)</string>
+    <string name="help_steamgrid">SteamGrid API Key</string>
 </resources>

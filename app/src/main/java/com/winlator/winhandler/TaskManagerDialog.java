@@ -2,16 +2,21 @@ package com.winlator.winhandler;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+
+import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
 import com.winlator.R;
 import com.winlator.XServerDisplayActivity;
@@ -36,9 +41,15 @@ public class TaskManagerDialog extends ContentDialog implements OnGetProcessInfo
     private Timer timer;
     private final Object lock = new Object();
 
+    private boolean isDarkMode;
+
     public TaskManagerDialog(XServerDisplayActivity activity) {
         super(activity, R.layout.task_manager_dialog);
         this.activity = activity;
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        isDarkMode = sharedPreferences.getBoolean("dark_mode", false);
+
         setCancelable(false);
         setTitle(R.string.task_manager);
         setIcon(R.drawable.icon_task_manager);
@@ -49,6 +60,31 @@ public class TaskManagerDialog extends ContentDialog implements OnGetProcessInfo
             dismiss();
             ContentDialog.prompt(activity, R.string.new_task, "taskmgr.exe", (command) -> activity.getWinHandler().exec(command));
         });
+
+
+//        // Set the background color
+//        findViewById(R.id.task_manager_container).setBackgroundColor(
+//                ContextCompat.getColor(activity, isDarkMode ? R.color.window_background_color_dark : R.color.window_background_color)
+//        );
+
+        // Set Text Color
+        int textColor = ContextCompat.getColor(activity, isDarkMode ? R.color.white : R.color.black);
+        applyTextColorToViews(findViewById(android.R.id.content), textColor);
+
+        // Apply dark theme bordered panel
+//        LinearLayout llBorderedPanel = findViewById(R.id.LLBorderedPanel);
+//        llBorderedPanel.setBackgroundResource(isDarkMode ? R.drawable.bordered_panel_dark : R.drawable.bordered_panel);
+
+        int panelBackground = isDarkMode ? R.drawable.bordered_panel_dark : R.drawable.bordered_panel;
+        findViewById(R.id.LLTableHead).setBackgroundResource(panelBackground);
+        findViewById(R.id.LLCPUInfo).setBackgroundResource(panelBackground);
+        findViewById(R.id.LLProcessList).setBackgroundResource(panelBackground);
+
+
+        // Set styles for CPU and Memory info view
+        updateCPUInfoViewStyle(isDarkMode);
+        updateMemoryInfoViewStyle(isDarkMode);
+
 
         setOnDismissListener((dialog) -> {
             if (timer != null) {
@@ -62,6 +98,32 @@ public class TaskManagerDialog extends ContentDialog implements OnGetProcessInfo
         FileUtils.clear(getIconDir(activity));
         inflater = LayoutInflater.from(activity);
     }
+
+    private void applyTextColorToViews(View rootView, int color) {
+        if (rootView instanceof ViewGroup) {
+            ViewGroup viewGroup = (ViewGroup) rootView;
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                applyTextColorToViews(viewGroup.getChildAt(i), color);
+            }
+        } else if (rootView instanceof TextView) {
+            ((TextView) rootView).setTextColor(color);
+        }
+    }
+
+    private void updateCPUInfoViewStyle(boolean isDarkMode) {
+        LinearLayout llCPUInfo = findViewById(R.id.LLCPUInfo);
+        TextView tvCPUTitle = findViewById(R.id.TVCPUTitle);
+        tvCPUTitle.setTextColor(ContextCompat.getColor(activity, isDarkMode ? R.color.white : R.color.black));
+    }
+
+    private void updateMemoryInfoViewStyle(boolean isDarkMode) {
+        TextView tvMemoryTitle = findViewById(R.id.TVMemoryTitle);
+        tvMemoryTitle.setTextColor(ContextCompat.getColor(activity, isDarkMode ? R.color.white : R.color.black));
+        TextView tvMemoryInfo = findViewById(R.id.TVMemoryInfo);
+        tvMemoryInfo.setTextColor(ContextCompat.getColor(activity, isDarkMode ? R.color.white : R.color.black));
+    }
+
+
 
     private void update() {
         synchronized (lock) {

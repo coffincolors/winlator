@@ -1,10 +1,13 @@
 package com.winlator.contentdialog;
 
+import android.content.SharedPreferences;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+
+import androidx.preference.PreferenceManager;
 
 import com.winlator.R;
 import com.winlator.box86_64.rc.RCFile;
@@ -22,6 +25,11 @@ public class ImportGroupDialog extends ContentDialog {
         setTitle(anchor.getContext().getString(R.string.import_group));
 
         final Spinner sProfile = findViewById(R.id.SProfile);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(anchor.getContext());
+        boolean isDarkMode = prefs.getBoolean("dark_mode", false);
+        sProfile.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
         final ListView lvGroup = findViewById(R.id.LVGroup);
 
         findViewById(R.id.BTConfirm).setVisibility(View.GONE);
@@ -53,4 +61,6 @@ public class ImportGroupDialog extends ContentDialog {
         });
         sProfile.setSelection(0, false);
     }
+
+
 }

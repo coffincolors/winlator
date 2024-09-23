@@ -22,6 +22,8 @@
             app:titleTextColor="#ffffff"
             app:titleTextAppearance="@style/TextAppearance.AppCompat.Medium" />
 
+
+
         <FrameLayout
             android:id="@+id/FLFragmentContainer"
             android:layout_width="match_parent"

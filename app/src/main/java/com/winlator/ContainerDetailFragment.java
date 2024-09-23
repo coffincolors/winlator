@@ -5,10 +5,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -30,6 +32,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 
+import com.google.android.material.tabs.TabLayout;
 import com.winlator.box86_64.Box86_64Preset;
 import com.winlator.box86_64.Box86_64PresetManager;
 import com.winlator.box86_64.rc.RCManager;
@@ -39,6 +42,7 @@ import com.winlator.contentdialog.AddEnvVarDialog;
 import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.DXVKConfigDialog;
 import com.winlator.contentdialog.GraphicsDriverConfigDialog;
+import com.winlator.contentdialog.ShortcutSettingsDialog;
 import com.winlator.contentdialog.VKD3DConfigDialog;
 import com.winlator.contents.ContentProfile;
 import com.winlator.contents.ContentsManager;
@@ -83,6 +87,8 @@ public class ContainerDetailFragment extends Fragment {
 
     private String tempGraphicsDriverVersion; // Temporary storage for the graphics driver version
 
+    private static boolean isDarkMode;
+
     public ContainerDetailFragment() {
         this(0);
     }
@@ -112,6 +118,104 @@ public class ContainerDetailFragment extends Fragment {
 //        }
     }
 
+    private static void applyFieldSetLabelStyle(TextView textView, boolean isDarkMode) {
+//        Context context = textView.getContext();
+
+        if (isDarkMode) {
+            // Apply dark mode-specific attributes
+            textView.setTextColor(Color.parseColor("#cccccc")); // Set text color to #cccccc
+            textView.setBackgroundResource(R.color.window_background_color_dark); // Set dark background color
+        } else {
+            // Apply light mode-specific attributes (original FieldSetLabel)
+            textView.setTextColor(Color.parseColor("#bdbdbd")); // Set text color to #bdbdbd
+            textView.setBackgroundResource(R.color.window_background_color); // Set light background color
+        }
+    }
+
+
+    private void applyDynamicStyles(View view, boolean isDarkMode) {
+
+
+        // Update Spinners
+        Spinner sScreenSize = view.findViewById(R.id.SScreenSize);
+        sScreenSize.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sWineVersion = view.findViewById(R.id.SWineVersion);
+        sWineVersion.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sGraphicsDriver = view.findViewById(R.id.SGraphicsDriver);
+        sGraphicsDriver.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sDXWrapper = view.findViewById(R.id.SDXWrapper);
+        sDXWrapper.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sAudioDriver = view.findViewById(R.id.SAudioDriver);
+        sAudioDriver.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+
+        // Update Wine Configuration Tab Spinner styles
+        // Desktop
+        Spinner sDesktopTheme = view.findViewById(R.id.SDesktopTheme);
+        sDesktopTheme.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sDesktopBackgroundType = view.findViewById(R.id.SDesktopBackgroundType);
+        sDesktopBackgroundType.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+        // Registry Keys
+        Spinner SCSMT = view.findViewById(R.id.SCSMT);
+        SCSMT.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner SGPUName = view.findViewById(R.id.SGPUName);
+        SGPUName.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sOffscreenRenderingMode = view.findViewById(R.id.SOffscreenRenderingMode);
+        sOffscreenRenderingMode.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sStrictShaderMath = view.findViewById(R.id.SStrictShaderMath);
+        sStrictShaderMath.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sVideoMemorySize = view.findViewById(R.id.SVideoMemorySize);
+        sVideoMemorySize.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sMouseWarpOverride = view.findViewById(R.id.SMouseWarpOverride);
+        sMouseWarpOverride.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        // Win Components
+        // Handled in createWinComponentsTab
+
+        // Update Advanced Tab Spinner styles
+        Spinner SDInputType = view.findViewById(R.id.SDInputType);
+        SDInputType.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sBox86Preset = view.findViewById(R.id.SBox86Preset);
+        sBox86Preset.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sBox64Preset = view.findViewById(R.id.SBox64Preset);
+        sBox64Preset.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sStartupSelection = view.findViewById(R.id.SStartupSelection);
+        sStartupSelection.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        Spinner sRCFile = view.findViewById(R.id.SRCFile);
+        sRCFile.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+    }
+
+    private void applyDynamicStylesRecursively(View view, boolean isDarkMode) {
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View child = group.getChildAt(i);
+                applyDynamicStylesRecursively(child, isDarkMode);
+            }
+        } else if (view instanceof TextView) {
+            TextView textView = (TextView) view;
+            if ("desktop".equals(textView.getText().toString())) { // Check for specific text if needed
+                textView.setTextAppearance(getContext(), isDarkMode ? R.style.FieldSetLabel_Dark : R.style.FieldSetLabel);
+            }
+        }
+    }
+
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == MainActivity.OPEN_DIRECTORY_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
@@ -136,6 +240,31 @@ public class ContainerDetailFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(isEditMode() ? R.string.edit_container : R.string.new_container);
+
+        // Find TextViews by ID and apply dynamic styles
+        TextView desktopLabel = view.findViewById(R.id.TVDesktop);
+        applyFieldSetLabelStyle(desktopLabel, isDarkMode);  // Apply the dark or light mode styles
+
+        TextView registryKeysLabel = view.findViewById(R.id.TVRegistryKeys);
+        applyFieldSetLabelStyle(registryKeysLabel, isDarkMode);  // Apply the dark or light mode styles
+
+        // Win Components TextViews
+        TextView directXLabel = view.findViewById(R.id.TVDirectX);
+        applyFieldSetLabelStyle(directXLabel, isDarkMode);  // Apply the dark or light mode styles
+
+        TextView generalLabel = view.findViewById(R.id.TVGeneral);
+        applyFieldSetLabelStyle(generalLabel, isDarkMode);  // Apply the dark or light mode styles
+
+        // Advanced Tab TextViews
+        TextView box86box64Label = view.findViewById(R.id.TVBox86Box64);
+        applyFieldSetLabelStyle(box86box64Label, isDarkMode);  // Apply the dark or light mode styles
+
+        TextView systemLabel = view.findViewById(R.id.TVSystem);
+        applyFieldSetLabelStyle(systemLabel, isDarkMode);  // Apply the dark or light mode styles
+
+        TextView gameControllerLabel = view.findViewById(R.id.TVGameController);
+        applyFieldSetLabelStyle(gameControllerLabel, isDarkMode);  // Apply the dark or light mode styles
+
     }
 
     public boolean isEditMode() {
@@ -149,6 +278,16 @@ public class ContainerDetailFragment extends Fragment {
         final Context context = getContext();
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         final View view = inflater.inflate(R.layout.container_detail_fragment, root, false);
+
+        // Determine if dark mode is enabled
+        isDarkMode = preferences.getBoolean("dark_mode", true); // Adjust this based on how you store theme info
+
+        // Apply dynamic styles
+        applyDynamicStyles(view, isDarkMode);
+
+        // Apply dynamic styles recursively
+//        applyDynamicStylesRecursively(view, isDarkMode);
+
         manager = new ContainerManager(context);
         container = containerId > 0 ? manager.getContainerById(containerId) : null;
         contentsManager = new ContentsManager(context);
@@ -300,6 +439,15 @@ public class ContainerDetailFragment extends Fragment {
         createDrivesTab(view);
 
         AppUtils.setupTabLayout(view, R.id.TabLayout, R.id.LLTabWineConfiguration, R.id.LLTabWinComponents, R.id.LLTabEnvVars, R.id.LLTabDrives, R.id.LLTabAdvanced);
+
+        TabLayout tabLayout = view.findViewById(R.id.TabLayout);
+
+        if (isDarkMode) {
+            tabLayout.setBackgroundResource(R.drawable.tab_layout_background_dark);
+        } else {
+            tabLayout.setBackgroundResource(R.drawable.tab_layout_background);
+        }
+
 
         view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
             try {
@@ -561,7 +709,9 @@ public class ContainerDetailFragment extends Fragment {
     public static void loadScreenSizeSpinner(View view, String selectedValue) {
         final Spinner sScreenSize = view.findViewById(R.id.SScreenSize);
 
+
         final LinearLayout llCustomScreenSize = view.findViewById(R.id.LLCustomScreenSize);
+
         sScreenSize.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -584,11 +734,16 @@ public class ContainerDetailFragment extends Fragment {
 
     // This method shows the GraphicsDriverConfigDialog
     private void showGraphicsDriverConfigDialog(View anchor) {
-        new GraphicsDriverConfigDialog(anchor, manager, container, graphicsDriverVersion, version -> {
-            // Capture the selected version
-            graphicsDriverVersion = version;
+        // Create a new GraphicsDriverConfigDialog with the container and manager
+        new GraphicsDriverConfigDialog(anchor, container, manager, container.getGraphicsDriverVersion(), version -> {
+            // Update the graphicsDriverVersion in the fragment with the selected version from the dialog
+            graphicsDriverVersion = version; // Update the fragment-level variable
+            container.setGraphicsDriverVersion(version); // Also update the container object
+            Log.d("ContainerDetailFragment", "Selected graphics driver version: " + version);
         }).show();
     }
+
+
 
     // Original method: Used for compatibility with ShortcutSettingsDialog
     public static void loadGraphicsDriverSpinner(final Spinner sGraphicsDriver, final Spinner sDXWrapper, String selectedGraphicsDriver, String selectedDXWrapper) {
@@ -723,17 +878,56 @@ public class ContainerDetailFragment extends Fragment {
             Spinner spinner = itemView.findViewById(R.id.Spinner);
             spinner.setSelection(Integer.parseInt(wincomponent[1]), false);
             spinner.setTag(wincomponent[0]);
+
+            // Set the background color of the spinners dynamically based on the current theme
+            spinner.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark: R.drawable.content_dialog_background);
+
             parent.addView(itemView);
+
         }
     }
+
+    public static void createWinComponentsTabFromShortcut(ShortcutSettingsDialog dialog, View view, String wincomponents, boolean isDarkMode) {
+        Context context = dialog.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+        ViewGroup tabView = view.findViewById(R.id.LLTabWinComponents);
+        ViewGroup directxSectionView = tabView.findViewById(R.id.LLWinComponentsDirectX);
+        ViewGroup generalSectionView = tabView.findViewById(R.id.LLWinComponentsGeneral);
+
+        for (String[] wincomponent : new KeyValueSet(wincomponents)) {
+            ViewGroup parent = wincomponent[0].startsWith("direct") ? directxSectionView : generalSectionView;
+            View itemView = inflater.inflate(R.layout.wincomponent_list_item, parent, false);
+            ((TextView) itemView.findViewById(R.id.TextView)).setText(StringUtils.getString(context, wincomponent[0]));
+            Spinner spinner = itemView.findViewById(R.id.Spinner);
+            spinner.setSelection(Integer.parseInt(wincomponent[1]), false);
+            spinner.setTag(wincomponent[0]);
+
+            // Set the background color of the spinners dynamically based on the current theme
+            spinner.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+            parent.addView(itemView);
+        }
+
+        // Notify that the views are ready
+        dialog.onWinComponentsViewsAdded(isDarkMode);
+    }
+
+
+
 
     private EnvVarsView createEnvVarsTab(final View view) {
         final Context context = view.getContext();
         final EnvVarsView envVarsView = view.findViewById(R.id.EnvVarsView);
+
+        // Apply dark mode setting to the existing instance
+        envVarsView.setDarkMode(isDarkMode); // New setter method
+
         envVarsView.setEnvVars(new EnvVars(isEditMode() ? container.getEnvVars() : Container.DEFAULT_ENV_VARS));
         view.findViewById(R.id.BTAddEnvVar).setOnClickListener((v) -> (new AddEnvVarDialog(context, envVarsView)).show());
         return envVarsView;
     }
+
+
 
     private String getDrives(View view) {
         LinearLayout parent = view.findViewById(R.id.LLDrives);
@@ -757,16 +951,26 @@ public class ContainerDetailFragment extends Fragment {
         LayoutInflater inflater = LayoutInflater.from(context);
         final String drives = isEditMode() ? container.getDrives() : Container.DEFAULT_DRIVES;
         final String[] driveLetters = new String[Container.MAX_DRIVE_LETTERS];
-        for (int i = 0; i < driveLetters.length; i++) driveLetters[i] = ((char)(i + 68))+":";
+        for (int i = 0; i < driveLetters.length; i++) driveLetters[i] = ((char)(i + 68)) + ":";
 
         Callback<String[]> addItem = (drive) -> {
             final View itemView = inflater.inflate(R.layout.drive_list_item, parent, false);
             Spinner spinner = itemView.findViewById(R.id.Spinner);
             spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, driveLetters));
-            AppUtils.setSpinnerSelectionFromValue(spinner, drive[0]+":");
+            AppUtils.setSpinnerSelectionFromValue(spinner, drive[0] + ":");
+
+            // Apply dark theme to the spinner popup background
+            spinner.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
 
             final EditText editText = itemView.findViewById(R.id.EditText);
             editText.setText(drive[1]);
+
+            // Apply dark theme to EditText if necessary
+            applyDarkThemeToEditText(editText);
+
+            // Apply dark theme to the search button if necessary
+            View btSearch = itemView.findViewById(R.id.BTSearch);
+            applyDarkThemeToButton(btSearch);
 
             itemView.findViewById(R.id.BTSearch).setOnClickListener((v) -> {
                 openDirectoryCallback = (path) -> {
@@ -783,7 +987,12 @@ public class ContainerDetailFragment extends Fragment {
                 if (parent.getChildCount() == 0) emptyTextView.setVisibility(View.VISIBLE);
             });
             parent.addView(itemView);
+
+            // Hide empty text view if there are items
+            emptyTextView.setVisibility(View.GONE);
         };
+
+        // Add existing drives
         for (String[] drive : Container.drivesIterator(drives)) addItem.call(drive);
 
         view.findViewById(R.id.BTAddDrive).setOnClickListener((v) -> {
@@ -792,8 +1001,28 @@ public class ContainerDetailFragment extends Fragment {
             addItem.call(new String[]{nextDriveLetter, ""});
         });
 
+        // If there are no drives, show the empty text view
         if (drives.isEmpty()) emptyTextView.setVisibility(View.VISIBLE);
     }
+
+    // Helper method to apply dark theme to EditText
+    private static void applyDarkThemeToEditText(EditText editText) {
+        if (isDarkMode) {
+            editText.setTextColor(Color.WHITE); // Set text color to white for dark theme
+            editText.setHintTextColor(Color.GRAY); // Set hint color to gray
+            editText.setBackgroundResource(R.drawable.edit_text_dark); // Custom dark background drawable
+        } else {
+            editText.setTextColor(Color.BLACK); // Default text color
+            editText.setHintTextColor(Color.GRAY); // Default hint color
+            editText.setBackgroundResource(R.drawable.edit_text); // Custom light background drawable
+        }
+    }
+
+    // Helper method to apply dark theme to buttons or other clickable views
+    private void applyDarkThemeToButton(View button) {
+
+    }
+
 
     private void loadContentProfileWineSpinner(View view, Spinner sWineVersion) {
         final Context context = getContext();

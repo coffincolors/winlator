@@ -21,7 +21,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/SGraphicsDriverVersion"
-            android:entries="@array/graphics_driver_version_entries" />
+            android:entries="@array/graphics_driver_version_entries"
+            android:spinnerMode="dialog"/>
 
     </LinearLayout>
 </ScrollView>

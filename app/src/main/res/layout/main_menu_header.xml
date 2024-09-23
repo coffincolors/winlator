@@ -7,6 +7,7 @@
     android:paddingLeft="16dp"
     android:paddingBottom="24dp">
 
+
     <ImageView
         android:layout_width="153dp"
         android:layout_height="52dp"

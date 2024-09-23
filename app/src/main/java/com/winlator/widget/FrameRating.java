@@ -30,6 +30,7 @@ public class FrameRating extends FrameLayout implements Runnable {
         super(context, attrs, defStyleAttr);
 
         View view = LayoutInflater.from(context).inflate(R.layout.frame_rating, this, false);
+
         textView = view.findViewById(R.id.TVFPS);
         addView(view);
     }

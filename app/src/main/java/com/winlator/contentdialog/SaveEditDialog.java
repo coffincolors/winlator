@@ -9,6 +9,8 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.preference.PreferenceManager;
+
 import com.winlator.MainActivity;
 import com.winlator.R;
 import com.winlator.container.Container;
@@ -32,6 +34,8 @@ public class SaveEditDialog extends ContentDialog {
     private EditText etTitle;
     private Save saveToEdit;
 
+    private boolean isDarkMode;
+
     // Constructor for editing an existing save
     public SaveEditDialog(Activity activity, SaveManager saveManager, ContainerManager containerManager, Save saveToEdit) {
         super(activity, R.layout.save_edit_dialog);
@@ -47,10 +51,19 @@ public class SaveEditDialog extends ContentDialog {
 
     private void createContentView() {
         final Context context = getContext();
+
+
+        isDarkMode = PreferenceManager.getDefaultSharedPreferences(getContext())
+                .getBoolean("dark_mode", false);
+
         LinearLayout llContent = findViewById(R.id.LLContent);
         llContent.getLayoutParams().width = AppUtils.getPreferredDialogWidth(context);
 
         etTitle = findViewById(R.id.ETTitle);
+
+        // Set the background resource based on isDarkMode
+        etTitle.setBackgroundResource(isDarkMode ? R.drawable.edit_text_dark : R.drawable.edit_text);
+
         tvOriginalPath = findViewById(R.id.TVOriginalPath);
         //tvUpdatedPath = findViewById(R.id.TVUpdatedPath);
 
@@ -63,6 +76,10 @@ public class SaveEditDialog extends ContentDialog {
 
         final Spinner sContainer = findViewById(R.id.SContainer);
         //loadContainerSpinner(sContainer);
+
+        // Set the background resource based on isDarkMode
+//        sContainer.setBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+//        sContainer.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
 
         int containerPosition = containerManager.getContainers().indexOf(saveToEdit.container);
         if (containerPosition >= 0) {

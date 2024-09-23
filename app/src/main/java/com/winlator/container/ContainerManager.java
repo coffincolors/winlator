@@ -282,6 +282,16 @@ public class ContainerManager {
         }
     }
 
+    public Container getContainerForShortcut(Shortcut shortcut) {
+        // Search for the container by its ID
+        for (Container container : containers) {
+            if (container.id == shortcut.getContainerId()) {
+                return container;
+            }
+        }
+        return null;  // Return null if no matching container is found
+    }
+
 
 
 }

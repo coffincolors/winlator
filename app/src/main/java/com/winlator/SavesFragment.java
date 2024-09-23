@@ -27,6 +27,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -60,11 +61,17 @@ public class SavesFragment extends Fragment {
 
     private static final int REQUEST_CODE_IMPORT_ARCHIVE = 1001;
 
+    private boolean isDarkMode;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         containerManager = new ContainerManager(getContext());
+
+        // Initialize isDarkMode based on shared preferences or theme
+        isDarkMode = PreferenceManager.getDefaultSharedPreferences(getContext())
+                .getBoolean("dark_mode", false);
     }
 
     @Override
@@ -148,19 +155,29 @@ public class SavesFragment extends Fragment {
         }
         spinner.setAdapter(adapter);
 
-        new AlertDialog.Builder(getContext())
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
                 .setTitle(R.string.import_save)
                 .setView(dialogView)
-                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
                     int selectedPosition = spinner.getSelectedItemPosition();
                     Container selectedContainer = containers.get(selectedPosition);
                     onContainerSelected.call(selectedContainer);
                 })
-                .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
+                .setNegativeButton(android.R.string.cancel, (dialogInterface, which) -> {
                     onCancel.run(); // Run the cancel callback
                 })
-                .show();
+                .create();
+
+        // Apply background based on isDarkMode
+        if (isDarkMode) {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.content_dialog_background_dark);
+        } else {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.content_dialog_background);
+        }
+
+        dialog.show();
     }
+
 
     private void importSave(Uri archiveUri) {
         PreloaderDialog preloaderDialog = new PreloaderDialog(getActivity());

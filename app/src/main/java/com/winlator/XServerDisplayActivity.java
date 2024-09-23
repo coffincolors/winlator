@@ -19,16 +19,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.preference.PreferenceManager;
@@ -164,6 +167,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     private LinuxCommandExplorer commandExplorer = null;
 
+    private boolean isDarkMode;
+
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -200,6 +205,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         preloaderDialog = new PreloaderDialog(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // Check for Dark Mode
+        isDarkMode = preferences.getBoolean("dark_mode", false);
 
         // Initialize the WinHandler after context is set up
         winHandler = new WinHandler(this);
@@ -256,6 +264,12 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
         NavigationView navigationView = findViewById(R.id.NavigationView);
+
+        if (isDarkMode) {
+            navigationView.setItemTextColor(ContextCompat.getColorStateList(this, R.color.white));
+            navigationView.setBackgroundResource(R.color.content_dialog_background_dark);
+        }
+
         ProcessHelper.removeAllDebugCallbacks();
         boolean enableLogs = preferences.getBoolean("enable_wine_debug", false) || preferences.getBoolean("enable_box86_64_logs", false);
         if (enableLogs) ProcessHelper.addDebugCallback(debugDialog = new DebugDialog(this));
@@ -953,6 +967,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         rootView.addView(touchpadView);
 
         inputControlsView = new InputControlsView(this, timeoutHandler, hideControlsRunnable);
+
         inputControlsView.setOverlayOpacity(preferences.getFloat("overlay_opacity", InputControlsView.DEFAULT_OVERLAY_OPACITY));
         inputControlsView.setTouchpadView(touchpadView);
         inputControlsView.setXServer(xServer);
@@ -1034,13 +1049,37 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         return shortcutName;
     }
 
+    private void setTextColorForDialog(ViewGroup viewGroup, int color) {
+        for (int i = 0; i < viewGroup.getChildCount(); i++) {
+            View child = viewGroup.getChildAt(i);
+            if (child instanceof ViewGroup) {
+                // If the child is a ViewGroup, recursively apply the color
+                setTextColorForDialog((ViewGroup) child, color);
+            } else if (child instanceof TextView) {
+                // If the child is a TextView, set its text color
+                ((TextView) child).setTextColor(color);
+            }
+        }
+    }
+
 
     private void showInputControlsDialog() {
         final ContentDialog dialog = new ContentDialog(this, R.layout.input_controls_dialog);
+
         dialog.setTitle(R.string.input_controls);
         dialog.setIcon(R.drawable.icon_input_controls);
 
         final Spinner sProfile = dialog.findViewById(R.id.SProfile);
+
+        dialog.getWindow().setBackgroundDrawableResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+        sProfile.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+
+        // Set text color for all TextViews in the dialog to white or black based on dark mode
+        int textColor = ContextCompat.getColor(this, isDarkMode ? R.color.white : R.color.black);
+        ViewGroup dialogViewGroup = (ViewGroup) dialog.getWindow().getDecorView().findViewById(android.R.id.content);
+        setTextColorForDialog(dialogViewGroup, textColor);
+
         Runnable loadProfileSpinner = () -> {
             ArrayList<ControlsProfile> profiles = inputControlsManager.getProfiles(true);
             ArrayList<String> profileItems = new ArrayList<>();
@@ -1054,6 +1093,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             }
 
             sProfile.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, profileItems));
+
             sProfile.setSelection(selectedPosition);
         };
         loadProfileSpinner.run();

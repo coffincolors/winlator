@@ -17,7 +17,8 @@
             style="@style/ComboBox"
             android:layout_width="match_parent"
             android:id="@+id/SVersion"
-            android:entries="@array/vkd3d_version_entries" />
+            android:entries="@array/vkd3d_version_entries"
+            android:spinnerMode="dialog"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -27,7 +28,8 @@
         <Spinner
             style="@style/ComboBox"
             android:layout_width="match_parent"
-            android:id="@+id/SFeatureLevel" />
+            android:id="@+id/SFeatureLevel"
+            android:spinnerMode="dialog"/>
 
     </LinearLayout>
 </ScrollView>

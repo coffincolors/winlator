@@ -17,7 +17,8 @@
             style="@style/ComboBox"
             android:layout_width="match_parent"
             android:id="@+id/SVersion"
-            android:entries="@array/dxvk_version_entries" />
+            android:entries="@array/dxvk_version_entries"
+            android:spinnerMode="dialog"/>
 
         <LinearLayout
             android:id="@+id/LLAsync"
@@ -77,7 +78,8 @@
             style="@style/ComboBox"
             android:layout_width="match_parent"
             android:id="@+id/SFramerate"
-            android:entries="@array/dxvk_framerate_entries" />
+            android:entries="@array/dxvk_framerate_entries"
+            android:spinnerMode="dialog"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -88,6 +90,7 @@
             style="@style/ComboBox"
             android:layout_width="match_parent"
             android:id="@+id/SMaxDeviceMemory"
-            android:entries="@array/dxvk_max_device_memory_entries" />
+            android:entries="@array/dxvk_max_device_memory_entries"
+            android:spinnerMode="dialog"/>
     </LinearLayout>
 </ScrollView>
