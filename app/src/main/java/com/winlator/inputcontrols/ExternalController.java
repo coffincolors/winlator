@@ -1,16 +1,24 @@
 package com.winlator.inputcontrols;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
+
+import com.winlator.XServerDisplayActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class ExternalController {
     public static final byte IDX_BUTTON_A = 0;
@@ -31,9 +39,10 @@ public class ExternalController {
     private String name;
     private String id;
     private int deviceId = -1;
-    private byte triggerType = TRIGGER_IS_AXIS;
+    private byte triggerType;
     private final ArrayList<ExternalControllerBinding> controllerBindings = new ArrayList<>();
     public final GamepadState state = new GamepadState();
+    private XServerDisplayActivity activity;
 
     public String getName() {
         return name;
@@ -58,6 +67,31 @@ public class ExternalController {
     public void setTriggerType(byte mode) {
         triggerType = mode;
     }
+
+    private Context context; // Add this field
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
+    // Remove static keyword
+    public static final HashMap<Byte, Byte> buttonMappings = new HashMap<>();
+
+
+    private boolean triggerLPressedViaButton = false;
+    private boolean triggerRPressedViaButton = false;
+
+
+//    public ExternalController() {
+//
+//
+//        // Initialize trigger mappings to themselves
+//        buttonMappings.put(IDX_BUTTON_L2, IDX_BUTTON_L2);
+//        buttonMappings.put(IDX_BUTTON_R2, IDX_BUTTON_R2);
+//
+//        // Ensure triggerType is set to TRIGGER_IS_AXIS
+//        triggerType = TRIGGER_IS_AXIS;
+//    }
+
 
     public int getDeviceId() {
         if (this.deviceId == -1) {
@@ -103,6 +137,19 @@ public class ExternalController {
         controllerBindings.remove(controllerBinding);
     }
 
+    public void setButtonMapping(byte originalButton, byte mappedButton) {
+        buttonMappings.put(originalButton, mappedButton);
+        // Remove triggerType handling from here
+    }
+
+
+    public byte getMappedButton(byte originalButton) {
+        byte mappedButton = buttonMappings.getOrDefault(originalButton, originalButton);
+//        Log.d("ExternalController", "getMappedButton: Original button = " + originalButton + ", Mapped button = " + mappedButton);
+        return mappedButton;
+    }
+
+
     public int getControllerBindingCount() {
         return controllerBindings.size();
     }
@@ -147,49 +194,207 @@ public class ExternalController {
         }
     }
 
+//    private void processTriggerButton(MotionEvent event) {
+//        float l = event.getAxisValue(MotionEvent.AXIS_LTRIGGER) == 0f ? event.getAxisValue(MotionEvent.AXIS_BRAKE) : event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
+//        float r = event.getAxisValue(MotionEvent.AXIS_RTRIGGER) == 0f ? event.getAxisValue(MotionEvent.AXIS_GAS) : event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+//        state.triggerL = l;
+//        state.triggerR = r;
+//        state.setPressed(IDX_BUTTON_L2, l == 1.0f);
+//        state.setPressed(IDX_BUTTON_R2, r == 1.0f);
+//    }
+
     private void processTriggerButton(MotionEvent event) {
+        // Get the raw analog values of L2 and R2 triggers
         float l = event.getAxisValue(MotionEvent.AXIS_LTRIGGER) == 0f ? event.getAxisValue(MotionEvent.AXIS_BRAKE) : event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
         float r = event.getAxisValue(MotionEvent.AXIS_RTRIGGER) == 0f ? event.getAxisValue(MotionEvent.AXIS_GAS) : event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
-        state.triggerL = l;
-        state.triggerR = r;
-        state.setPressed(IDX_BUTTON_L2, l == 1.0f);
-        state.setPressed(IDX_BUTTON_R2, r == 1.0f);
+
+        // Get the mapped buttons for L2 and R2
+        byte leftTriggerMapped = getMappedButton(IDX_BUTTON_L2);
+        byte rightTriggerMapped = getMappedButton(IDX_BUTTON_R2);
+
+
+
+        // --- Handle button remapping ONLY ---
+        // (Do NOT store original trigger values yet)
+
+        if (leftTriggerMapped == IDX_BUTTON_R2 && rightTriggerMapped == IDX_BUTTON_L2) {
+            // L2 and R2 are swapped
+            state.triggerL = r;
+            state.triggerR = l;
+            state.setPressed(IDX_BUTTON_L2, r == 1.0f);
+            state.setPressed(IDX_BUTTON_R2, l == 1.0f);
+//            Log.d("ExternalController", "trigger was swapped");
+        } else {
+        if (leftTriggerMapped != IDX_BUTTON_L2 && leftTriggerMapped != IDX_BUTTON_R2) {
+            // L2 is remapped to a button OTHER than R2
+            state.setPressed(leftTriggerMapped, l > 0.5f);
+            state.triggerL = 0; // Ensure analog value is reset
+//            Log.d("ExternalController", "trigger was reset");
+        }
+        if (rightTriggerMapped != IDX_BUTTON_R2 && rightTriggerMapped != IDX_BUTTON_L2) {
+            // R2 is remapped to a button OTHER than L2
+            state.setPressed(rightTriggerMapped, r > 0.5f);
+            state.triggerR = 0; // Ensure analog value is reset
+        }
+
+        // --- Handle trigger cross-mapping ---
+
+        // Reset trigger values to 0 before cross-mapping < Maybe remove this
+//        state.triggerL = 0;
+//        state.triggerR = 0;
+
+        if (leftTriggerMapped == IDX_BUTTON_R2 && rightTriggerMapped == IDX_BUTTON_L2) {
+            // L2 and R2 are swapped
+            state.triggerL = r;
+            state.triggerR = l;
+        } else if (leftTriggerMapped == IDX_BUTTON_R2 && rightTriggerMapped == IDX_BUTTON_R2) {
+            // BOTH L2 and R2 are mapped to R2
+            state.triggerR = Math.max(l, r);
+        } else if (leftTriggerMapped == IDX_BUTTON_L2 && rightTriggerMapped == IDX_BUTTON_L2) {
+            // BOTH L2 and R2 are mapped to L2
+            state.triggerL = Math.max(l, r);
+        } else {
+            // Not mapping to the same trigger, handle individually
+            if (rightTriggerMapped == IDX_BUTTON_L2) {
+                // R2 is mapped to L2
+                state.triggerL = r;
+            } else if (leftTriggerMapped == IDX_BUTTON_R2) {
+                // L2 is mapped to R2
+                state.triggerR = l;
+            }
+
+            // Set original values if not cross-mapped
+            if (leftTriggerMapped != IDX_BUTTON_R2) {
+                state.triggerL = l;
+            }
+            if (rightTriggerMapped != IDX_BUTTON_L2) {
+                state.triggerR = r;
+            }
+        }
+
+        if (leftTriggerMapped != IDX_BUTTON_L2 && leftTriggerMapped != IDX_BUTTON_R2) {
+            state.triggerL = 0; // Reset L2 analog value if it's mapped to anything else
+//            Log.d("ExternalController", "trigger was reset");
+        }
+        if (rightTriggerMapped != IDX_BUTTON_R2 && rightTriggerMapped != IDX_BUTTON_L2) {
+            state.triggerR = 0; // Reset R2 analog value if it's mapped to anything else
+        }
+
+        }
+        // Log for debugging
+//        Log.d("ExternalController", "processTriggerButton: L trigger = " + state.triggerL + ", R trigger = " + state.triggerR +
+//                ", Mapped L trigger = " + leftTriggerMapped + ", Mapped R trigger = " + rightTriggerMapped);
     }
+
+
+
+
+
+
 
     public boolean updateStateFromMotionEvent(MotionEvent event) {
         if (isJoystickDevice(event)) {
-            if (triggerType == TRIGGER_IS_AXIS)
-                processTriggerButton(event);
+            // Check if the event contains trigger axis data
+            boolean hasTriggerData = event.getAxisValue(MotionEvent.AXIS_LTRIGGER) != 0f ||
+                    event.getAxisValue(MotionEvent.AXIS_RTRIGGER) != 0f ||
+                    event.getAxisValue(MotionEvent.AXIS_BRAKE) != 0f ||
+                    event.getAxisValue(MotionEvent.AXIS_GAS) != 0f;
+
+            if (hasTriggerData) {
+//                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+//                triggerType = (byte) preferences.getInt("trigger_type", TRIGGER_IS_BUTTON);
+
+                if (triggerType == TRIGGER_IS_AXIS) {
+//                    Log.d("ExternalController", "triggerType is " + triggerType);
+                    processTriggerButton(event);
+                }
+            }
+
             int historySize = event.getHistorySize();
-            for (int i = 0; i < historySize; i++) processJoystickInput(event, i);
+            for (int i = 0; i < historySize; i++) {
+                processJoystickInput(event, i);
+            }
             processJoystickInput(event, -1);
             return true;
         }
         return false;
     }
 
+//    public boolean updateStateFromMotionEvent(MotionEvent event) {
+//        if (isJoystickDevice(event)) {
+//            if (triggerType == TRIGGER_IS_AXIS)
+//                processTriggerButton(event);
+//            int historySize = event.getHistorySize();
+//            for (int i = 0; i < historySize; i++) processJoystickInput(event, i);
+//            processJoystickInput(event, -1);
+//            return true;
+//        }
+//        return false;
+//    }
+
+
+//    public boolean updateStateFromKeyEvent(KeyEvent event) {
+//        boolean pressed = event.getAction() == KeyEvent.ACTION_DOWN;
+//        int keyCode = event.getKeyCode();
+//        int buttonIdx = getButtonIdxByKeyCode(keyCode);
+//        if (buttonIdx != -1) {
+//            if (buttonIdx == IDX_BUTTON_L2) {
+//                if (triggerType == TRIGGER_IS_BUTTON) {
+//                    state.triggerL = pressed ? 1.0f : 0f;
+//                    state.setPressed(buttonIdx, pressed);
+//                } else
+//                    return true;
+//            } else if (buttonIdx == IDX_BUTTON_R2) {
+//                if (triggerType == TRIGGER_IS_BUTTON) {
+//                    state.triggerR = pressed ? 1.0f : 0f;
+//                    state.setPressed(buttonIdx, pressed);
+//                } else
+//                    return true;
+//            } else
+//                state.setPressed(buttonIdx, pressed);
+//            return true;
+//        }
+//
+//        switch (keyCode) {
+//            case KeyEvent.KEYCODE_DPAD_UP:
+//                state.dpad[0] = pressed && Math.abs(state.thumbLY) < ControlElement.STICK_DEAD_ZONE;
+//                return true;
+//            case KeyEvent.KEYCODE_DPAD_RIGHT:
+//                state.dpad[1] = pressed && Math.abs(state.thumbLX) < ControlElement.STICK_DEAD_ZONE;
+//                return true;
+//            case KeyEvent.KEYCODE_DPAD_DOWN:
+//                state.dpad[2] = pressed && Math.abs(state.thumbLY) < ControlElement.STICK_DEAD_ZONE;
+//                return true;
+//            case KeyEvent.KEYCODE_DPAD_LEFT:
+//                state.dpad[3] = pressed && Math.abs(state.thumbLX) < ControlElement.STICK_DEAD_ZONE;
+//                return true;
+//        }
+//        return false;
+//    }
+
     public boolean updateStateFromKeyEvent(KeyEvent event) {
         boolean pressed = event.getAction() == KeyEvent.ACTION_DOWN;
         int keyCode = event.getKeyCode();
         int buttonIdx = getButtonIdxByKeyCode(keyCode);
+
         if (buttonIdx != -1) {
-            if (buttonIdx == IDX_BUTTON_L2) {
-                if (triggerType == TRIGGER_IS_BUTTON) {
-                    state.triggerL = pressed ? 1.0f : 0f;
-                    state.setPressed(buttonIdx, pressed);
-                } else
-                    return true;
-            } else if (buttonIdx == IDX_BUTTON_R2) {
-                if (triggerType == TRIGGER_IS_BUTTON) {
-                    state.triggerR = pressed ? 1.0f : 0f;
-                    state.setPressed(buttonIdx, pressed);
-                } else
-                    return true;
-            } else
-                state.setPressed(buttonIdx, pressed);
+            byte mappedButtonIdx = getMappedButton((byte) buttonIdx);
+
+            if (mappedButtonIdx == IDX_BUTTON_L2) {
+                state.triggerL = pressed ? 1.0f : 0f;
+                state.setPressed(mappedButtonIdx, pressed);
+                triggerLPressedViaButton = pressed;
+            } else if (mappedButtonIdx == IDX_BUTTON_R2) {
+                state.triggerR = pressed ? 1.0f : 0f;
+                state.setPressed(mappedButtonIdx, pressed);
+                triggerRPressedViaButton = pressed;
+            } else {
+                state.setPressed(mappedButtonIdx, pressed);
+            }
             return true;
         }
 
+        // Handle D-pad directions with mappings
         switch (keyCode) {
             case KeyEvent.KEYCODE_DPAD_UP:
                 state.dpad[0] = pressed && Math.abs(state.thumbLY) < ControlElement.STICK_DEAD_ZONE;
@@ -206,6 +411,9 @@ public class ExternalController {
         }
         return false;
     }
+
+
+
 
     public static ArrayList<ExternalController> getControllers() {
         int[] deviceIds = InputDevice.getDeviceIds();
@@ -247,9 +455,11 @@ public class ExternalController {
     public static boolean isGameController(InputDevice device) {
         if (device == null) return false;
         int sources = device.getSources();
+        // Exclude devices with SOURCE_MOUSE from being considered controllers
         return !device.isVirtual() && ((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
-               (sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK);
+                ((sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK && (sources & InputDevice.SOURCE_MOUSE) == 0));
     }
+
 
     public static float getCenteredAxis(MotionEvent event, int axis, int historyPos) {
         if (axis == MotionEvent.AXIS_HAT_X || axis == MotionEvent.AXIS_HAT_Y) {
@@ -333,4 +543,5 @@ public class ExternalController {
                 return -1;
         }
     }
+
 }

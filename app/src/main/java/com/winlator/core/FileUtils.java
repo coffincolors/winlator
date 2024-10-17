@@ -164,7 +164,8 @@ public abstract class FileUtils {
             if (filenames != null) {
                 for (String filename : filenames) {
                     if (!copy(new File(srcFile, filename), new File(dstFile, filename), callback)) {
-                        return false;
+                        Log.e(TAG, "Failed to copy directory: " + srcFile.getAbsolutePath());
+                        // Continue copying other files even if one fails
                     }
                 }
             }
@@ -180,11 +181,14 @@ public abstract class FileUtils {
                 return dstFile.exists();
             } catch (IOException e) {
                 e.printStackTrace();
-                return false;
+                Log.e(TAG, "Failed to copy file: " + srcFile.getAbsolutePath() + " to " + dstFile.getAbsolutePath(), e);
+                // Log error but don't return false, so we skip this file and continue with others
+                return true;
             }
         }
         return true;
     }
+
 
 
     public static boolean copy(Context context, Object src, File dstFile, Callback<File> callback) {

@@ -26,7 +26,7 @@ import com.winlator.core.Callback;
 import java.util.ArrayList;
 
 public class ContentDialog extends Dialog {
-    private Runnable onConfirmCallback;
+    public Runnable onConfirmCallback;
     private Runnable onCancelCallback;
     private final View contentView;
 
@@ -35,6 +35,8 @@ public class ContentDialog extends Dialog {
     public ContentDialog(@NonNull Context context) {
         this(context, 0);
     }
+
+    private View inflatedLayout;
 
     public ContentDialog(@NonNull Context context, int layoutResId) {
         super(context, R.style.ContentDialog);
@@ -71,6 +73,10 @@ public class ContentDialog extends Dialog {
         });
 
         setContentView(contentView);
+    }
+
+    public View getInflatedLayout() {
+        return inflatedLayout;
     }
 
     public View getContentView() {

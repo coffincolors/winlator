@@ -1,5 +1,8 @@
 package com.winlator;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -7,17 +10,35 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.Shader;
+import android.graphics.drawable.AnimatedImageDrawable;
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -25,10 +46,16 @@ import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SnapHelper;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
+import com.bumptech.glide.request.RequestOptions;
+import com.github.luben.zstd.BuildConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.winlator.bigpicture.BigPictureAdapter;
 import com.winlator.bigpicture.CarouselItemDecoration;
+import com.winlator.bigpicture.TiledBackgroundView;
 import com.winlator.bigpicture.steamgrid.SteamGridDBApi;
 import com.winlator.bigpicture.steamgrid.SteamGridGridsResponse;
 import com.winlator.bigpicture.steamgrid.SteamGridGridsResponseDeserializer;
@@ -36,8 +63,11 @@ import com.winlator.bigpicture.steamgrid.SteamGridSearchResponse;
 import com.winlator.container.Container;
 import com.winlator.container.ContainerManager;
 import com.winlator.container.Shortcut;
+import com.winlator.core.FileUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,6 +83,17 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+// For YouTube Playback
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+
+import android.animation.ObjectAnimator;
+import android.view.animation.AccelerateDecelerateInterpolator;
+
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.load.engine.GlideException;
+
 public class BigPictureActivity extends AppCompatActivity {
     private ImageView coverArtView;
     private TextView gameTitleView, graphicsDriverView, graphicsDriverVersionView, dxWrapperView, dxWrapperConfigView, audioDriverView, box86PresetView, box64PresetView, playCountView, playtimeView;
@@ -62,6 +103,7 @@ public class BigPictureActivity extends AppCompatActivity {
     private ImageButton playButton;
 
     private Shortcut currentShortcut;
+    private int lastFocusedItemIndex = RecyclerView.NO_POSITION;
 
     private static String API_KEY = "0324c52513634547a7b32d6d323635d0";
     private static final String BASE_URL = "https://www.steamgriddb.com/api/v2/";
@@ -71,14 +113,158 @@ public class BigPictureActivity extends AppCompatActivity {
 
     private TextView emptyStateTextView;
 
+    private WebView webView;
+
+    private static final int REQUEST_CODE_SELECT_MP3 = 1070;
+    private Uri selectedMp3Uri;
+
+    private MediaPlayer mediaPlayer;
+
+    // Declare constants for the request code and preferences key
+    private static final int REQUEST_CODE_SELECT_WALLPAPER = 1080;
+    private static final String WALLPAPER_PREF_KEY = "custom_wallpaper_path";
+    private static final String WALLPAPER_DISPLAY_PREF_KEY = "wallpaper_display_mode";
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        TiledBackgroundView backgroundView = findViewById(R.id.parallaxBackgroundView);
+        backgroundView.startAnimation(); // Start animation
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        TiledBackgroundView backgroundView = findViewById(R.id.parallaxBackgroundView);
+        backgroundView.stopAnimation(); // Stop animation
+    }
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();  // Hide the action bar for full-screen mode
         setContentView(R.layout.big_picture_activity);
 
-        // Override API key if custom key is set
+//        // Set the background to ImageView for the tiled animation background
+//        ImageView parallaxBackgroundView = findViewById(R.id.parallaxBackgroundView);
+//        parallaxBackgroundView.setBackgroundResource(R.drawable.animated_background); // Use animation as background
+//
+//        // Get the AnimationDrawable and start it directly
+//        animatedBackground = (AnimationDrawable) parallaxBackgroundView.getBackground();
+//        animatedBackground.setOneShot(false); // Loop the animation
+//        parallaxBackgroundView.post(() -> animatedBackground.start());
+
+
+
+        TiledBackgroundView backgroundView = findViewById(R.id.parallaxBackgroundView);
+
+        Button selectWallpaperButton = findViewById(R.id.selectWallpaperButton);
+        RadioButton rbCustomWallpaper = findViewById(R.id.rbCustomWallpaper); // Get reference to the custom wallpaper button
+
+        RadioGroup animationSelectorGroup = findViewById(R.id.animationSelectorGroup);
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        animationSelectorGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            if (checkedId == R.id.rbCustomWallpaper) {
+                selectWallpaperButton.setVisibility(View.VISIBLE);
+                backgroundView.setVisibility(View.GONE);
+                editor.putString("selected_animation", "custom_wallpaper"); // Save as custom wallpaper
+            } else {
+                selectWallpaperButton.setVisibility(View.GONE);
+                backgroundView.setVisibility(View.VISIBLE);
+
+                // Handle other animation options here
+                if (checkedId == R.id.rbGearAnimation) {
+                    backgroundView.setAnimation("ab_gear");
+                    editor.putString("selected_animation", "ab_gear");
+                } else if (checkedId == R.id.rbQuiltAnimation) {
+                    backgroundView.setAnimation("ab_quilt");
+                    editor.putString("selected_animation", "ab_quilt");
+                } else if (checkedId == R.id.rbDefaultAnimation) {
+                    backgroundView.setAnimation("ab");
+                    editor.putString("selected_animation", "ab");
+                } else if (checkedId == R.id.rbNoAnimation) {
+                    backgroundView.stopAnimation();
+                    backgroundView.setVisibility(View.GONE);
+                    editor.putString("selected_animation", "none");
+                }
+            }
+            editor.apply();
+            backgroundView.startAnimation();
+        });
+
+
+
+        String savedAnimation = preferences.getString("selected_animation", "ab"); // Default to "ab" or your preferred default
+        if (savedAnimation.equals("ab_gear")) {
+            backgroundView.setAnimation("ab_gear");
+        } else if (savedAnimation.equals("ab_quilt")) {
+            backgroundView.setAnimation("ab_quilt");
+        } else if (savedAnimation.equals("none")) {
+            backgroundView.stopAnimation();
+            backgroundView.setVisibility(View.GONE); // Hide when animation stops
+
+        } else {
+            backgroundView.setAnimation("ab");
+        }
+        backgroundView.startAnimation();
+
+        // Restore the selected animation state for the RadioGroup
+        if (savedAnimation.equals("custom_wallpaper")) {
+            ((RadioButton) findViewById(R.id.rbCustomWallpaper)).setChecked(true);
+        } else if (savedAnimation.equals("ab_gear")) {
+            ((RadioButton) findViewById(R.id.rbGearAnimation)).setChecked(true);
+        } else if (savedAnimation.equals("ab_quilt")) {
+            ((RadioButton) findViewById(R.id.rbQuiltAnimation)).setChecked(true);
+        } else if (savedAnimation.equals("none")) {
+            ((RadioButton) findViewById(R.id.rbNoAnimation)).setChecked(true);
+        } else {
+            ((RadioButton) findViewById(R.id.rbDefaultAnimation)).setChecked(true);
+        }
+
+
+        // Launch file picker when button is clicked
+        selectWallpaperButton.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            startActivityForResult(intent, REQUEST_CODE_SELECT_WALLPAPER);
+        });
+
+
+        if ("custom_wallpaper".equals(savedAnimation)) {
+            String savedWallpaperPath = preferences.getString(WALLPAPER_PREF_KEY, null);
+            if (savedWallpaperPath != null) {
+                File wallpaperFile = new File(savedWallpaperPath);
+                if (wallpaperFile.exists()) {
+                    try {
+                        applyWallpaper(Uri.fromFile(wallpaperFile), preferences.getString(WALLPAPER_DISPLAY_PREF_KEY, "center"));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } else {
+            // Apply other animation options as per the selected animation value
+            applyAnimationBasedOnState(backgroundView, savedAnimation);
+        }
+
+
+
+        // Find the YouTube URL input and Load Video button
+        EditText youtubeUrlInput = findViewById(R.id.youtubeUrlInput);
+        Button loadVideoButton = findViewById(R.id.loadVideoButton);
+
+        // Set default video (this will be used if no custom URL is provided)
+        final String defaultVideoId = "yNwKYgM6SkM"; // Wii shop channel music extended
+
+
+        LinearLayout settingsLayout = findViewById(R.id.settingsLayout);
+
+
+        // Override API key if custom key is set
         boolean isCustomApiKeyEnabled = preferences.getBoolean("enable_custom_api_key", false);
         if (isCustomApiKeyEnabled) {
             String customApiKey = preferences.getString("custom_api_key", "");
@@ -87,8 +273,169 @@ public class BigPictureActivity extends AppCompatActivity {
             }
         }
 
+        // Find the "Disable BG Music" button
+        Button disableBgMusicButton = findViewById(R.id.disableBgMusicButton);
+
+        // Load the saved BG music state from SharedPreferences
+        boolean isBgMusicEnabled = preferences.getBoolean("bg_music_enabled", true);
+
+        // Update the button text based on the current state
+        updateBgMusicButtonText(disableBgMusicButton, isBgMusicEnabled);
+
+        // Set the listener for the "Disable BG Music" button
+        disableBgMusicButton.setOnClickListener(v -> {
+            boolean currentBgMusicState = preferences.getBoolean("bg_music_enabled", true);
+            boolean newBgMusicState = !currentBgMusicState;
+
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("bg_music_enabled", newBgMusicState);
+            editor.apply();
+
+            updateBgMusicButtonText(disableBgMusicButton, newBgMusicState);
+
+            // Enable or disable music based on the new state
+            if (newBgMusicState) {
+                onResume(); // Restart music based on the current selection (MP3 or YouTube)
+            } else {
+                stopBackgroundMusic(); // Stop both YouTube and MP3
+            }
+        });
+
+
+        Button selectMp3Button = findViewById(R.id.selectMp3Button);
+        selectMp3Button.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("audio/mpeg");
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            startActivityForResult(intent, REQUEST_CODE_SELECT_MP3);
+        });
+
+        RadioGroup musicSourceGroup = findViewById(R.id.musicSourceGroup);
+        RadioButton youtubeRadioButton = findViewById(R.id.youtubeRadioButton);
+        RadioButton mp3RadioButton = findViewById(R.id.mp3RadioButton);
+
+        // Load saved preference
+        String musicSource = preferences.getString("music_source", "youtube");
+
+        if ("mp3".equals(musicSource)) {
+            mp3RadioButton.setChecked(true);
+        } else {
+            youtubeRadioButton.setChecked(true);
+        }
+
+        // Save the selection to SharedPreferences
+        musicSourceGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            if (checkedId == R.id.youtubeRadioButton) {
+                editor.putString("music_source", "youtube");
+            } else if (checkedId == R.id.mp3RadioButton) {
+                editor.putString("music_source", "mp3");
+            }
+            editor.apply();
+        });
+
+
+        webView = findViewById(R.id.webView);
+        webView.getSettings().setJavaScriptEnabled(true); // Enable JavaScript
+        webView.setWebViewClient(new WebViewClient()); // Prevent redirecting to external browser
+
+        // Load saved preference for music source
+        String selectedMp3Path = preferences.getString("selected_mp3_path", null);
+
+        // Start music based on the selected source, only if BG music is enabled
+        if (isBgMusicEnabled) {
+            if ("mp3".equals(musicSource) && selectedMp3Path != null) {
+                // Get the MP3 file from internal storage
+                File mp3File = new File(selectedMp3Path);
+
+                // Play the selected MP3 if the user chose MP3
+                if (mp3File.exists()) {
+                    playMp3(mp3File);  // Pass the File object to playMp3 method
+                } else {
+                    Log.e("BigPictureActivity", "MP3 file not found: " + selectedMp3Path);
+                }
+            } else if ("youtube".equals(musicSource)) {
+                // Play the YouTube video if the user chose YouTube
+                String savedUrl = preferences.getString("saved_youtube_url", "");
+                String videoId = savedUrl.isEmpty() ? defaultVideoId : extractYouTubeId(savedUrl);
+
+                if (videoId != null) {
+                    loadYouTubeVideo(videoId);
+                    youtubeUrlInput.setText(savedUrl);  // Populate the input field with the saved URL
+                } else {
+                    // If no saved URL or invalid, use the default video
+                    loadYouTubeVideo(defaultVideoId);
+                    youtubeUrlInput.setText("");  // Clear the input field if invalid or default video is used
+                }
+            }
+        }
+
+
+
+
+        // Set the listener for the "Load Video" button
+        loadVideoButton.setOnClickListener(v -> {
+            String userUrl = youtubeUrlInput.getText().toString();
+            if (userUrl != null && !userUrl.isEmpty()) {
+                String videoId = extractYouTubeId(userUrl);
+                if (videoId != null) {
+                    loadYouTubeVideo(videoId);  // Load the user-specified video
+
+                    // Save the YouTube URL to SharedPreferences
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString("saved_youtube_url", userUrl);
+                    editor.apply();
+                } else {
+                    // Show an error message if the URL is invalid
+                    youtubeUrlInput.setError("Invalid YouTube URL");
+                }
+            } else {
+                // Load the default video if no URL is entered
+                loadYouTubeVideo(defaultVideoId);
+            }
+        });
+
         // Set immersive mode
         enableImmersiveMode();
+
+        // Find the settings button
+        ImageButton settingsButton = findViewById(R.id.settingsButton);
+
+        // Tint the settings button icon to white
+        Drawable settingsIcon = settingsButton.getDrawable();
+        if (settingsIcon != null) {
+            settingsIcon.mutate();  // Ensure it doesn't affect other instances
+            settingsIcon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);  // Apply the white color filter
+        }
+
+        // Set the click listener for the settings button
+        settingsButton.setOnClickListener(v -> {
+            if (findViewById(R.id.settingsLayout).getVisibility() == View.VISIBLE) {
+                hideSettingsView();
+            } else {
+                showSettingsView();
+            }
+        });
+
+        // Find the back button
+        ImageButton backButton = findViewById(R.id.backButton);
+
+        // Tint the settings button icon to white
+        Drawable backIcon = backButton.getDrawable();
+        if (backIcon != null) {
+            backIcon.mutate();  // Ensure it doesn't affect other instances
+            backIcon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);  // Apply the white color filter
+        }
+
+        // Set the click listener for the settings button
+        backButton.setOnClickListener(v -> {
+            if (findViewById(R.id.settingsLayout).getVisibility() == View.VISIBLE) {
+                hideSettingsView();
+            } else {
+                showSettingsView();
+            }
+        });
+
 
         coverArtView = findViewById(R.id.IVCoverArt);
         gameTitleView = findViewById(R.id.TVGameTitle);
@@ -144,9 +491,199 @@ public class BigPictureActivity extends AppCompatActivity {
             }
         });
 
+        playButton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    playButton.requestFocus(); // Ensure playButton gets focus
+                    playButton.performClick(); // Simulate a click immediately
+                }
+                return true; // Consumes the touch event so that it doesn't require another click
+            }
+        });
 
+        settingsButton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    settingsButton.requestFocus(); // Ensure settingsButton gets focus
+                    settingsButton.performClick(); // Simulate a click immediately
+                }
+                return true; // Consumes the touch event
+            }
+        });
+
+        backButton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    backButton.requestFocus(); // Ensure backButton gets focus
+                    backButton.performClick(); // Simulate a click immediately
+                }
+                return true; // Consumes the touch event
+            }
+        });
 
     }
+
+    @Override
+    public void onBackPressed() {
+        if (findViewById(R.id.settingsLayout).getVisibility() == View.VISIBLE) {
+            hideSettingsView();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    private void updateBgMusicButtonText(Button button, boolean isEnabled) {
+        if (isEnabled) {
+            button.setText("Disable BG Music");
+        } else {
+            button.setText("Enable BG Music");
+        }
+    }
+
+
+    /**
+     * Extracts the YouTube video ID from a given URL.
+     *
+     * @param youtubeUrl The full YouTube URL.
+     * @return The extracted video ID or null if the URL is invalid.
+     */
+    private String extractYouTubeId(String youtubeUrl) {
+        String videoIdPattern = "^(https?://)?(www\\.)?(youtube\\.com|youtu\\.?be)/.+$";
+        if (youtubeUrl.matches(videoIdPattern)) {
+            String[] splitUrl = youtubeUrl.split("v=");
+            if (splitUrl.length > 1) {
+                // Video ID is after "v=" in standard URLs
+                return splitUrl[1].split("&")[0]; // Split off any extra parameters
+            } else if (youtubeUrl.contains("youtu.be/")) {
+                // Handle short URLs (e.g., https://youtu.be/video_id)
+                return youtubeUrl.substring(youtubeUrl.lastIndexOf("/") + 1);
+            }
+        }
+        return null; // Invalid URL
+    }
+
+    private void loadYouTubeVideo(String videoId) {
+        String html = "<html><body>" +
+                "<iframe id=\"player\" type=\"text/html\" width=\"100%\" height=\"100%\"" +
+                "src=\"https://www.youtube.com/embed/" + videoId + "?enablejsapi=1\"" +  // Removed autoplay and simplified script
+                "frameborder=\"0\" allowfullscreen></iframe>" +
+                "</body></html>";
+
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                // Trigger the native touch event on the WebView when the page is fully loaded
+                simulateTouchOnWebView(webView);
+                webView.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        webView.loadData(html, "text/html", "UTF-8");
+    }
+
+//    private void moveWebViewToBottom() {
+//        // Get the parent of the WebView
+//        FrameLayout parent = (FrameLayout) webView.getParent();
+//
+//        if (parent != null) {
+//            // Remove the WebView from its parent
+//            parent.removeView(webView);
+//
+//            // Add the WebView back to the parent at index 0 (bottom of the stack)
+//            parent.addView(webView, 0);
+//        }
+//    }
+
+
+    // Simulate a touch event at the center of the WebView
+    private void simulateTouchOnWebView(WebView webView) {
+        // Delay to allow WebView to fully load the content
+        new Handler().postDelayed(() -> {
+            // Get the WebView's dimensions
+            int webViewWidth = webView.getWidth();
+            int webViewHeight = webView.getHeight();
+
+            // Calculate the center coordinates (YouTube player is usually in the center)
+            float x = webViewWidth / 2f;
+            float y = webViewHeight / 2f;
+
+            // Create MotionEvent to simulate touch at the calculated position
+            long downTime = System.currentTimeMillis();
+            long eventTime = System.currentTimeMillis() + 100;
+
+            // Simulate the touch press event
+            MotionEvent touchDown = MotionEvent.obtain(
+                    downTime, eventTime, MotionEvent.ACTION_DOWN, x, y, 0
+            );
+
+            // Simulate the touch release event
+            MotionEvent touchUp = MotionEvent.obtain(
+                    downTime, eventTime + 100, MotionEvent.ACTION_UP, x, y, 0
+            );
+
+            // Dispatch the events to the WebView
+            webView.dispatchTouchEvent(touchDown);
+            webView.dispatchTouchEvent(touchUp);
+
+            // Recycle the events to free up memory
+            touchDown.recycle();
+            touchUp.recycle();
+
+
+        }, 1000);  // Delay of 1 second after WebView loads
+    }
+
+    private void showSettingsView() {
+        final LinearLayout mainLayout = findViewById(R.id.mainLayout);
+        final LinearLayout settingsLayout = findViewById(R.id.settingsLayout);
+
+        settingsLayout.setVisibility(View.VISIBLE);
+
+        settingsLayout.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                settingsLayout.getViewTreeObserver().removeOnPreDrawListener(this);
+                // Start your animations here
+                ObjectAnimator mainSlideOut = ObjectAnimator.ofFloat(mainLayout, "translationX", 0f, -mainLayout.getWidth());
+                mainSlideOut.setInterpolator(new AccelerateDecelerateInterpolator());
+                mainSlideOut.setDuration(500);
+                mainSlideOut.start();
+
+                ObjectAnimator settingsSlideIn = ObjectAnimator.ofFloat(settingsLayout, "translationX", settingsLayout.getWidth(), 0f);
+                settingsSlideIn.setInterpolator(new AccelerateDecelerateInterpolator());
+                settingsSlideIn.setDuration(500);
+                settingsSlideIn.start();
+                return true;
+            }
+        });
+    }
+
+    private void hideSettingsView() {
+        LinearLayout mainLayout = findViewById(R.id.mainLayout);
+        LinearLayout settingsLayout = findViewById(R.id.settingsLayout);
+
+        // Slide the main layout back into view
+        ObjectAnimator mainSlideIn = ObjectAnimator.ofFloat(mainLayout, "translationX", -mainLayout.getWidth(), 0f);
+        mainSlideIn.setInterpolator(new AccelerateDecelerateInterpolator());
+        mainSlideIn.setDuration(500);
+        mainSlideIn.start();
+
+        // Slide the settings layout off-screen to the right
+        ObjectAnimator settingsSlideOut = ObjectAnimator.ofFloat(settingsLayout, "translationX", 0f, settingsLayout.getWidth());
+        settingsSlideOut.setInterpolator(new AccelerateDecelerateInterpolator());
+        settingsSlideOut.setDuration(500);
+        settingsSlideOut.start();
+        settingsSlideOut.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                settingsLayout.setVisibility(View.GONE);  // Hide after animation completes
+            }
+        });
+    }
+
 
     private void showCoverArtOptionsDialog() {
         // Create an AlertDialog to show the options
@@ -516,51 +1053,167 @@ public class BigPictureActivity extends AppCompatActivity {
         return null;
     }
 
-    // Handle result from image picker for custom cover art
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_UPLOAD_CUSTOM_COVER) {
-            if (data != null && data.getData() != null) {
-                Uri selectedImageUri = data.getData();
-                try {
-                    InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
-                    Bitmap customCoverArt = BitmapFactory.decodeStream(inputStream);
+        if (requestCode == REQUEST_CODE_SELECT_WALLPAPER && resultCode == RESULT_OK && data != null) {
+            Uri selectedImageUri = data.getData();
 
-                    // Save custom cover art in shortcut and cache it
-                    if (currentShortcut != null) {
-                        currentShortcut.saveCustomCoverArt(customCoverArt);  // Save custom cover art
+            try {
+                // Save the selected wallpaper as custom_bg.png
+                InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
+                Bitmap wallpaper = BitmapFactory.decodeStream(inputStream);
+                if (wallpaper != null) {
+                    File wallpaperFile = new File(getFilesDir(), "custom_bg.png");
+                    FileOutputStream outputStream = new FileOutputStream(wallpaperFile);
+                    wallpaper.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+                    outputStream.flush();
+                    outputStream.close();
 
-                        // Cache the custom cover art
-                        cacheCoverArt(customCoverArt, currentShortcut.name);
+                    // Save the path to SharedPreferences
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString(WALLPAPER_PREF_KEY, wallpaperFile.getAbsolutePath());
+                    editor.apply();
 
-                        // Set the custom cover art in the view
-                        coverArtView.setImageBitmap(customCoverArt);
+                    // Show dialog for display preference (center, stretch, tile)
+                    String[] displayOptions = {"Center", "Stretch", "Tile"};
+                    new AlertDialog.Builder(this)
+                            .setTitle("Select Display Mode")
+                            .setItems(displayOptions, (dialog, which) -> {
+                                // Save display mode
+                                editor.putString(WALLPAPER_DISPLAY_PREF_KEY, displayOptions[which].toLowerCase());
+                                editor.apply();
 
-                        // Hide the upload text once the cover art is uploaded
-                        if (uploadText != null) {
-                            uploadText.setVisibility(View.GONE);
-                        }
-
-                        // Update the click listener to reflect that custom cover art is now present
-                        coverArtView.setOnClickListener(v -> {
-                            if (currentShortcut.getCustomCoverArtPath() != null) {
-                                // Custom cover art exists, show the dialog
-                                showCoverArtOptionsDialog();
-                            } else {
-                                // No custom cover art, directly prompt for uploading a new one
-                                promptForCustomCoverArtUpload();
-                            }
-                        });
-
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                                // Apply wallpaper based on the chosen mode
+                                try {
+                                    applyWallpaper(Uri.fromFile(wallpaperFile), displayOptions[which].toLowerCase());
+                                } catch (FileNotFoundException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                            .show();
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (requestCode == REQUEST_CODE_SELECT_MP3 && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            selectedMp3Uri = data.getData();
+
+            // Get the internal storage directory
+            File appStorageDir = getFilesDir();
+            File musicFile = new File(appStorageDir, "bigpicturemode_bgmusic.mp3");
+
+            // Use FileUtils to copy the selected MP3 to internal storage and rename it
+            if (FileUtils.copy(this, selectedMp3Uri, musicFile, null)) {
+                // Save the file path to SharedPreferences
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putString("selected_mp3_path", musicFile.getAbsolutePath()); // Store the file path instead of URI
+                editor.apply();
+
+                // Play the copied MP3 file using the updated playMp3 method
+                playMp3(musicFile);  // Pass the File object
+            } else {
+                Log.e("BigPictureActivity", "Failed to copy the MP3 file.");
+            }
+        } else if (requestCode == REQUEST_CODE_UPLOAD_CUSTOM_COVER && data.getData() != null) {
+            Uri selectedImageUri = data.getData();
+            try {
+                InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
+                Bitmap customCoverArt = BitmapFactory.decodeStream(inputStream);
+
+                // Save custom cover art in shortcut and cache it
+                if (currentShortcut != null) {
+                    currentShortcut.saveCustomCoverArt(customCoverArt);  // Save custom cover art
+
+                    // Cache the custom cover art
+                    cacheCoverArt(customCoverArt, currentShortcut.name);
+
+                    // Set the custom cover art in the view
+                    coverArtView.setImageBitmap(customCoverArt);
+
+                    // Hide the upload text once the cover art is uploaded
+                    if (uploadText != null) {
+                        uploadText.setVisibility(View.GONE);
+                    }
+
+                    // Update the click listener to reflect that custom cover art is now present
+                    coverArtView.setOnClickListener(v -> {
+                        if (currentShortcut.getCustomCoverArtPath() != null) {
+                            // Custom cover art exists, show the dialog
+                            showCoverArtOptionsDialog();
+                        } else {
+                            // No custom cover art, directly prompt for uploading a new one
+                            promptForCustomCoverArtUpload();
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
+
+
+    private void applyWallpaper(Uri wallpaperUri, String mode) throws FileNotFoundException {
+        TiledBackgroundView backgroundView = findViewById(R.id.parallaxBackgroundView);
+        if (backgroundView != null && wallpaperUri != null) {
+            Bitmap wallpaper = BitmapFactory.decodeStream(getContentResolver().openInputStream(wallpaperUri));
+            if (wallpaper != null) {
+                backgroundView.setVisibility(View.VISIBLE);
+                backgroundView.setStaticWallpaper(wallpaper, mode);
+            } else {
+                Log.e("BigPictureActivity", "Invalid wallpaper dimensions.");
+            }
+        }
+    }
+
+    private void applyAnimationBasedOnState(TiledBackgroundView backgroundView, String animationState) {
+        if (backgroundView != null && animationState != null) {
+            switch (animationState) {
+                case "ab_gear":
+                    backgroundView.setAnimation("ab_gear");
+                    break;
+                case "ab_quilt":
+                    backgroundView.setAnimation("ab_quilt");
+                    break;
+                case "none":
+                    backgroundView.stopAnimation();
+                    backgroundView.setVisibility(View.GONE); // Hide the view when animation is stopped
+                    return; // Exit early since there's no animation to start
+                default:
+                    backgroundView.setAnimation("ab"); // Default to "ab"
+                    break;
+            }
+            backgroundView.startAnimation();
+        }
+    }
+
+
+
+
+    private void playMp3(File mp3File) {
+        if (mediaPlayer != null) {
+            mediaPlayer.release();  // Release any existing player
+        }
+
+        mediaPlayer = new MediaPlayer();
+        try {
+            FileInputStream fis = new FileInputStream(mp3File);
+            mediaPlayer.setDataSource(fis.getFD());  // Use FileDescriptor for internal storage files
+            fis.close();
+
+            mediaPlayer.prepare();  // Prepare synchronously
+            mediaPlayer.setOnPreparedListener(mp -> mediaPlayer.start());  // Start playback once prepared
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
 //    private String saveCustomCoverArt(Bitmap coverArt, String shortcutName) {
@@ -591,4 +1244,177 @@ public class BigPictureActivity extends AppCompatActivity {
 
         return String.format("%dd %02dh %02dm %02ds", days, hours, minutes, seconds);
     }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            View currentFocus = getCurrentFocus();
+
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    if (currentFocus == recyclerView) {
+                        playButton.requestFocus(); // Move focus to playButton when UP is pressed from RecyclerView
+                        return true;
+                    } else if (currentFocus == playButton) {
+                        // Move focus to the first TextView (e.g., graphicsDriverView) when UP is pressed from playButton
+                        graphicsDriverView.requestFocus();
+                        return true;
+                    } else if (currentFocus != coverArtView) {
+                        // Default behavior: Move focus to playButton from anywhere else (except coverArt)
+                        playButton.requestFocus();
+                        return true;
+                    }
+                    break;
+
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    if (currentFocus == playButton) {
+                        // Focus the closest carousel item to the center or playButton
+                        focusClosestCarouselItem();
+                        return true;
+                    }
+                    break;
+
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    break;
+
+                case KeyEvent.KEYCODE_BUTTON_A:
+                    if (currentFocus == playButton) {
+                        // Simulate a click on the play button if A is pressed
+                        playButton.performClick();
+                        return true;
+                    } else if (currentFocus == coverArtView) {
+                        // Simulate a click on the cover art if A is pressed
+                        coverArtView.performClick();
+                        return true;
+                    }
+                    break;
+                case KeyEvent.KEYCODE_BUTTON_R1:  // RB button
+                case KeyEvent.KEYCODE_BUTTON_R2:  // RT button
+                    if (findViewById(R.id.settingsLayout).getVisibility() == View.VISIBLE) {
+                        hideSettingsView();
+                    } else {
+                        showSettingsView();
+                    }
+                    return true;
+
+            }
+        }
+
+        return super.dispatchKeyEvent(event);
+    }
+
+    private void focusClosestCarouselItem() {
+        LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+        int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+        int lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition();
+
+        int closestPosition = RecyclerView.NO_POSITION;
+        float closestDistance = Float.MAX_VALUE;
+
+        // Get the center of the recyclerView or use a constant for where the playButton is (center of screen)
+        int recyclerViewCenter = recyclerView.getWidth() / 2;
+
+        // Iterate over visible items to find the closest one to the center
+        for (int i = firstVisibleItemPosition; i <= lastVisibleItemPosition; i++) {
+            if (i >= 0) {
+                View itemView = layoutManager.findViewByPosition(i);
+                if (itemView != null) {
+                    int itemCenter = (itemView.getLeft() + itemView.getRight()) / 2;
+                    float distanceFromCenter = Math.abs(recyclerViewCenter - itemCenter);
+
+                    if (distanceFromCenter < closestDistance) {
+                        closestDistance = distanceFromCenter;
+                        closestPosition = i;
+                    }
+                }
+            }
+        }
+
+        // Focus the closest item in the carousel
+        if (closestPosition != RecyclerView.NO_POSITION) {
+            recyclerView.scrollToPosition(closestPosition);
+            layoutManager.findViewByPosition(closestPosition).requestFocus();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean isBgMusicEnabled = preferences.getBoolean("bg_music_enabled", true);
+        String musicSource = preferences.getString("music_source", "youtube");
+        String selectedMp3Path = preferences.getString("selected_mp3_path", null); // Use the file path instead of URI
+
+        // Restore the selected animation state for the RadioGroup
+        String savedAnimation = preferences.getString("selected_animation", "ab");
+        if (savedAnimation.equals("custom_wallpaper")) {
+            ((RadioButton) findViewById(R.id.rbCustomWallpaper)).setChecked(true);
+        } else if (savedAnimation.equals("ab_gear")) {
+            ((RadioButton) findViewById(R.id.rbGearAnimation)).setChecked(true);
+        } else if (savedAnimation.equals("ab_quilt")) {
+            ((RadioButton) findViewById(R.id.rbQuiltAnimation)).setChecked(true);
+        } else if (savedAnimation.equals("none")) {
+            ((RadioButton) findViewById(R.id.rbNoAnimation)).setChecked(true);
+        } else {
+            ((RadioButton) findViewById(R.id.rbDefaultAnimation)).setChecked(true);
+        }
+
+        if (!isBgMusicEnabled) {
+            webView.setVisibility(View.GONE);
+            return; // Exit early if background music is disabled
+        }
+
+        // Handle WebView visibility based on music source
+        if ("mp3".equals(musicSource)) {
+            if (webView != null) {
+                webView.setVisibility(View.INVISIBLE); // Hide WebView when MP3 is selected
+            }
+
+            // Play MP3 if file exists
+            if (selectedMp3Path != null) {
+                File mp3File = new File(selectedMp3Path);
+                if (mp3File.exists() && (mediaPlayer == null || !mediaPlayer.isPlaying())) {
+                    playMp3(mp3File);  // Play the MP3 file
+                }
+            }
+        } else if ("youtube".equals(musicSource)) {
+            if (webView != null) {
+                webView.setVisibility(View.VISIBLE); // Show WebView if YouTube is selected
+            }
+
+            String savedUrl = preferences.getString("saved_youtube_url", "");
+            String videoId = savedUrl.isEmpty() ? "yNwKYgM6SkM" : extractYouTubeId(savedUrl);
+            if (videoId != null) {
+                loadYouTubeVideo(videoId);
+            }
+        }
+    }
+
+
+
+
+
+
+    private void stopBackgroundMusic() {
+        // Stop YouTube WebView
+        if (webView != null) {
+            webView.loadUrl("about:blank");
+        }
+
+        // Stop MP3 playback
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            mediaPlayer.release(); // Release resources
+            mediaPlayer = null;
+        }
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopBackgroundMusic(); // Ensure MP3 or YouTube stops when activity is paused
+    }
+
 }

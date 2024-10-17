@@ -31,6 +31,8 @@
         <item>24.3.0.4</item>
         <item>24.3.0.5</item>
         <item>24.3.0.6</item>
+        <item>24.3.0.7</item>
+        <item>24.3.0.8</item>
     </string-array>
     <string-array name="audio_driver_entries">
         <item>ALSA</item>
@@ -59,6 +61,8 @@
         <item>2.4</item>
         <item>2.4-gplasync</item>
         <item>2.4-24-gplasync</item>
+        <item>2.4.1</item>
+        <item>2.4.1-gplasync</item>
     </string-array>
     <string-array name="dxvk_max_device_memory_entries">
         <item>0 (Default)</item>
@@ -105,7 +109,7 @@
         <item>0.3.0</item>
         <item>0.3.1</item>
         <item>0.3.1.8g2</item>
-        <item>0.3.1-2</item>
+        <item>0.3.2</item>
     </string-array>
     <string-array name="dinput_mapper_type_entries">
         <item>@string/dinput_legacy</item>
@@ -164,4 +168,32 @@
     <item>@string/left_controller</item>
     <item>@string/right_controller</item>
     </string-array>
+    <string-array name="button_options">
+        <item>A</item>
+        <item>B</item>
+        <item>X</item>
+        <item>Y</item>
+        <item>R1 (Right Bumper)</item>
+        <item>R2 (Right Trigger)</item>
+        <item>L1 (Left Bumper)</item>
+        <item>L2 (Left Trigger)</item>
+        <item>Start</item>
+        <item>Select</item>
+        <item>R3 (Right Stick Button)</item>
+        <item>L3 (Left Stick Button)</item>
+    </string-array>
+    <integer-array name="button_keycodes">
+        <item>@integer/keycode_button_a</item>
+        <item>@integer/keycode_button_b</item>
+        <item>@integer/keycode_button_x</item>
+        <item>@integer/keycode_button_y</item>
+        <item>@integer/keycode_button_r1</item> <!-- Right Bumper -->
+        <item>@integer/keycode_button_r2</item> <!-- Right Trigger -->
+        <item>@integer/keycode_button_l1</item> <!-- Left Bumper -->
+        <item>@integer/keycode_button_l2</item> <!-- Left Trigger -->
+        <item>@integer/keycode_button_start</item>
+        <item>@integer/keycode_button_select</item>
+        <item>@integer/keycode_button_r3</item> <!-- Right Stick Button -->
+        <item>@integer/keycode_button_l3</item> <!-- Left Stick Button -->
+    </integer-array>
 </resources>

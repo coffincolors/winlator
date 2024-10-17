@@ -9,6 +9,12 @@
       </config>
     </shared>
     <layouts>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout-land/big_picture_activity.xml">
+        <config>
+          <state>Landscape</state>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/about_dialog.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
@@ -19,7 +25,17 @@
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/activity_terminal.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/add_env_var_dialog.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/big_picture_activity.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
@@ -94,6 +110,11 @@
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/dialog_gamepad_configurator.xml">
+        <config>
+          <theme>@style/AppTheme.Dark</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/dxvk_config_dialog.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
@@ -139,6 +160,26 @@
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/preference_widget_seekbar.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/preference_widget_seekbar_material.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/preference_widget_switch.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/preference_widget_switch_compat.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/save_edit_dialog.xml">
         <config>
           <theme>@style/AppTheme.Dark</theme>
@@ -155,6 +196,11 @@
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/src/main/res/layout/saves_list_item.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/src/main/res/layout/screen_effect_dialog.xml">
         <config>
           <theme>@android:style/Theme.Material.Light</theme>
         </config>
@@ -265,14 +311,15 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="Added Playtime and Playcount Stats Tracking for Homescreen Shortcuts and Frontends, added auto touchscreen controls timeout, added haptic feedback for touchscreen controls, added new option to shortcuts to clone shortcuts to other containers">
+    <list default="true" id="75efcbd4-b332-4b62-bcd4-d80d932ca61a" name="Changes" comment="Ported over Big Picture Mode from Proot, added Dark Theme, modified all classes related to new dark theme, completely replaced Turnip Driver switching for shorcuts with a new implementation based on proot build, added xinput disabler for shortcuts via intent to update winhandler, added fullscreen stretched toggle for containers and shortcuts, fixed issue with xinput dinput switching in shortcuts settings, added definable frontend shortcut path, added all new settings to settingsfragment, added animations for all menus, many changes and fixes">
+      <change afterPath="$PROJECT_DIR$/.idea/appInsightsSettings.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/box64_env_vars.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.7.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.2.8.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.0.tzst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.1-2.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.1.8g2.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.1.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/box64-0.3.2.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/box86_64/rcfiles/box86_64rc-1.rcp" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/box86_env_vars.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/common_dlls.json" afterDir="false" />
@@ -298,6 +345,8 @@
       <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.3.1.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4-24-gplasync.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4-gplasync.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4.1-gplasync.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4.1.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-2.4.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/dxvk-async-1.10.3.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/dxwrapper/vkd3d-2.12.tzst" afterDir="false" />
@@ -310,6 +359,8 @@
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.4.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.5.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.6.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.7.tzst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.8.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/turnip-24.3.0.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/virgl-23.1.9.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/graphics_driver/zink-22.2.5.tzst" afterDir="false" />
@@ -374,77 +425,232 @@
       <change afterPath="$PROJECT_DIR$/src/main/assets/wincomponents/wmdecoder.tzst" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/wine_debug_channels.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/assets/wine_startmenu.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/BigPictureActivity.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/BigPictureAdapter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/CarouselItemDecoration.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/steamgrid/SteamGridDBApi.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/steamgrid/SteamGridGridsResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/steamgrid/SteamGridGridsResponseDeserializer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/steamgrid/SteamGridSearchResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/anim/fade_in.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/anim/fade_out.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/anim/slide_in_down.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/anim/slide_in_up.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/anim/slide_out_down.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/anim/slide_out_up.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/combo_box_normal_dark.9.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/combo_box_pressed_dark.9.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/content_dialog_background_dark.9.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/edit_text_focused_dark.9.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/edit_text_normal_dark.9.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/edit_text_pressed_dark.9.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/bordered_panel_dark.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/combo_box_dark.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/cover_art_placeholder.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/edit_text_dark.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ic_big_picture_mode.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/tab_layout_background_dark.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/layout-land/big_picture_activity.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/layout/big_picture_activity.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/res/layout/big_picture_list_item.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/TerminalActivity.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/TiledBackgroundView.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/GamepadConfiguratorDialog.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ScreenEffectDialog.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/EffectComposer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/RenderTarget.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/effects/CRTEffect.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/effects/ColorEffect.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/effects/Effect.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/effects/FXAAEffect.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/effects/NTSCCombinedEffect.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/effects/ToonEffect.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/material/ScreenMaterial.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/winlator/widget/SeekBar.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/icon_lb.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable-hdpi/icon_run.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0001.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0002.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0003.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0004.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0005.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0006.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0007.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0008.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0009.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0010.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0011.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0012.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0013.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0014.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0015.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0016.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0017.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0018.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0019.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0020.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0021.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0022.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0023.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0024.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0025.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0026.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0027.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0028.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0029.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0030.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0031.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0032.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0033.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0034.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0035.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0036.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0037.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0038.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_0039.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0001.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0002.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0003.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0004.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0005.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0006.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0007.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0008.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0009.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0010.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0011.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0012.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0013.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0014.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0015.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0016.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0017.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0018.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0019.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0020.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0021.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0022.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0023.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0024.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0025.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0026.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0027.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0028.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0029.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0030.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0031.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0032.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0033.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0034.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0035.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0036.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0037.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0038.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_gear_0039.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0001.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0002.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0003.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0004.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0005.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0006.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0007.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0008.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0009.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0010.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0011.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0012.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0013.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0014.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0015.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0016.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0017.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0018.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0019.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0020.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0021.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0022.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0023.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0024.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0025.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0026.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0027.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0028.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0029.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0030.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0031.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0032.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0033.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0034.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0035.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0036.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0037.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0038.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/ab_quilt_0039.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_btn_borderless_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_btn_check_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_btn_check_material_anim.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_btn_default_mtrl_shape.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_btn_radio_material_anim.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_cab_background_internal_bg.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_control_background_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_ic_clear_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_ic_search_api_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_ic_voice_search_api_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_item_background_holo_dark.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_item_background_holo_light.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_list_divider_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_list_selector_background_transition_holo_dark.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_list_selector_holo_dark.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_list_selector_holo_light.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_ratingbar_indicator_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_ratingbar_small_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_seekbar_tick_mark_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/abc_textfield_search_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/animated_background.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/bg_transparent_dark.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/left_side_button.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/drawable/right_side_button.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/activity_terminal.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/dialog_gamepad_configurator.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_category.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_category_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_dialog_edittext.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_dropdown.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_dropdown_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_information.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_information_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_list_fragment.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_recyclerview.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_widget_checkbox.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_widget_seekbar.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_widget_seekbar_material.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_widget_switch.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/preference_widget_switch_compat.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/layout/screen_effect_dialog.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/mipmap-xxxhdpi/Thumbs.db" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/res/values/integers.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/other.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/other.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/Box86_64RCFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/Box86_64RCFragment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ContainerDetailFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ContainerDetailFragment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/cpp/winlator/sysvshared_memory.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/cpp/winlator/sysvshared_memory.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/cpp/winlator/xconnector_epoll.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/cpp/winlator/xconnector_epoll.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/BigPictureActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/BigPictureActivity.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ContainersFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ContainersFragment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ContentsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ContentsFragment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ControlsEditorActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ControlsEditorActivity.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ExternalControllerBindingsActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ExternalControllerBindingsActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/InputControlsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/InputControlsFragment.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/MainActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/MainActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/SavesFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/SavesFragment.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/SettingsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/SettingsFragment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/ShortcutsFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/ShortcutsFragment.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/XServerDisplayActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/box86_64/Box86_64EditPresetDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/box86_64/Box86_64EditPresetDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/container/Container.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/container/Container.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/alsaserver/ALSARequestHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/alsaserver/ALSARequestHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/BigPictureAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/bigpicture/BigPictureAdapter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/container/ContainerManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/container/ContainerManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/container/Shortcut.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/container/Shortcut.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/AddEnvVarDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/AddEnvVarDialog.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ContentDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ContentDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/GraphicsDriverConfigDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/GraphicsDriverConfigDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ImportGroupDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ImportGroupDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/SaveEditDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/SaveEditDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/SaveSettingsDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/SaveSettingsDialog.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ShortcutSettingsDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/ShortcutSettingsDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/StorageInfoDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/contentdialog/StorageInfoDialog.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/core/FileUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/core/FileUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/saves/CustomFilePickerActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/saves/CustomFilePickerActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/widget/EnvVarsView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/widget/EnvVarsView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/core/KeyValueSet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/core/KeyValueSet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/inputcontrols/Binding.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/inputcontrols/Binding.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/inputcontrols/ControlElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/inputcontrols/ControlElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/inputcontrols/ExternalController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/inputcontrols/ExternalController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/GLRenderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/GLRenderer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/Texture.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/Texture.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/material/ShaderMaterial.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/renderer/material/ShaderMaterial.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/sysvshm/SysVSharedMemory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/sysvshm/SysVSharedMemory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/widget/InputControlsView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/widget/InputControlsView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/widget/TouchpadView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/widget/TouchpadView.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/winhandler/WinHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/winhandler/WinHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/layout/box86_64_edit_preset_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/box86_64_edit_preset_dialog.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/layout/container_detail_fragment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/container_detail_fragment.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/layout/dxvk_config_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/dxvk_config_dialog.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/layout/graphics_driver_config_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/graphics_driver_config_dialog.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/layout/save_edit_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/save_edit_dialog.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/layout/saves_list_item.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/saves_list_item.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/xconnector/XInputStream.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/xconnector/XInputStream.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/xconnector/XOutputStream.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/xconnector/XOutputStream.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/xenvironment/ImageFsInstaller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/xenvironment/ImageFsInstaller.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/xenvironment/components/GlibcProgramLauncherComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/xenvironment/components/GlibcProgramLauncherComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/winlator/xserver/XClientRequestHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/winlator/xserver/XClientRequestHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout-land/big_picture_activity.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout-land/big_picture_activity.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/big_picture_activity.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/big_picture_activity.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/container_list_item.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/container_list_item.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/content_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/content_dialog.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/env_vars_list_item.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/env_vars_list_item.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/gyro_config_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/gyro_config_dialog.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/res/layout/settings_fragment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/settings_fragment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/res/layout/shortcut_settings_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/shortcut_settings_dialog.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/layout/vkd3d_config_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/vkd3d_config_dialog.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/menu/container_popup_menu.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/menu/container_popup_menu.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/res/menu/containers_menu.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/menu/containers_menu.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/menu/extra_args_popup_menu.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/menu/extra_args_popup_menu.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/res/values-v27/styles.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values-v27/styles.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/menu/xserver_menu.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/menu/xserver_menu.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/res/values/arrays.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/arrays.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/values/attrs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/attrs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/res/values/colors.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/colors.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/strings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/res/values/styles.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/values/styles.xml" afterDir="false" />
@@ -458,7 +664,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=PhysicalDevice, isTemplate=false, identifier=serial=R5CX10LYMLW)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -484,6 +690,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="valueResourceFile" />
         <option value="resourceFile" />
         <option value="Class" />
         <option value="layoutResourceFile" />
@@ -503,6 +710,17 @@
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="NetworkInspectorRules">
+    <option name="rulesList">
+      <list>
+        <RuleData>
+          <option name="active" value="true" />
+          <option name="id" value="1" />
+          <option name="name" value="New Rule" />
+        </RuleData>
+      </list>
+    </option>
   </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
@@ -529,7 +747,9 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "SHOW_ALL_PROCESSES": "false",
+    "android-custom-viewC:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/java/com/winlator/widget/SeekBar.java_SELECTED": "SeekBar",
     "cf.advertisement.text.has.clang-format": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
@@ -537,22 +757,32 @@
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_directory_selection": "C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/res/drawable",
-    "last_opened_file_path": "C:/Users/alexs/Documents/Tools/Winlator/Projects/winlator/app/src/main/java/com/winlator/container/Container.java",
+    "last_opened_file_path": "C:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/res/raw",
     "project.structure.last.edited": "Variables",
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "device.mirroring",
-    "two.files.diff.last.used.file": "C:/Users/alexs/Documents/Tools/Winlator/Projects/winlator/app/src/main/java/com/winlator/container/Container.java"
+    "settings.editor.selected.configurable": "layout.inspector",
+    "two.files.diff.last.used.file": "C:/Users/alexs/Documents/Tools/Winlator/Projects/winlator/app/src/main/java/com/winlator/MainActivity.java"
+  },
+  "keyToStringList": {
+    "android-custom-viewC:/Users/alexs/Documents/Tools/Winlator/Projects/glibc/winlator/app/src/main/java/com/winlator/widget/SeekBar.java_SeekBar_DIMENSIONS": [
+      "1080",
+      "1920"
+    ]
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\raw" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\drawable" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\java\com\winlator" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\layout" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\menu" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\drawable\animated_background" />
+      <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\drawable" />
+      <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\res\layout" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app\src\main\java\com\winlator" />
       <recent name="C:\Users\alexs\Documents\Tools\Winlator\Projects\glibc\winlator\app" />
     </key>
@@ -562,6 +792,13 @@
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.winlator" />
     </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="Application" />
+      </set>
+    </option>
   </component>
   <component name="RunManager">
     <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App">
@@ -784,7 +1021,15 @@
       <option name="project" value="LOCAL" />
       <updated>1726492413524</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="Ported over Big Picture Mode from Proot, added Dark Theme, modified all classes related to new dark theme, completely replaced Turnip Driver switching for shorcuts with a new implementation based on proot build, added xinput disabler for shortcuts via intent to update winhandler, added fullscreen stretched toggle for containers and shortcuts, fixed issue with xinput dinput switching in shortcuts settings, added definable frontend shortcut path, added all new settings to settingsfragment, added animations for all menus, many changes and fixes">
+      <option name="closed" value="true" />
+      <created>1727112513015</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1727112513015</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -819,7 +1064,8 @@
     <MESSAGE value="Fix: Removed large files from the history" />
     <MESSAGE value="Fixed issues with Turnip Driver Switching per shortcut being erased if a Graphics Driver Version is not set, added selected turnip version to display in Shortcut Settings Dialog, fixed issue where Container Turnip driver was overridden by the Shortcut Driver version selection" />
     <MESSAGE value="Added Playtime and Playcount Stats Tracking for Homescreen Shortcuts and Frontends, added auto touchscreen controls timeout, added haptic feedback for touchscreen controls, added new option to shortcuts to clone shortcuts to other containers" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added Playtime and Playcount Stats Tracking for Homescreen Shortcuts and Frontends, added auto touchscreen controls timeout, added haptic feedback for touchscreen controls, added new option to shortcuts to clone shortcuts to other containers" />
+    <MESSAGE value="Ported over Big Picture Mode from Proot, added Dark Theme, modified all classes related to new dark theme, completely replaced Turnip Driver switching for shorcuts with a new implementation based on proot build, added xinput disabler for shortcuts via intent to update winhandler, added fullscreen stretched toggle for containers and shortcuts, fixed issue with xinput dinput switching in shortcuts settings, added definable frontend shortcut path, added all new settings to settingsfragment, added animations for all menus, many changes and fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ported over Big Picture Mode from Proot, added Dark Theme, modified all classes related to new dark theme, completely replaced Turnip Driver switching for shorcuts with a new implementation based on proot build, added xinput disabler for shortcuts via intent to update winhandler, added fullscreen stretched toggle for containers and shortcuts, fixed issue with xinput dinput switching in shortcuts settings, added definable frontend shortcut path, added all new settings to settingsfragment, added animations for all menus, many changes and fixes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

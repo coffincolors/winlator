@@ -6,11 +6,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +24,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -52,9 +59,12 @@ import com.winlator.core.StringUtils;
 import com.winlator.core.TarCompressorUtils;
 import com.winlator.core.WineInfo;
 import com.winlator.core.WineUtils;
+import com.winlator.inputcontrols.ControlElement;
+import com.winlator.inputcontrols.ControlsProfile;
 import com.winlator.inputcontrols.ExternalController;
 import com.winlator.midi.MidiManager;
 import com.winlator.restore.RestoreActivity;
+import com.winlator.widget.InputControlsView;
 import com.winlator.xenvironment.ImageFs;
 import com.winlator.xenvironment.ImageFsInstaller;
 
@@ -190,8 +200,57 @@ public class SettingsFragment extends Fragment {
         cbGyroEnabled = view.findViewById(R.id.CBGyroEnabled);
         cbGyroEnabled.setChecked(preferences.getBoolean("gyro_enabled", false));
 
-        CheckBox cbProcessGyroWithLeftTrigger = view.findViewById(R.id.CBProcessGyroWithLeftTrigger);
-        cbProcessGyroWithLeftTrigger.setChecked(preferences.getBoolean("process_gyro_with_left_trigger", false));
+//        CheckBox cbProcessGyroWithLeftTrigger = view.findViewById(R.id.CBProcessGyroWithLeftTrigger);
+//        cbProcessGyroWithLeftTrigger.setChecked(preferences.getBoolean("process_gyro_with_left_trigger", false));
+
+        Spinner sbGyroTriggerButton = view.findViewById(R.id.SBGyroTriggerButton);
+        RadioGroup rgGyroMode = view.findViewById(R.id.RGyroMode);
+
+
+        int selectedMode = preferences.getInt("gyro_mode", 0); // 0 for hold, 1 for toggle
+
+        TypedArray keycodeArray = getResources().obtainTypedArray(R.array.button_keycodes);
+        int[] keycodes = new int[keycodeArray.length()];
+
+// Log the keycodes for debugging purposes
+        Log.d("SettingsFragment", "Populating keycodes array:");
+
+        for (int i = 0; i < keycodeArray.length(); i++) {
+            keycodes[i] = keycodeArray.getResourceId(i, -1); // Get the resource ID
+            if (keycodes[i] != -1) {
+                keycodes[i] = getResources().getInteger(keycodes[i]); // Fetch the actual integer value
+                Log.d("SettingsFragment", "Keycode[" + i + "] = " + keycodes[i]); // Log the populated keycode
+            } else {
+                Log.e("SettingsFragment", "Invalid keycode resource at index " + i);
+            }
+        }
+        keycodeArray.recycle(); // Always recycle TypedArray to free up resources
+
+// Now get the currently selected button from SharedPreferences
+        int selectedButton = preferences.getInt("gyro_trigger_button", KeyEvent.KEYCODE_BUTTON_L1);
+        Log.d("SettingsFragment", "Selected button keycode: " + selectedButton);
+
+// Find the index of the selectedButton in the keycodes array
+        int selectedIndex = -1;
+        for (int i = 0; i < keycodes.length; i++) {
+            if (keycodes[i] == selectedButton) {
+                selectedIndex = i;
+                break;
+            }
+        }
+
+// Ensure a valid index is found, otherwise, handle fallback
+        if (selectedIndex != -1) {
+            Log.d("SettingsFragment", "Selected button found at index: " + selectedIndex);
+            sbGyroTriggerButton.setSelection(selectedIndex);
+        } else {
+            Log.e("SettingsFragment", "Selected button not found in keycodes array!");
+            // If needed, handle the case where the button is not found (you can choose to throw an exception or show an error)
+        }
+
+
+        rgGyroMode.check(selectedMode == 0 ? R.id.RBHoldMode : R.id.RBToggleMode);
+
 
         // Configure Frontend Export Path button
 
@@ -360,6 +419,7 @@ public class SettingsFragment extends Fragment {
             selectBackupFileForRestore();
         });
 
+        int finalSelectedIndex = selectedIndex;
         view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
             SharedPreferences.Editor editor = preferences.edit();
 
@@ -383,7 +443,16 @@ public class SettingsFragment extends Fragment {
 
             // Save gyro settings
             editor.putBoolean("gyro_enabled", cbGyroEnabled.isChecked());
-            editor.putBoolean("process_gyro_with_left_trigger", cbProcessGyroWithLeftTrigger.isChecked());
+//            editor.putBoolean("process_gyro_with_left_trigger", cbProcessGyroWithLeftTrigger.isChecked());
+
+            int selectedKeycode = keycodes[sbGyroTriggerButton.getSelectedItemPosition()];
+
+// Save the selected keycode to preferences
+            editor.putInt("gyro_trigger_button", selectedKeycode);
+
+            editor.putInt("gyro_mode", rgGyroMode.getCheckedRadioButtonId() == R.id.RBHoldMode ? 0 : 1);
+
+
 
             if (!wineDebugChannels.isEmpty()) {
                 editor.putString("wine_debug_channels", String.join(",", wineDebugChannels));
@@ -809,17 +878,43 @@ public class SettingsFragment extends Fragment {
         builder.setView(dialogView);
         builder.setTitle("Gyroscope Configuration");
 
-        // Initialize dialog UI elements
-        sbGyroXSensitivity = dialogView.findViewById(R.id.SBGyroXSensitivity);
-        sbGyroYSensitivity = dialogView.findViewById(R.id.SBGyroYSensitivity);
-        sbGyroSmoothing = dialogView.findViewById(R.id.SBGyroSmoothing);
-        sbGyroDeadzone = dialogView.findViewById(R.id.SBGyroDeadzone);
-        cbInvertGyroX = dialogView.findViewById(R.id.CBInvertGyroX);
-        cbInvertGyroY = dialogView.findViewById(R.id.CBInvertGyroY);
+        // Initialize InputControlsView and configure it for displaying the stick
+        InputControlsView inputControlsView = new InputControlsView(getContext(), true);
+        inputControlsView.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        inputControlsView.setEditMode(false);  // Disable edit mode
+
+        // Initialize the stick element and set its type to STICK
+        inputControlsView.initializeStickElement(600, 250, 2.0f);
+        inputControlsView.getStickElement().setType(ControlElement.Type.STICK); // Set the type to STICK
+
+
+        // Add the InputControlsView to the placeholder in your dialog layout
+        FrameLayout placeholder = dialogView.findViewById(R.id.stick_placeholder);
+        placeholder.addView(inputControlsView);
+
+        // Redraw the stick in InputControlsView
+        inputControlsView.invalidate();
+
+        // Initialize the "Reset Center" button
+        Button btnResetCenter = dialogView.findViewById(R.id.btnResetCenter);
+        btnResetCenter.setOnClickListener(v -> {
+            // Reset the stick element's position to the center
+            inputControlsView.resetStickPosition();
+            inputControlsView.invalidate();  // Redraw the stick
+        });
+
+        // Initialize the UI elements in the dialog
+        SeekBar sbGyroXSensitivity = dialogView.findViewById(R.id.SBGyroXSensitivity);
+        SeekBar sbGyroYSensitivity = dialogView.findViewById(R.id.SBGyroYSensitivity);
+        SeekBar sbGyroSmoothing = dialogView.findViewById(R.id.SBGyroSmoothing);
+        SeekBar sbGyroDeadzone = dialogView.findViewById(R.id.SBGyroDeadzone);
+        CheckBox cbInvertGyroX = dialogView.findViewById(R.id.CBInvertGyroX);
+        CheckBox cbInvertGyroY = dialogView.findViewById(R.id.CBInvertGyroY);
         TextView tvGyroXSensitivity = dialogView.findViewById(R.id.TVGyroXSensitivity);
         TextView tvGyroYSensitivity = dialogView.findViewById(R.id.TVGyroYSensitivity);
         TextView tvGyroSmoothing = dialogView.findViewById(R.id.TVGyroSmoothing);
         TextView tvGyroDeadzone = dialogView.findViewById(R.id.TVGyroDeadzone);
+
 
         // Load current preferences
         sbGyroXSensitivity.setProgress((int) (preferences.getFloat("gyro_x_sensitivity", 1.0f) * 100));
@@ -888,6 +983,76 @@ public class SettingsFragment extends Fragment {
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
+        // SensorManager to handle gyroscope input and affect only the thumbstick position within a fixed radius
+        SensorManager sensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
+        Sensor gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+
+// Define variables for smoothing and deadzone
+        final float[] smoothGyroX = {0};
+        final float[] smoothGyroY = {0};
+        float smoothingFactor = preferences.getFloat("gyro_smoothing", 0.9f);  // User-defined smoothing factor
+        float gyroDeadzone = preferences.getFloat("gyro_deadzone", 0.05f);      // User-defined deadzone
+        boolean invertGyroX = preferences.getBoolean("invert_gyro_x", false);   // User-defined inversion for X axis
+        boolean invertGyroY = preferences.getBoolean("invert_gyro_y", false);   // User-defined inversion for Y axis
+        float gyroSensitivityX = preferences.getFloat("gyro_x_sensitivity", 1.0f); // User-defined sensitivity for X axis
+        float gyroSensitivityY = preferences.getFloat("gyro_y_sensitivity", 1.0f); // User-defined sensitivity for Y axis
+
+        SensorEventListener gyroListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                float rawGyroX = event.values[0];  // Gyroscope X axis value
+                float rawGyroY = event.values[1];  // Gyroscope Y axis value
+
+                // Apply deadzone
+                if (Math.abs(rawGyroX) < gyroDeadzone) rawGyroX = 0;
+                if (Math.abs(rawGyroY) < gyroDeadzone) rawGyroY = 0;
+
+                // Apply inversion
+                if (invertGyroX) rawGyroX = -rawGyroX;
+                if (invertGyroY) rawGyroY = -rawGyroY;
+
+                // Apply sensitivity
+                rawGyroX *= gyroSensitivityX;
+                rawGyroY *= gyroSensitivityY;
+
+                // Apply smoothing (exponential smoothing)
+                smoothGyroX[0] = smoothGyroX[0] * smoothingFactor + rawGyroX * (1 - smoothingFactor);
+                smoothGyroY[0] = smoothGyroY[0] * smoothingFactor + rawGyroY * (1 - smoothingFactor);
+
+                // Define the outer stick's center as a fixed point (outer circle center)
+                int stickCenterX = inputControlsView.getStickElement().getX(); // Base stick X (center of outer circle)
+                int stickCenterY = inputControlsView.getStickElement().getY(); // Base stick Y (center of outer circle)
+                int stickRadius = 100;  // Example radius (adjust as needed)
+
+                // Calculate the new thumbstick (inner circle) position based on the smoothed gyro data
+                float newX = inputControlsView.getStickElement().getCurrentPosition().x + smoothGyroX[0];
+                float newY = inputControlsView.getStickElement().getCurrentPosition().y + smoothGyroY[0];
+
+                // Calculate the distance between the new thumbstick position and the outer circle center
+                float deltaX = newX - stickCenterX;
+                float deltaY = newY - stickCenterY;
+                float distance = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+                // Constrain the inner circle within the outer circle's radius
+                if (distance > stickRadius) {
+                    float scaleFactor = stickRadius / distance;
+                    newX = stickCenterX + deltaX * scaleFactor;
+                    newY = stickCenterY + deltaY * scaleFactor;
+                }
+
+                // Update the thumbstick (inner circle) position, but keep the outer circle fixed
+                inputControlsView.updateStickPosition(newX, newY);
+
+                // Redraw InputControlsView to reflect the new thumbstick position
+                inputControlsView.invalidate();
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+        };
+
+        sensorManager.registerListener(gyroListener, gyroscopeSensor, SensorManager.SENSOR_DELAY_GAME);
+
         // Set up the dialog buttons
         builder.setPositiveButton("OK", (dialog, which) -> {
             SharedPreferences.Editor editor = preferences.edit();
@@ -905,6 +1070,8 @@ public class SettingsFragment extends Fragment {
         // Show the dialog
         builder.create().show();
     }
+
+
 
     private void showBackupConfirmationDialog() {
         new AlertDialog.Builder(getContext())
@@ -986,6 +1153,17 @@ public class SettingsFragment extends Fragment {
                         editor.putString("frontend_export_uri", uri.toString());
                         editor.apply();
 
+                        // Take persistable URI permission
+                        try {
+                            // Take persistable URI permission with explicit flags
+                            requireContext().getContentResolver().takePersistableUriPermission(
+                                    uri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                            );
+                        } catch (SecurityException e) {
+                            AppUtils.showToast(getContext(), "Unable to take persistable permissions: " + e.getMessage());
+                        }
+
                         // Convert the URI to an absolute path and display it
                         String fullPath = FileUtils.getFilePathFromUri(getContext(), uri);
 
@@ -1014,6 +1192,7 @@ public class SettingsFragment extends Fragment {
             }
         }
     }
+
 
 
 

@@ -2,7 +2,9 @@ package com.winlator.container;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.winlator.R;
@@ -395,5 +397,104 @@ public class ContainerManager {
         }
         return null;  // Return null if no matching container is found
     }
+
+    public void importContainer(File importDir, Runnable callback) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                if (!importDir.exists() || !importDir.isDirectory()) {
+                    Log.e("ContainerManager", "Invalid container directory for import: " + importDir.getPath());
+                    return;
+                }
+
+                // Get the next container ID and set the new container name
+                int newContainerId = getNextContainerId();
+                String newContainerName = ImageFs.USER + "-" + newContainerId;
+                File newContainerDir = new File(homeDir, newContainerName);
+
+                if (newContainerDir.exists()) {
+                    Log.e("ContainerManager", "Container directory already exists: " + newContainerDir.getPath());
+                    return;
+                }
+
+                if (!newContainerDir.mkdirs()) {
+                    Log.e("ContainerManager", "Failed to create directory: " + newContainerDir.getPath());
+                    return;
+                }
+
+                // Copy the files from the import directory to the new container directory
+                if (!FileUtils.copy(importDir, newContainerDir, file -> FileUtils.chmod(file, 0771))) {
+                    FileUtils.delete(newContainerDir);
+                    Log.e("ContainerManager", "Failed to copy container files to: " + newContainerDir.getPath());
+                    return;
+                }
+
+                // Create the new container object and save its data
+                Container newContainer = new Container(newContainerId, this);
+                newContainer.setRootDir(newContainerDir);
+                newContainer.setName(importDir.getName());
+                newContainer.saveData();
+                containers.add(newContainer);
+                maxContainerId++;
+
+                Log.d("ContainerManager", "Container imported successfully to: " + newContainerDir.getPath());
+                // Make sure to run the callback after successful import
+                if (callback != null) {
+                    callback.run();
+                }
+            } catch (Exception e) {
+                Log.e("ContainerManager", "Failed to import container from: " + importDir.getPath(), e);
+            }
+        });
+    }
+
+
+
+    public void exportContainer(Container container, Runnable callback) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                // Create the export directory path
+                File exportDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Winlator/Backups/Containers");
+
+                if (!exportDir.exists() && !exportDir.mkdirs()) {
+                    Log.e("ContainerManager", "Failed to create export directory: " + exportDir.getPath());
+                    runOnUiThread(() -> callback.run()); // Close the preloader dialog
+                    return;
+                }
+
+                File containerDir = container.getRootDir();
+                File destinationDir = new File(exportDir, containerDir.getName());
+
+                if (destinationDir.exists()) {
+                    Log.e("ContainerManager", "Export directory already exists: " + destinationDir.getPath());
+                    runOnUiThread(() -> callback.run()); // Close the preloader dialog
+                    return;
+                }
+
+                if (!destinationDir.mkdirs()) {
+                    Log.e("ContainerManager", "Failed to create directory: " + destinationDir.getPath());
+                    runOnUiThread(() -> callback.run()); // Close the preloader dialog
+                    return;
+                }
+
+                if (!FileUtils.copy(containerDir, destinationDir, file -> FileUtils.chmod(file, 0771))) {
+                    Log.e("ContainerManager", "Failed to export some container files to: " + destinationDir.getPath());
+                    FileUtils.delete(destinationDir); // Optional: Delete partially copied directory
+                }
+
+                Log.d("ContainerManager", "Container exported successfully to: " + destinationDir.getPath());
+            } catch (Exception e) {
+                Log.e("ContainerManager", "Failed to export container: " + container.getName(), e);
+            } finally {
+                runOnUiThread(callback); // Ensure the callback runs and preloader dialog closes
+            }
+        });
+    }
+
+    // Utility method to run on UI thread
+    private void runOnUiThread(Runnable action) {
+        new Handler(Looper.getMainLooper()).post(action);
+    }
+
+
 
 }

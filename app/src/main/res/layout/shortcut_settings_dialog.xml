@@ -397,6 +397,17 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="@string/box64_version" />
+
+                    <Spinner
+                        style="@style/ComboBox"
+                        android:id="@+id/SBox64Version"
+                        android:layout_width="match_parent"
+                        android:entries="@array/box64_version_entries" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:text="@string/box64_preset" />
 
                     <Spinner
@@ -435,7 +446,8 @@
                     <Spinner
                         style="@style/ComboBox"
                         android:id="@+id/SControlsProfile"
-                        android:layout_width="match_parent" />
+                        android:layout_width="match_parent"
+                        android:spinnerMode="dialog" />
 
                     <CheckBox
                         android:id="@+id/CBDisabledXInput"

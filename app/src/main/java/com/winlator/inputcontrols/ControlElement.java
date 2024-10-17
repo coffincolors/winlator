@@ -298,6 +298,8 @@ public class ControlElement {
         return boundingBox;
     }
 
+
+
     private String getDisplayText() {
         if (text != null && !text.isEmpty()) {
             return text;
@@ -507,24 +509,29 @@ public class ControlElement {
                 break;
             }
             case STICK: {
-                int cx = boundingBox.centerX();
-                int cy = boundingBox.centerY();
+                int cx = boundingBox.centerX();  // Fixed outer circle center
+                int cy = boundingBox.centerY();  // Fixed outer circle center
                 int oldColor = paint.getColor();
+
+                // Draw the outer circle (base of the stick)
                 canvas.drawCircle(cx, cy, boundingBox.height() * 0.5f, paint);
 
-                float thumbstickX = currentPosition != null ? currentPosition.x : cx;
-                float thumbstickY = currentPosition != null ? currentPosition.y : cy;
+                // Draw the inner thumbstick (current position based on gyroscope movement)
+                float thumbstickX = getCurrentPosition().x;
+                float thumbstickY = getCurrentPosition().y;
 
-                short thumbRadius = (short) (snappingSize * 3.5f * scale);
+                short thumbRadius = (short) (snappingSize * 3.5f * scale); // Radius of the thumbstick
                 paint.setStyle(Paint.Style.FILL);
-                paint.setColor(ColorUtils.setAlphaComponent(primaryColor, 50));
-                canvas.drawCircle(thumbstickX, thumbstickY, thumbRadius, paint);
+                paint.setColor(ColorUtils.setAlphaComponent(primaryColor, 50)); // Semi-transparent fill for thumbstick
+                canvas.drawCircle(thumbstickX, thumbstickY, thumbRadius, paint); // Draw thumbstick
 
+                // Draw the thumbstick border
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setColor(oldColor);
                 canvas.drawCircle(thumbstickX, thumbstickY, thumbRadius + strokeWidth * 0.5f, paint);
                 break;
             }
+
             case TRACKPAD: {
                 float radius = boundingBox.height() * 0.15f;
                 canvas.drawRoundRect(boundingBox.left, boundingBox.top, boundingBox.right, boundingBox.bottom, radius, radius, paint);
@@ -756,5 +763,22 @@ public class ControlElement {
             return true;
         }
         return false;
+    }
+
+    public PointF getCurrentPosition() {
+        if (currentPosition == null) {
+            currentPosition = new PointF(x, y); // Initialize to the center (same as outer circle)
+        }
+        return currentPosition;
+    }
+
+    // New setter for current position to allow resetting
+    public void setCurrentPosition(float x, float y) {
+        if (currentPosition == null) {
+            currentPosition = new PointF();
+        }
+        currentPosition.set(x, y);
+        // Optionally invalidate the view to trigger a redraw
+        inputControlsView.invalidate();
     }
 }

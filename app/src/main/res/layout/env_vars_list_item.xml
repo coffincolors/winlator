@@ -29,7 +29,8 @@
             style="@style/MultiSelectionComboBox"
             android:id="@+id/MultiSelectionComboBox"
             android:layout_width="match_parent"
-            android:visibility="gone" />
+            android:visibility="gone"
+            android:spinnerMode="dialog"/>
 
         <ToggleButton
             android:id="@+id/ToggleButton"

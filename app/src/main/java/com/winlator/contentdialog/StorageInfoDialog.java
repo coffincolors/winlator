@@ -54,6 +54,9 @@ public class StorageInfoDialog extends ContentDialog {
         final File cacheDir = new File(rootDir, ".cache");
         AtomicLong lastTime = new AtomicLong(System.currentTimeMillis());
 
+
+
+
         final Callback<Long> onAddSize = (size) -> {
             totalSize.addAndGet(size);
             long currTime = System.currentTimeMillis();

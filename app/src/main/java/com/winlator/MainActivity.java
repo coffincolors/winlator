@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
@@ -41,6 +42,7 @@ import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.SaveEditDialog;
 import com.winlator.contentdialog.SaveSettingsDialog;
 import com.winlator.core.Callback;
+import com.winlator.core.FileUtils;
 import com.winlator.core.PreloaderDialog;
 import com.winlator.container.ContainerManager;
 import com.winlator.saves.CustomFilePickerActivity;
@@ -48,6 +50,7 @@ import com.winlator.saves.Save;
 import com.winlator.saves.SaveManager;
 import com.winlator.xenvironment.ImageFsInstaller;
 
+import java.io.File;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -73,9 +76,54 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private boolean isDarkMode;
 
+//    private void cleanupErroneousContainer() {
+//        // Define the specific path to the erroneous directory
+//        File erroneousDir = new File(Environment.getExternalStorageDirectory(), "Android/data/com.winlator/files/Backups");
+//
+//        // Log the contents of the directory
+//        logSpecificDirectoryContents(erroneousDir);
+//
+//        // Check if the directory exists and delete it if found
+//        if (erroneousDir.exists() && erroneousDir.isDirectory()) {
+//            if (FileUtils.delete(erroneousDir)) {
+//                Log.i("MainActivity", "Successfully deleted erroneous container directory: " + erroneousDir.getPath());
+//                Toast.makeText(this, "Erroneous container directory deleted.", Toast.LENGTH_SHORT).show();
+//            } else {
+//                Log.e("MainActivity", "Failed to delete erroneous container directory: " + erroneousDir.getPath());
+//                Toast.makeText(this, "Failed to delete erroneous container directory.", Toast.LENGTH_SHORT).show();
+//            }
+//        } else {
+//            Log.i("MainActivity", "Erroneous container directory not found: " + erroneousDir.getPath());
+//            Toast.makeText(this, "Erroneous container directory not found.", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+//
+//    // Method to log the contents of a specific directory
+//    private void logSpecificDirectoryContents(File directory) {
+//        if (directory == null || !directory.isDirectory()) {
+//            Log.e("MainActivity", "Provided path is not a directory: " + directory);
+//            return;
+//        }
+//
+//        Log.d("MainActivity", "Contents of directory: " + directory.getAbsolutePath());
+//        File[] files = directory.listFiles();
+//        if (files != null) {
+//            for (File file : files) {
+//                Log.d("MainActivity", (file.isDirectory() ? "Directory: " : "File: ") + file.getName());
+//            }
+//        } else {
+//            Log.d("MainActivity", "No files found in directory: " + directory.getAbsolutePath());
+//        }
+//    }
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+//        cleanupErroneousContainer();
 
         // Get shared preferences
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -117,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Determine text color based on dark mode
         int textColor = isDarkMode ? Color.WHITE : Color.BLACK;
         setNavigationViewItemTextColor(navigationView, textColor);
+        
 
         // Initialize SaveManager and ContainerManager
         saveManager = new SaveManager(this);

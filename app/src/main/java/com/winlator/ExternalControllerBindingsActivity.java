@@ -125,7 +125,7 @@ public class ExternalControllerBindingsActivity extends AppCompatActivity {
         for (int i = 0; i < axes.length; i++) {
             sign = Mathf.sign(values[i]);
             // Log the input for debugging
-            Log.d("JoystickDebug", "Axis: " + axes[i] + " Value: " + values[i] + " Sign: " + sign);
+//            Log.d("JoystickDebug", "Axis: " + axes[i] + " Value: " + values[i] + " Sign: " + sign);
 
             if (sign != 0) {
                 if (axes[i] == MotionEvent.AXIS_X || axes[i] == MotionEvent.AXIS_Z) {
@@ -152,10 +152,10 @@ public class ExternalControllerBindingsActivity extends AppCompatActivity {
 
     @Override
     public boolean dispatchGenericMotionEvent(MotionEvent event) {
-        Log.d("MotionEventDebug", "Device ID: " + event.getDeviceId() + " Event: " + event);
+//        Log.d("MotionEventDebug", "Device ID: " + event.getDeviceId() + " Event: " + event);
 
         if (event.getDeviceId() == controller.getDeviceId() && controller.updateStateFromMotionEvent(event)) {
-            Log.d("MotionEventDebug", "State updated successfully");
+//            Log.d("MotionEventDebug", "State updated successfully");
 
             if (controller.state.isPressed(ExternalController.IDX_BUTTON_L2)) updateControllerBinding(KeyEvent.KEYCODE_BUTTON_L2, Binding.NONE);
             if (controller.state.isPressed(ExternalController.IDX_BUTTON_R2)) updateControllerBinding(KeyEvent.KEYCODE_BUTTON_R2, Binding.NONE);

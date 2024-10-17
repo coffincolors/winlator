@@ -3,12 +3,27 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!--
+    <item
+        android:id="@+id/action_terminal"
+        android:title="Open Terminal"
+        android:icon="@drawable/icon_env_var"
+        app:showAsAction="ifRoom" /> -->
+
+
     <item
         android:id="@+id/action_big_picture_mode"
         android:title="Big Picture Mode"
         android:icon="@drawable/ic_big_picture_mode"
         android:color="#FFFFFF"
         app:showAsAction="ifRoom" />
+
+    <!-- New Import Container button -->
+    <item
+        android:id="@+id/containers_menu_import"
+        android:title="Import Container"
+        android:icon="@drawable/icon_action_bar_import"
+    app:showAsAction="ifRoom" />
 
     <item
         android:icon="@drawable/icon_action_bar_add"

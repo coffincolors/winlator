@@ -4,12 +4,13 @@
     android:fillViewport="true"
     android:padding="16dp">
 
+    <!-- Single LinearLayout as the child of the ScrollView -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-
+        <!-- Gyroscope settings -->
         <SeekBar
             android:id="@+id/SBGyroXSensitivity"
             android:layout_width="match_parent"
@@ -76,6 +77,22 @@
             android:text="Invert Y Axis"
             android:layout_marginBottom="16dp" />
 
-    </LinearLayout>
+        <!-- Placeholder for the stick control with black background -->
+        <FrameLayout
+            android:id="@+id/stick_placeholder"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"
+            android:background="#000000" />
 
+        <!-- Button to reset the center of the stick -->
+        <Button
+            android:id="@+id/btnResetCenter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reset Stick to Center"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
 </ScrollView>

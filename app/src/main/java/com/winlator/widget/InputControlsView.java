@@ -14,6 +14,7 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.Rect;
 import android.os.Handler;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -71,6 +72,21 @@ public class InputControlsView extends View {
 
     private SharedPreferences preferences;
 
+    private ControlElement stickElement;
+
+    private boolean focusOnStick = false; // A flag to determine if we are focusing on the stick
+
+    public boolean isFocusedOnStick() {
+        return focusOnStick;
+    }
+
+    public void setFocusOnStick(boolean focus) {
+        this.focusOnStick = focus;
+        invalidate(); // Redraw the view with the new focus setting
+    }
+
+
+
     @SuppressLint("ResourceType")
     public InputControlsView(Context context) {
         super(context);
@@ -97,6 +113,25 @@ public class InputControlsView extends View {
         preferences = PreferenceManager.getDefaultSharedPreferences(this.getContext());
     }
 
+    public InputControlsView(Context context, boolean focusOnStick) {
+        super(context);
+        setClickable(true);
+        setFocusable(true);
+        setFocusableInTouchMode(true);
+        setBackgroundColor(0x00000000);
+        setPointerIcon(PointerIcon.load(getResources(), R.drawable.hidden_pointer_arrow));
+
+        // If focusOnStick is true, adjust the layout params to match the stick element size
+        if (focusOnStick) {
+            setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        } else {
+            setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        }
+
+        preferences = PreferenceManager.getDefaultSharedPreferences(this.getContext());
+    }
+
+
     public void setEditMode(boolean editMode) {
         this.editMode = editMode;
     }
@@ -111,8 +146,18 @@ public class InputControlsView extends View {
 
     @Override
     protected synchronized void onDraw(Canvas canvas) {
-        int width = getWidth();
-        int height = getHeight();
+        int width, height;
+
+        if (stickElement != null && isFocusedOnStick()) {
+            // If focusing on the stick, set width and height to the stick's bounding box size
+            Rect boundingBox = stickElement.getBoundingBox();
+            width = boundingBox.width();
+            height = boundingBox.height();
+        } else {
+            // Default behavior for full screen
+            width = getWidth();
+            height = getHeight();
+        }
 
         if (width == 0 || height == 0) {
             readyToDraw = false;
@@ -127,12 +172,56 @@ public class InputControlsView extends View {
             drawCursor(canvas);
         }
 
-        if (profile != null) {
+        if (stickElement != null) {
+            // Draw only the stick element if focus mode is active
+            stickElement.draw(canvas);
+        }
+
+        if (profile != null && showTouchscreenControls && !isFocusedOnStick()) {
             if (!profile.isElementsLoaded()) profile.loadElements(this);
-            if (showTouchscreenControls) for (ControlElement element : profile.getElements()) element.draw(canvas);
+            for (ControlElement element : profile.getElements()) {
+                element.draw(canvas);
+            }
         }
 
         super.onDraw(canvas);
+    }
+
+
+    public void resetStickPosition() {
+        if (stickElement != null) {
+            Rect boundingBox = stickElement.getBoundingBox();
+            float centerX = boundingBox.centerX();
+            float centerY = boundingBox.centerY();
+
+            stickElement.setCurrentPosition(centerX, centerY); // Reset to the center of the bounding box
+            invalidate(); // Redraw the stick in the centered position
+        }
+    }
+
+
+
+    public void initializeStickElement(float x, float y, float scale) {
+        stickElement = new ControlElement(this);
+        stickElement.setType(ControlElement.Type.STICK); // Set type to STICK
+        stickElement.setX((int) x);
+        stickElement.setY((int) y);
+        stickElement.setScale(scale);
+        invalidate(); // Force the view to redraw with the stick
+    }
+
+
+    public void updateStickPosition(float x, float y) {
+        if (stickElement != null) {
+            stickElement.getCurrentPosition().x = x;  // Update the thumbstick's position
+            stickElement.getCurrentPosition().y = y;  // Update the thumbstick's position
+            invalidate(); // Redraw the view
+        }
+    }
+
+
+    public ControlElement getStickElement() {
+        return stickElement;
     }
 
     private void drawGrid(Canvas canvas) {

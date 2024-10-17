@@ -1,5 +1,7 @@
 package com.winlator.winhandler;
 
+import static com.winlator.inputcontrols.ExternalController.TRIGGER_IS_AXIS;
+
 import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -85,6 +87,11 @@ public class WinHandler {
 
     private boolean processGyroWithLeftTrigger = false;
 
+    private int gyroTriggerButton;
+    private boolean isGyroActive = false;
+    private boolean isToggleMode;
+
+
     public void setUseLegacyInputMethod(boolean useLegacy) {
         this.useLegacyInputMethod = useLegacy;
     }
@@ -128,16 +135,12 @@ public class WinHandler {
 
         // Check if processing gyro data only when the left trigger is held
         if (processGyroWithLeftTrigger) {
-            // Ensure currentController and its state are valid
-            if (currentController != null && currentController.state != null) {
-                // Check if the left trigger is pressed (threshold can be adjusted as needed)
-                shouldProcessGyro = currentController.state.triggerL > 0.5f; // Assuming 0.5f is the threshold for "pressed"
-            } else {
-                shouldProcessGyro = false;  // Default to not processing if controller or state is invalid
-            }
+            shouldProcessGyro = isLeftTriggerPressed();
         }
 
-        if (shouldProcessGyro) {
+
+
+        if (isGyroActive) {
             // Apply deadzone
             if (Math.abs(rawGyroX) < gyroDeadzone) rawGyroX = 0;
             if (Math.abs(rawGyroY) < gyroDeadzone) rawGyroY = 0;
@@ -146,13 +149,18 @@ public class WinHandler {
             if (invertGyroX) rawGyroX = -rawGyroX;
             if (invertGyroY) rawGyroY = -rawGyroY;
 
-            // Apply sensitivity
-            rawGyroX *= gyroSensitivityX;
-            rawGyroY *= gyroSensitivityY;
+            // Further reduce sensitivity by lowering the multiplier
+            float sensitivityMultiplier = 0.25f; // Reduce the sensitivity even more
+            rawGyroX *= gyroSensitivityX * sensitivityMultiplier;
+            rawGyroY *= gyroSensitivityY * sensitivityMultiplier;
 
             // Apply smoothing
             smoothGyroX = smoothGyroX * smoothingFactor + rawGyroX * (1 - smoothingFactor);
             smoothGyroY = smoothGyroY * smoothingFactor + rawGyroY * (1 - smoothingFactor);
+
+            // Clamp the result to reduce the overall range of movement
+            smoothGyroX = Mathf.clamp(smoothGyroX, -0.25f, 0.25f); // Reduce clamping range for less movement
+            smoothGyroY = Mathf.clamp(smoothGyroY, -0.25f, 0.25f);
 
             // Update the gyro data
             this.gyroX = smoothGyroX;
@@ -162,6 +170,8 @@ public class WinHandler {
             sendGamepadState();
         }
     }
+
+
 
 
     public WinHandler(XServerDisplayActivity activity) {
@@ -376,10 +386,18 @@ public class WinHandler {
             case RequestCodes.INIT: {
                 initReceived = true;
 
+
+
                 preferences = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
 
+                gyroTriggerButton = preferences.getInt("gyro_trigger_button", KeyEvent.KEYCODE_BUTTON_L1);
+                isToggleMode = preferences.getInt("gyro_mode", 0) == 1; // 1 is toggle mode, 0 is hold mode
+
+
                 // Load and apply trigger mode and xinput toggle settings
-                triggerType = (byte) preferences.getInt("trigger_type", ExternalController.TRIGGER_IS_AXIS);
+                triggerType = (byte) preferences.getInt("trigger_type", TRIGGER_IS_AXIS);
+
+                refreshControllerMappings();
 
                 // Only set xinputDisabled if it hasn't been set explicitly by XServerDisplayActivity
                 if (!xinputDisabledInitialized) {
@@ -600,13 +618,34 @@ public class WinHandler {
 
     public boolean onKeyEvent(KeyEvent event) {
         boolean handled = false;
+
+        if (event.getKeyCode() == gyroTriggerButton) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (isToggleMode) {
+                    isGyroActive = !isGyroActive;
+                } else {
+                    isGyroActive = true;
+                }
+            } else if (event.getAction() == KeyEvent.ACTION_UP && !isToggleMode) {
+                isGyroActive = false;
+
+                // Reset the analog stick to center when the gyro activator is released
+                if (currentController != null) {
+                    currentController.state.thumbRX = 0.0f; // Reset X axis
+                    currentController.state.thumbRY = 0.0f; // Reset Y axis
+                }
+
+                // Immediately send the updated gamepad state
+                sendGamepadState();
+            }
+        }
+
         if (currentController != null && currentController.getDeviceId() == event.getDeviceId() && event.getRepeatCount() == 0) {
             int action = event.getAction();
 
             if (action == KeyEvent.ACTION_DOWN) {
                 handled = currentController.updateStateFromKeyEvent(event);
-            }
-            else if (action == KeyEvent.ACTION_UP) {
+            } else if (action == KeyEvent.ACTION_UP) {
                 handled = currentController.updateStateFromKeyEvent(event);
             }
 
@@ -614,6 +653,7 @@ public class WinHandler {
         }
         return handled;
     }
+
 
     public byte getInputType() {
         return inputType;
@@ -633,5 +673,34 @@ public class WinHandler {
         // Use a scheduled executor for delay
         Executors.newSingleThreadScheduledExecutor().schedule(() -> exec(command), delaySeconds, TimeUnit.SECONDS);
     }
+
+    public void initializeController() {
+        currentController = ExternalController.getController(0);
+        if (currentController != null) {
+            currentController.setContext(activity); // Ensure context is set
+            // Enforce mappings upon initialization
+            for (byte originalButton : ExternalController.buttonMappings.keySet()) {
+                currentController.setButtonMapping(originalButton, ExternalController.buttonMappings.get(originalButton));
+            }
+
+
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity.getBaseContext());
+            triggerType = (byte) preferences.getInt("trigger_type", TRIGGER_IS_AXIS);
+            currentController.setTriggerType(triggerType); // Ensure triggerType is set
+
+            Log.d("WinHandler", "Force mappings applied on initialization.");
+        }
+    }
+
+
+
+    public void refreshControllerMappings() {
+        if (currentController != null) {
+            Log.d("WinHandler", "Refreshing controller mappings");
+            initializeController(); // Make sure controller state is up-to-date
+            sendGamepadState(); // Send updated state to Wine
+        }
+    }
+
 
 }

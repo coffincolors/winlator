@@ -190,7 +190,7 @@ public class TouchpadView extends View {
     }
 
     private void resetTouchscreenTimeout() {
-        Log.d("TouchpadView", "Touch detected, resetting timeout.");
+        //Log.d("TouchpadView", "Touch detected, resetting timeout.");
         if (timeoutHandler != null && hideControlsRunnable != null) {
             // Cancel any pending hide requests
             timeoutHandler.removeCallbacks(hideControlsRunnable);

@@ -36,6 +36,7 @@ public class BigPictureAdapter extends RecyclerView.Adapter<BigPictureAdapter.Vi
         }
     }
 
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -54,6 +55,10 @@ public class BigPictureAdapter extends RecyclerView.Adapter<BigPictureAdapter.Vi
             holder.iconView.setImageResource(R.mipmap.ic_launcher_foreground); // Placeholder for missing icon
         }
 
+        // Make sure the item can receive focus
+        holder.itemView.setFocusable(true);
+        holder.itemView.setFocusableInTouchMode(true);
+
         // Set click listener to load data when clicked
         holder.itemView.setOnClickListener(v -> {
             recyclerView.smoothScrollToPosition(position);
@@ -70,8 +75,8 @@ public class BigPictureAdapter extends RecyclerView.Adapter<BigPictureAdapter.Vi
                 ((BigPictureActivity) recyclerView.getContext()).loadShortcutData(shortcut);
             }
         });
-
     }
+
 
 
 

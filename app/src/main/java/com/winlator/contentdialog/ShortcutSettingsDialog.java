@@ -33,6 +33,7 @@ import com.winlator.container.Shortcut;
 import com.winlator.contents.ContentProfile;
 import com.winlator.contents.ContentsManager;
 import com.winlator.core.AppUtils;
+import com.winlator.core.DefaultVersion;
 import com.winlator.core.EnvVars;
 import com.winlator.core.StringUtils;
 import com.winlator.inputcontrols.ControlsProfile;
@@ -44,6 +45,8 @@ import com.winlator.winhandler.WinHandler;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ShortcutSettingsDialog extends ContentDialog {
     private final ShortcutsFragment fragment;
@@ -54,6 +57,8 @@ public class ShortcutSettingsDialog extends ContentDialog {
 //    private boolean overrideGraphicsDriver = false;
 
     private TextView tvTurnipVersion;  // For displaying the turnip version
+
+    private String box64Version;
 
 
     public ShortcutSettingsDialog(ShortcutsFragment fragment, Shortcut shortcut) {
@@ -113,9 +118,38 @@ public class ShortcutSettingsDialog extends ContentDialog {
         final Spinner sGraphicsDriver = findViewById(R.id.SGraphicsDriver);
         final Spinner sDXWrapper = findViewById(R.id.SDXWrapper);
 
+        final Spinner sBox64Version = findViewById(R.id.SBox64Version);
         ContentsManager contentsManager = new ContentsManager(context);
         contentsManager.syncContents();
         ContainerDetailFragment.updateGraphicsDriverSpinner(context, contentsManager, sGraphicsDriver);
+        loadBox64VersionSpinner(context, contentsManager, sBox64Version);
+
+        // Add this part to set the initial spinner selection based on the shortcut
+        String currentBox64Version = shortcut.getExtra("box64Version", null);
+        if (currentBox64Version != null) {
+            AppUtils.setSpinnerSelectionFromValue(sBox64Version, currentBox64Version);
+        } else {
+            // Default selection or use a preferred default version
+            sBox64Version.setSelection(0);  // Assuming the first item is the default
+        }
+
+        // Set OnItemSelectedListener for the Box64 version spinner
+        sBox64Version.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedVersion = parent.getItemAtPosition(position).toString();
+                box64Version = selectedVersion;  // Update the class-level variable
+                // Update the shortcut extra immediately, or wait until saveData() is called
+                shortcut.putExtra("box64Version", selectedVersion);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // This method must be implemented, even if it's empty.
+                // Optional: You can handle the case where no item is selected, if needed.
+            }
+        });
+
 
         final View vGraphicsDriverConfig = findViewById(R.id.BTGraphicsDriverConfig);
         vGraphicsDriverConfig.setTag(shortcut.getExtra("graphicsDriverVersion", shortcut.container.getGraphicsDriverVersion()));
@@ -441,6 +475,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
         Spinner sRCFile = view.findViewById(R.id.SRCFile);
         Spinner sDInputType = view.findViewById(R.id.SDInputType);
         Spinner sMIDISoundFont = view.findViewById(R.id.SMIDISoundFont);
+        Spinner sBox64Version = view.findViewById(R.id.SBox64Version);
 
         // Set dark or light mode background for spinners
         sGraphicsDriver.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
@@ -453,7 +488,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
         sRCFile.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
         sDInputType.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
         sMIDISoundFont.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
-
+        sBox64Version.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
 
 //        EditText etLC_ALL = view.findViewById(R.id.ETlcall);
         EditText etExecArgs = view.findViewById(R.id.ETExecArgs);
@@ -596,5 +631,16 @@ public class ShortcutSettingsDialog extends ContentDialog {
     private void showInputWarning() {
         final Context context = fragment.getContext();
         ContentDialog.alert(context, R.string.enable_xinput_and_dinput_same_time, null);
+    }
+
+    public static void loadBox64VersionSpinner(Context context, ContentsManager manager, Spinner spinner) {
+        String[] originalItems = context.getResources().getStringArray(R.array.box64_version_entries);
+        List<String> itemList = new ArrayList<>(Arrays.asList(originalItems));
+        for (ContentProfile profile : manager.getProfiles(ContentProfile.ContentType.CONTENT_TYPE_BOX64)) {
+            String entryName = ContentsManager.getEntryName(profile);
+            int firstDashIndex = entryName.indexOf('-');
+            itemList.add(entryName.substring(firstDashIndex + 1));
+        }
+        spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, itemList));
     }
 }

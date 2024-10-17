@@ -38,7 +38,7 @@
         android:label="Winlator.glibcmod">
 
         <activity android:name="com.winlator.MainActivity"
-            android:theme="@style/AppTheme"
+            android:theme="@style/AppTheme.Dark"
             android:exported="true"
             android:screenOrientation="sensor"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|density|navigation">
@@ -51,7 +51,11 @@
         <activity
             android:name="com.winlator.BigPictureActivity"
             android:theme="@style/Theme.AppCompat"
-            android:screenOrientation="landscape"
+            android:exported="false" />
+
+        <activity
+            android:name="com.winlator.TerminalActivity"
+            android:theme="@style/Theme.AppCompat"
             android:exported="false" />
 
         <activity android:name="com.winlator.XServerDisplayActivity"

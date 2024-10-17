@@ -17,6 +17,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -28,6 +29,7 @@ import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -48,6 +50,8 @@ import com.winlator.container.Shortcut;
 import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.DXVKConfigDialog;
 import com.winlator.contentdialog.DebugDialog;
+import com.winlator.contentdialog.GamepadConfiguratorDialog;
+import com.winlator.contentdialog.ScreenEffectDialog;
 import com.winlator.contentdialog.VKD3DConfigDialog;
 import com.winlator.contents.ContentProfile;
 import com.winlator.contents.ContentsManager;
@@ -75,6 +79,11 @@ import com.winlator.math.XForm;
 import com.winlator.midi.MidiHandler;
 import com.winlator.midi.MidiManager;
 import com.winlator.renderer.GLRenderer;
+import com.winlator.renderer.effects.CRTEffect;
+import com.winlator.renderer.effects.ColorEffect;
+import com.winlator.renderer.effects.FXAAEffect;
+import com.winlator.renderer.effects.NTSCCombinedEffect;
+import com.winlator.renderer.effects.ToonEffect;
 import com.winlator.widget.FrameRating;
 import com.winlator.widget.InputControlsView;
 import com.winlator.widget.MagnifierView;
@@ -181,6 +190,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     private boolean isDarkMode;
 
+    private String screenEffectProfile;
+
+
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -208,6 +220,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         }
     };
 
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -218,11 +231,23 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         final PreloaderDialog preloaderDialog = new PreloaderDialog(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
+
         // Check for Dark Mode
         isDarkMode = preferences.getBoolean("dark_mode", false);
 
         // Initialize the WinHandler after context is set up
         winHandler = new WinHandler(this);
+        winHandler.initializeController();
+        controller = winHandler.getCurrentController();
+
+
+
+        if (controller != null) {
+            int triggerType = preferences.getInt("trigger_type", ExternalController.TRIGGER_IS_AXIS); // Default to TRIGGER_IS_AXIS
+            controller.setTriggerType((byte) triggerType); // Cast to byte if needed
+        }
+
+
 
         // Check if xinputDisabled extra is passed
         boolean xinputDisabledFromShortcut = false;
@@ -741,6 +766,17 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         }
     }
 
+    private void openXServerDrawer() {
+        if (environment != null) {
+            if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+            else drawerLayout.closeDrawers();
+        }
+    }
+
+
+
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -748,6 +784,10 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         switch (item.getItemId()) {
             case R.id.main_menu_keyboard:
                 AppUtils.showKeyboard(this);
+                drawerLayout.closeDrawers();
+                break;
+            case R.id.main_menu_gamepad_configurator: // New case for gamepad configurator
+                showGamepadConfiguratorDialog();
                 drawerLayout.closeDrawers();
                 break;
             case R.id.main_menu_input_controls:
@@ -759,31 +799,23 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 drawerLayout.closeDrawers();
                 touchpadView.toggleFullscreen();
                 break;
-            case R.id.main_menu_toggle_orientation:
-                if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                else
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                ControlsProfile profile = inputControlsView.getProfile();
-                int id = profile == null ? -1 : profile.id;
-                configChangedCallback = () -> {
-                    if (profile != null) {
-                        inputControlsManager = new InputControlsManager(this);
-                        inputControlsManager.loadProfiles(true);
-                        showInputControls(inputControlsManager.getProfile(id));
-                    }
-                };
+//            case R.id.main_menu_toggle_orientation:
+//                // Handle orientation toggle
+//                drawerLayout.closeDrawers();
+//                break;
+            case R.id.main_menu_pip_mode:
+                enterPictureInPictureMode();
                 drawerLayout.closeDrawers();
                 break;
             case R.id.main_menu_task_manager:
-                (new TaskManagerDialog(this)).show();
+                new TaskManagerDialog(this).show();
                 drawerLayout.closeDrawers();
                 break;
             case R.id.main_menu_magnifier:
                 if (magnifierView == null) {
-                    final FrameLayout container = findViewById(R.id.FLXServerDisplay);
+                    FrameLayout container = findViewById(R.id.FLXServerDisplay);
                     magnifierView = new MagnifierView(this);
-                    magnifierView.setZoomButtonCallback((value) -> {
+                    magnifierView.setZoomButtonCallback(value -> {
                         renderer.setMagnifierZoom(Mathf.clamp(renderer.getMagnifierZoom() + value, 1.0f, 3.0f));
                         magnifierView.setZoomValue(renderer.getMagnifierZoom());
                     });
@@ -796,6 +828,34 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 }
                 drawerLayout.closeDrawers();
                 break;
+            case R.id.main_menu_screen_effects:
+                Log.d("ScreenEffectDialog", "Initializing ScreenEffectDialog");
+                ScreenEffectDialog screenEffectDialog = new ScreenEffectDialog(this);
+                screenEffectDialog.setOnConfirmCallback(() -> {
+                    Log.d("ScreenEffectDialog", "Confirm callback triggered. About to apply effects.");
+                    GLRenderer currentRenderer = xServerView.getRenderer();
+                    ColorEffect colorEffect = (ColorEffect) currentRenderer.getEffectComposer().getEffect(ColorEffect.class);
+                    FXAAEffect fxaaEffect = (FXAAEffect) currentRenderer.getEffectComposer().getEffect(FXAAEffect.class);
+                    CRTEffect crtEffect = (CRTEffect) currentRenderer.getEffectComposer().getEffect(CRTEffect.class);
+                    ToonEffect toonEffect = (ToonEffect) currentRenderer.getEffectComposer().getEffect(ToonEffect.class);
+                    NTSCCombinedEffect ntscEffect = (NTSCCombinedEffect) currentRenderer.getEffectComposer().getEffect(NTSCCombinedEffect.class);
+
+                    // Check if effects are null before applying
+                    Log.d("ScreenEffectDialog", "ColorEffect: " + (colorEffect != null));
+                    Log.d("ScreenEffectDialog", "FXAAEffect: " + (fxaaEffect != null));
+                    Log.d("ScreenEffectDialog", "CRTEffect: " + (crtEffect != null));
+                    Log.d("ScreenEffectDialog", "ToonEffect: " + (toonEffect != null));
+                    Log.d("ScreenEffectDialog", "NTSCCombinedEffect: " + (ntscEffect != null));
+
+                    Log.d("ScreenEffectDialog", "Calling applyEffects()");
+                    screenEffectDialog.applyEffects(colorEffect, currentRenderer, fxaaEffect, crtEffect, toonEffect, ntscEffect);
+                    Log.d("ScreenEffectDialog", "applyEffects() called.");
+                });
+                Log.d("ScreenEffectDialog", "Showing ScreenEffectDialog");
+                screenEffectDialog.show();
+                drawerLayout.closeDrawers();
+                break;
+
             case R.id.main_menu_logs:
                 debugDialog.show();
                 drawerLayout.closeDrawers();
@@ -804,11 +864,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 showTouchpadHelpDialog();
                 break;
             case R.id.main_menu_exit:
-                finish();
-                break;
-            case R.id.main_menu_pip_mode: // New case for PiP mode
-                enterPictureInPictureMode();
-                drawerLayout.closeDrawers();
+                exit();
                 break;
         }
         return true;
@@ -919,7 +975,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         boolean usrGlibc = preferences.getBoolean("use_glibc", true);
         GuestProgramLauncherComponent guestProgramLauncherComponent = usrGlibc
-                ? new GlibcProgramLauncherComponent(contentsManager, contentsManager.getProfileByEntryName(container.getWineVersion()))
+                ? new GlibcProgramLauncherComponent(contentsManager, contentsManager.getProfileByEntryName(container.getWineVersion()), shortcut)
                 : new GuestProgramLauncherComponent();
 
         if (container != null) {
@@ -1254,7 +1310,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 int action = event.getAction();
                 if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
                     // Reset the timeout on any touch event
-                    Log.d("XServerDisplayActivity", "Touch detected, resetting timeout.");
+                    //Log.d("XServerDisplayActivity", "Touch detected, resetting timeout.");
 
                     // Keep the controls visible
                     inputControlsView.setVisibility(View.VISIBLE);
@@ -1301,6 +1357,41 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         touchpadView.setPointerButtonRightEnabled(true);
 
         inputControlsView.invalidate();
+    }
+
+    public void showGamepadConfiguratorDialog() {
+        // Retrieve the ExternalController from WinHandler
+        ExternalController currentController = controller;
+
+        if (currentController == null) {
+            // Handle gracefully if no controller is connected
+            Log.e("WinHandler", "No controller connected. Cannot open configurator dialog.");
+            runOnUiThread(() -> Toast.makeText(this, "No controller connected. Please connect a controller to proceed.", Toast.LENGTH_SHORT).show());
+            return;
+        }
+
+        // Use ContentDialog to create a themed dialog
+        ContentDialog dialog = new ContentDialog(this, R.layout.dialog_gamepad_configurator);
+        dialog.setTitle("Gamepad Configurator");
+        dialog.setIcon(R.drawable.icon_gamepad);
+
+        // Initialize and configure GamepadConfiguratorDialog
+        GamepadConfiguratorDialog configuratorDialog = new GamepadConfiguratorDialog(this, currentController, dialog);
+        configuratorDialog.setupMappingSpinners();
+        configuratorDialog.refreshSpinners();
+        configuratorDialog.setupProfileControls();
+
+        // Set custom save functionality for "Save" button
+        dialog.setOnConfirmCallback(() -> {
+            configuratorDialog.saveMappings();
+            Toast.makeText(this, "Mappings saved!", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        dialog.setOnCancelCallback(() -> dialog.dismiss());
+
+        // Show dialog
+        dialog.show();
     }
 
     private void extractGraphicsDriverFiles() {
@@ -1565,6 +1656,15 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+
+        // Handle the PlayStation or Xbox Home button to open the drawer
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_MODE || event.getKeyCode() == KeyEvent.KEYCODE_HOME) {
+                openXServerDrawer(); // Method to open the XServer drawer
+                return true; // Indicate the event was handled
+            }
+        }
+
         if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN) {
             // Release pointer capture when Volume Down key is pressed
             if (touchpadView != null && pointerCaptureRequested) {
@@ -1945,5 +2045,19 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         }
     }
 
+    public String getScreenEffectProfile() {
+        return screenEffectProfile;
+    }
+
+    public void setScreenEffectProfile(String screenEffectProfile) {
+        this.screenEffectProfile = screenEffectProfile;
+    }
+
+    // maybe we can remove this or maybe i will create it...
+    public void clearContainerCache(Container container){
+        File rootDir = container.getRootDir();
+        final File cacheDir = new File(rootDir, ".cache");
+        FileUtils.clear(cacheDir);
+    }
 
 }

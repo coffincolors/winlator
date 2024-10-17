@@ -381,34 +381,66 @@
                     android:text="@string/xserver" />
             </FrameLayout>
 
+            <!-- Gyroscope Settings Section -->
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"> <!-- Add margin for spacing -->
 
                 <LinearLayout style="@style/FieldSet">
 
+                    <!-- Enable Gyroscope Checkbox -->
                     <CheckBox
                         android:id="@+id/CBGyroEnabled"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Enable Right-Stick Gyroscope (Experimental)"
-                        android:layout_marginTop="8dp" />
+                        android:layout_marginBottom="16dp" /> <!-- Added margin for better spacing -->
 
-                    <CheckBox
-                        android:id="@+id/CBProcessGyroWithLeftTrigger"
+                    <!-- Gyro Activator Button Label -->
+                    <TextView
+                        android:id="@+id/TVGyroTriggerLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Process Motion Only When Left Trigger is Held (Requires Axis Trigger Mode)"
-                        android:layout_marginTop="8dp" />
+                        android:text="Gyro Activator Button:"
+                        android:layout_marginBottom="8dp"/> <!-- Add some bottom margin for better spacing -->
 
+                    <!-- Spinner for selecting the gyro trigger button -->
+                    <Spinner
+                        android:id="@+id/SBGyroTriggerButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:entries="@array/button_options"
+                        android:layout_marginBottom="16dp" /> <!-- Add bottom margin to separate it from other elements -->
 
+                    <!-- RadioGroup for selecting gyro mode (toggle/hold) -->
+                    <RadioGroup
+                        android:id="@+id/RGyroMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/RBHoldMode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hold Mode"
+                            android:layout_marginEnd="16dp" /> <!-- Add end margin for spacing -->
+
+                        <RadioButton
+                            android:id="@+id/RBToggleMode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Toggle Mode" />
+                    </RadioGroup>
+
+                    <!-- Configure Gyroscope Button -->
                     <Button
                         android:id="@+id/BTConfigureGyro"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Configure Gyroscope"
-                        android:layout_marginTop="16dp" />
-
+                        android:text="Calibrate Gyroscope"
+                        android:layout_marginTop="16dp" /> <!-- Add top margin for spacing -->
 
                 </LinearLayout>
 
@@ -416,7 +448,6 @@
                     android:id="@+id/TVGyroSettings"
                     style="@style/FieldSetLabel"
                     android:text="Gyro Settings" />
-
             </FrameLayout>
 
             <FrameLayout

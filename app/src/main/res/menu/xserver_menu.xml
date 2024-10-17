@@ -6,17 +6,27 @@
             android:id="@+id/main_menu_keyboard"
             android:title="@string/keyboard" />
         <item
+            android:id="@+id/main_menu_gamepad_configurator"
+            android:title="Gamepad Configurator"
+            android:icon="@drawable/icon_gamepad" />
+        <item
             android:icon="@drawable/icon_input_controls"
             android:id="@+id/main_menu_input_controls"
             android:title="@string/input_controls" />
         <item
+            android:icon="@drawable/icon_screen_effect"
+            android:id="@+id/main_menu_screen_effects"
+            android:title="@string/screen_effect" />
+        <item
             android:icon="@drawable/icon_fullscreen"
             android:id="@+id/main_menu_toggle_fullscreen"
             android:title="@string/toggle_fullscreen" />
+        <!--
         <item
             android:icon="@drawable/icon_reset"
             android:id="@+id/main_menu_toggle_orientation"
             android:title="@string/toggle_orientation" />
+            -->
         <item
             android:icon="@drawable/ic_picture_in_picture_alt"
             android:id="@+id/main_menu_pip_mode"

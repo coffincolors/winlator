@@ -105,6 +105,12 @@
                 android:orientation="horizontal">
 
                 <Button
+                    android:id="@id/BTReset"
+                    android:visibility="gone"
+                    android:text="@string/reset"
+                    style="@style/ButtonNeutral" />
+
+                <Button
                     style="@style/ButtonNeutral"
                     android:layout_weight="1"
                     android:text="@string/cancel"

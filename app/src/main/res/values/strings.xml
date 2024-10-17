@@ -415,4 +415,32 @@
     <string name="help_steamgrid">SteamGrid API Key</string>
     <string name="disable_xinput_for_shortcut">Disable Xinput (For Exclusive M/KB Control)</string>
     <string name="fullscreen_stretched">Enable Fullscreen (Stretched)</string>
+    <string name="export_container">Export Container</string>
+    <string name="exporting_container">Exporting Container...</string>
+    <string name="importing_container">Importing Container...</string>
+
+    <string name="brightness">Brightness</string>
+    <string name="contrast">Contrast</string>
+    <string name="gamma">Gamma</string>
+    <string name="color_adjustment">Color Adjustment</string>
+    <string name="enable_fxaa">Enable FXAA</string>
+    <string name="enable_crt_shader">Enable CRT Shader</string>
+
+    <string name="do_you_want_to_add_a_new_profile">Do you want to add a new profile?</string>
+
+    <string name="default_profile">Default Profile</string>
+
+    <string name="reset">Reset</string>
+
+    <string name="screen_effect">Screen Effects</string>
+
+    <string name="enable_toon_shader">Enable Toon Shader</string>
+    <string name="enable_ntsc_effect">Enable NTSC Effect</string>
+    <string name="enter_profile_name">Enter Profile Name</string>
+
+
+
+
+
+
 </resources>
