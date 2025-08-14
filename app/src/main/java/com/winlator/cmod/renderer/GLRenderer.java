@@ -127,8 +127,6 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
             xrImmersive = XrActivity.getImmersive();
             xrFrame = XrActivity.getInstance().beginFrame(xrImmersive, XrActivity.getSBS());
             fullscreen = XrActivity.getVR();
-        } else {
-            fullscreen = false;
         }
 
         // Update the viewport if necessary
@@ -531,3 +529,4 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
 
 
 }
+
