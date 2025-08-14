@@ -432,6 +432,8 @@
     <string name="do_you_want_to_reconfigure_wine">Do you want to reconfigure this container on the next startup? This will remove the timestamp to trigger Wine Configuration.</string>
 
     <!-- OpenXR specific text -->
+    <string name="use_xr">Use OpenXR integration</string>
+    <string name="use_pt">Use Passthrough</string>
     <string name="xr" translatable="false">XR</string>
     <string name="primary_controller">Primary controller</string>
     <string name="left_controller">Left controller</string>
@@ -446,6 +448,7 @@
     <string name="thumbstick_right">Thumbstick right</string>
     <string name="thumbstick_up">Thumbstick up</string>
     <string name="thumbstick_down">Thumbstick down</string>
+
     <string name="secondary_executable">Path:</string>
     <string name="enter_secondary_exec_path"> ex: "D:/Games/My Game/My Game.exe"</string>
     <string name="exec_delay">Delayed Execution (seconds):</string>
@@ -499,7 +502,6 @@
     <string name="invert_y_axis_right">Invert Y Axis (Right Stick)</string>
     <string name="save">Save</string>
     <string name="installing_winetricks">Installing dependencies with winetricks...</string>
-    <string name="use_xr">Use OpenXR integration</string>
 
 
 

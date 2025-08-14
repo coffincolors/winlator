@@ -96,6 +96,11 @@
         android:icon="@drawable/icon_help" />
 
     <item
+        android:icon="@drawable/icon_hide"
+        android:id="@+id/xr_passthrough"
+        android:title="@string/use_pt" />
+
+    <item
         android:id="@+id/main_menu_exit"
         android:title="@string/exit"
         android:icon="@drawable/icon_exit" />
