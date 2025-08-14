@@ -83,20 +83,37 @@
             android:exported="true" />
 
         <activity
-            android:name="com.winlator.cmod.XrActivity"
-            android:theme="@style/AppThemeFullscreen"
+            android:name=".XrActivityMeta"
+            android:configChanges="density|orientation|screenSize|keyboard|keyboardHidden|uiMode"
+            android:exported="true"
             android:launchMode="singleTask"
             android:resizeableActivity="false"
             android:screenOrientation="landscape"
             android:process=":vr_process"
-            android:configChanges="density|orientation|screenSize|keyboard|keyboardHidden|uiMode"
-            android:exported="true">
+            android:theme="@style/AppThemeFullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="com.oculus.intent.category.VR" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".XrActivityPico"
+            android:configChanges="density|orientation|screenSize|keyboard|keyboardHidden|uiMode"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="false"
+            android:screenOrientation="landscape"
+            android:process=":vr_process"
+            android:theme="@style/AppThemeFullscreen">
+            <meta-data android:name="pvr.app.type" android:value="vr" />
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="com.oculus.intent.category.VR" />
+            </intent-filter>
+        </activity>
+
 
         <activity
             android:name="com.winlator.cmod.ControlsEditorActivity"
