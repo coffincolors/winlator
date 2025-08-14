@@ -5,6 +5,8 @@
 #include "engine.h"
 #include "math.h"
 #include "renderer.h"
+#include <jni.h>
+#include <stdbool.h>
 
 #define DECL_PFN(pfn) PFN_##pfn pfn = NULL
 #define INIT_PFN(pfn) OXR(xrGetInstanceProcAddr(engine->Instance, #pfn, (PFN_xrVoidFunction*)(&pfn)))
@@ -99,9 +101,19 @@ void XrRendererInit(struct XrEngine* engine, struct XrRenderer* renderer)
         }
 
         OXR(xrPassthroughStartFB(renderer->Passthrough));
-        OXR(xrPassthroughLayerResumeFB(renderer->PassthroughLayer));
     }
+    for (int i = 0; i < XrMaxNumEyes; i++) {
+        renderer->InvertedViewPose[i][XrMaxFrameSync].orientation.x = 0;
+        renderer->InvertedViewPose[i][XrMaxFrameSync].orientation.y = 0;
+        renderer->InvertedViewPose[i][XrMaxFrameSync].orientation.z = 0;
+        renderer->InvertedViewPose[i][XrMaxFrameSync].orientation.w = 1;
+        renderer->InvertedViewPose[i][XrMaxFrameSync].position.x = 0;
+        renderer->InvertedViewPose[i][XrMaxFrameSync].position.y = 0;
+        renderer->InvertedViewPose[i][XrMaxFrameSync].position.z = 0;
+    }
+    renderer->PassthroughRunning = false;
     renderer->Initialized = true;
+    renderer->FrameSync = 0;
 }
 
 void XrRendererDestroy(struct XrEngine* engine, struct XrRenderer* renderer)
@@ -264,16 +276,33 @@ bool XrRendererInitFrame(struct XrEngine* engine, struct XrRenderer* renderer)
     renderer->Fov.angleRight = 0;
     renderer->Fov.angleUp = 0;
     renderer->Fov.angleDown = 0;
+    renderer->FrameSync = (renderer->FrameSync + 1) % XrMaxFrameSync;
     for (int eye = 0; eye < XrMaxNumEyes; eye++)
     {
         renderer->Fov.angleLeft += renderer->Projections[eye].fov.angleLeft / 2.0f;
         renderer->Fov.angleRight += renderer->Projections[eye].fov.angleRight / 2.0f;
         renderer->Fov.angleUp += renderer->Projections[eye].fov.angleUp / 2.0f;
         renderer->Fov.angleDown += renderer->Projections[eye].fov.angleDown / 2.0f;
-        renderer->InvertedViewPose[eye] = renderer->Projections[eye].pose;
+        renderer->InvertedViewPose[eye][renderer->FrameSync] = renderer->Projections[eye].pose;
     }
 
-    renderer->HmdOrientation = XrQuaternionfEulerAngles(renderer->InvertedViewPose[0].orientation);
+    float fovx = 0;
+    float fovy = 0;
+    for (int eye = 0; eye < XrMaxNumEyes; eye++) {
+        fovx += fabs(renderer->Projections[eye].fov.angleDown - renderer->Projections[eye].fov.angleUp) / 2.0f;
+        fovy += fabs(renderer->Projections[eye].fov.angleRight - renderer->Projections[eye].fov.angleLeft) / 2.0f;
+    }
+    if (engine->PlatformFlag[PLATFORM_VIEWPORT_UNCENTERED]) {
+        fovy *= 1.1f;
+    }
+    renderer->ConfigFloat[CONFIG_VIEWPORT_FOVX] = ToDegrees(fovx);
+    renderer->ConfigFloat[CONFIG_VIEWPORT_FOVY] = ToDegrees(fovy);
+    renderer->Fov.angleLeft = -fovx / 2.0f;
+    renderer->Fov.angleRight = fovx / 2.0f;
+    renderer->Fov.angleDown = -fovy / 2.0f;
+    renderer->Fov.angleUp = fovy / 2.0f;
+
+    renderer->HmdOrientation = XrQuaternionfEulerAngles(renderer->InvertedViewPose[0][renderer->FrameSync].orientation);
     renderer->LayerCount = 0;
     memset(renderer->Layers, 0, sizeof(XrCompositorLayer) * XrMaxLayerCount);
     return true;
@@ -293,25 +322,45 @@ void XrRendererEndFrame(struct XrRenderer* renderer)
 
 void XrRendererFinishFrame(struct XrEngine* engine, struct XrRenderer* renderer)
 {
+    if (engine->PlatformFlag[PLATFORM_EXTENSION_PASSTHROUGH] && renderer->ConfigInt[CONFIG_PASSTHROUGH]) {
+        if (renderer->PassthroughLayer != XR_NULL_HANDLE) {
+            XrCompositionLayerPassthroughFB passthrough_layer = {XR_TYPE_COMPOSITION_LAYER_PASSTHROUGH_FB};
+            passthrough_layer.layerHandle = renderer->PassthroughLayer;
+            passthrough_layer.flags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+            passthrough_layer.space = XR_NULL_HANDLE;
+            renderer->Layers[renderer->LayerCount++].passthrough = passthrough_layer;
+        }
+    }
+
     int x = 0;
     int y = 0;
-    int w = renderer->Framebuffer[0].Width;
-    int h = renderer->Framebuffer[0].Height;
+    int w = renderer->ConfigInt[CONFIG_VIEWPORT_WIDTH];
+    int h = renderer->ConfigInt[CONFIG_VIEWPORT_HEIGHT];
     if (renderer->ConfigInt[CONFIG_SBS])
     {
         w /= 2;
     }
 
+    int frame = renderer->FrameSync;
     int mode = renderer->ConfigInt[CONFIG_MODE];
     XrCompositionLayerProjectionView projection_layer_elements[2] = {};
     if ((mode == RENDER_MODE_MONO_6DOF) || (mode == RENDER_MODE_STEREO_6DOF))
     {
         renderer->ConfigFloat[CONFIG_MENU_YAW] = renderer->HmdOrientation.y;
 
+        struct XrFramebuffer* framebuffer = &renderer->Framebuffer[0];
+        if (renderer->ConfigInt[CONFIG_FRAMESYNC]) {
+            XrColor3f color = XrFramebufferGetPixel(framebuffer, 0, h - 1);
+            if ((color.g > 0.5f) || (color.b > 0.5f)) {
+                frame = XrMaxFrameSync;
+            } else {
+                frame = (int)(color.r + 0.5);
+            }
+        }
+
         for (int eye = 0; eye < XrMaxNumEyes; eye++)
         {
-            struct XrFramebuffer* framebuffer = &renderer->Framebuffer[0];
-            XrPosef pose = renderer->InvertedViewPose[0];
+            XrPosef pose = renderer->InvertedViewPose[0][frame];
             if (renderer->ConfigInt[CONFIG_SBS] && (eye == 1))
             {
                 x += w;
@@ -319,13 +368,15 @@ void XrRendererFinishFrame(struct XrEngine* engine, struct XrRenderer* renderer)
             else if (mode != RENDER_MODE_MONO_6DOF)
             {
                 framebuffer = &renderer->Framebuffer[eye];
-                pose = renderer->InvertedViewPose[eye];
+                pose = renderer->InvertedViewPose[eye][frame];
             }
 ;
-            XrVector3f roll_axis = {0, 0, 1};
-            XrVector3f rotation = XrQuaternionfEulerAngles(pose.orientation);
-            XrQuaternionf invRoll = XrQuaternionfCreateFromVectorAngle(roll_axis, ToRadians(rotation.z));
-            pose.orientation = XrQuaternionfMultiply(pose.orientation, invRoll);
+            if (renderer->ConfigInt[CONFIG_IMMERSIVE]) {
+                XrVector3f roll_axis = {0, 0, 1};
+                XrVector3f rotation = XrQuaternionfEulerAngles(pose.orientation);
+                XrQuaternionf invRoll = XrQuaternionfCreateFromVectorAngle(roll_axis, ToRadians(rotation.z));
+                pose.orientation = XrQuaternionfMultiply(pose.orientation, invRoll);
+            }
 
             memset(&projection_layer_elements[eye], 0, sizeof(XrCompositionLayerProjectionView));
             projection_layer_elements[eye].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
@@ -357,9 +408,9 @@ void XrRendererFinishFrame(struct XrEngine* engine, struct XrRenderer* renderer)
         float distance = renderer->ConfigFloat[CONFIG_CANVAS_DISTANCE];
         float menu_pitch = ToRadians(renderer->ConfigFloat[CONFIG_MENU_PITCH]);
         float menu_yaw = ToRadians(renderer->ConfigFloat[CONFIG_MENU_YAW]);
-        XrVector3f pos = {renderer->InvertedViewPose[0].position.x - sinf(menu_yaw) * cosf(menu_pitch) * distance,
-                          renderer->InvertedViewPose[0].position.y - sinf(menu_pitch) * distance,
-                          renderer->InvertedViewPose[0].position.z - cosf(menu_yaw) * cosf(menu_pitch) * distance};
+        XrVector3f pos = {renderer->InvertedViewPose[0][frame].position.x - sinf(menu_yaw) * cosf(menu_pitch) * distance,
+                          renderer->InvertedViewPose[0][frame].position.y - sinf(menu_pitch) * distance,
+                          renderer->InvertedViewPose[0][frame].position.z - cosf(menu_yaw) * cosf(menu_pitch) * distance};
         XrVector3f pitch_axis = {1, 0, 0};
         XrVector3f yaw_axis = {0, 1, 0};
         XrQuaternionf pitch = XrQuaternionfCreateFromVectorAngle(pitch_axis, -menu_pitch);
@@ -380,8 +431,8 @@ void XrRendererFinishFrame(struct XrEngine* engine, struct XrRenderer* renderer)
         quad_layer.subImage.imageArrayIndex = 0;
         quad_layer.pose.orientation = XrQuaternionfMultiply(pitch, yaw);
         quad_layer.pose.position = pos;
-        quad_layer.size.width = 4;
-        quad_layer.size.height = 4;
+        quad_layer.size.width = 6;
+        quad_layer.size.height = 6;
 
         // Build the cylinder layer
         if (renderer->ConfigInt[CONFIG_SBS])

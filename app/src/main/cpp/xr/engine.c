@@ -4,8 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
-void XrEngineInit(struct XrEngine* engine, void* system, const char* name, int version)
-{
+void XrEngineInit(struct XrEngine* engine, void* system, const char* name, int version) {
     if (engine->Initialized)
         return;
     memset(engine, 0, sizeof(engine));
@@ -13,38 +12,37 @@ void XrEngineInit(struct XrEngine* engine, void* system, const char* name, int v
 #ifdef ANDROID
     PFN_xrInitializeLoaderKHR xrInitializeLoaderKHR;
     xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR",
-                          (PFN_xrVoidFunction*)&xrInitializeLoaderKHR);
-    if (xrInitializeLoaderKHR != NULL)
-    {
-        xrJava* java = (xrJava*)system;
+                          (PFN_xrVoidFunction *) &xrInitializeLoaderKHR);
+    if (xrInitializeLoaderKHR != NULL) {
+        xrJava *java = (xrJava *) system;
         XrLoaderInitInfoAndroidKHR loader_info;
         memset(&loader_info, 0, sizeof(loader_info));
         loader_info.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
         loader_info.next = NULL;
         loader_info.applicationVM = java->vm;
         loader_info.applicationContext = java->activity;
-        xrInitializeLoaderKHR((XrLoaderInitInfoBaseHeaderKHR*)&loader_info);
+        xrInitializeLoaderKHR((XrLoaderInitInfoBaseHeaderKHR *) &loader_info);
     }
 #endif
 
     int count = 0;
-    const char* extensions[32];
+    const char *extensions[32];
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
     extensions[count++] = XR_KHR_OPENGL_ES_ENABLE_EXTENSION_NAME;
 #endif
 #ifdef ANDROID
-    if (engine->PlatformFlag[PLATFORM_EXTENSION_INSTANCE])
-    {
+    if (engine->PlatformFlag[PLATFORM_EXTENSION_INSTANCE]) {
         extensions[count++] = XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME;
     }
-    if (engine->PlatformFlag[PLATFORM_EXTENSION_PASSTHROUGH])
-    {
+    if (engine->PlatformFlag[PLATFORM_EXTENSION_PASSTHROUGH]) {
         extensions[count++] = XR_FB_PASSTHROUGH_EXTENSION_NAME;
     }
-    if (engine->PlatformFlag[PLATFORM_EXTENSION_PERFORMANCE])
-    {
+    if (engine->PlatformFlag[PLATFORM_EXTENSION_PERFORMANCE]) {
         extensions[count++] = XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME;
         extensions[count++] = XR_KHR_ANDROID_THREAD_SETTINGS_EXTENSION_NAME;
+    }
+    if (engine->PlatformFlag[PLATFORM_CONTROLLER_PICO]) {
+        extensions[count++] = XR_BD_CONTROLLER_INTERACTION_EXTENSION_NAME;
     }
 #endif
 
@@ -121,6 +119,7 @@ void XrEngineInit(struct XrEngine* engine, void* system, const char* name, int v
 #endif
 
 #ifdef ANDROID
+
     engine->MainThreadId = gettid();
 #endif
     engine->Initialized = true;

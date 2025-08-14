@@ -59,7 +59,7 @@ void XrInputInit(struct XrEngine* engine, struct XrInput* input)
         bindings[curr++] = XrInputGetBinding(instance, input->IndexLeft, "/user/hand/left/input/trigger/click");
         bindings[curr++] = XrInputGetBinding(instance, input->IndexRight, "/user/hand/right/input/trigger/click");
         bindings[curr++] = XrInputGetBinding(instance, input->ButtonMenu, "/user/hand/left/input/back/click");
-        bindings[curr++] = XrInputGetBinding(instance, input->ButtonMenu, "/user/hand/right/input/back/click");
+        //bindings[curr++] = XrInputGetBinding(instance, input->ButtonMenu, "/user/hand/right/input/back/click");
     }
     bindings[curr++] = XrInputGetBinding(instance, input->ButtonX, "/user/hand/left/input/x/click");
     bindings[curr++] = XrInputGetBinding(instance, input->ButtonY, "/user/hand/left/input/y/click");

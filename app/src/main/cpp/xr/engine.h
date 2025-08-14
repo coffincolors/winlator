@@ -40,7 +40,11 @@ void OXRCheckErrors(XrResult result, const char* file, int line);
 
 enum
 {
-  XrMaxLayerCount = 2
+    XrMaxFrameSync = 256
+};
+enum
+{
+  XrMaxLayerCount = 3
 };
 enum
 {
@@ -55,6 +59,7 @@ enum XrPlatformFlag
   PLATFORM_EXTENSION_PASSTHROUGH,
   PLATFORM_EXTENSION_PERFORMANCE,
   PLATFORM_TRACKING_FLOOR,
+  PLATFORM_VIEWPORT_UNCENTERED,
   PLATFORM_MAX
 };
 
@@ -62,6 +67,7 @@ typedef union
 {
   XrCompositionLayerProjection projection;
   XrCompositionLayerQuad quad;
+  XrCompositionLayerPassthroughFB passthrough;
 } XrCompositorLayer;
 
 #ifdef ANDROID
