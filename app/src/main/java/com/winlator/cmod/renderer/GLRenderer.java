@@ -5,12 +5,15 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.util.Log;
 
 import com.winlator.cmod.R;
 import com.winlator.cmod.XrActivity;
+import com.winlator.cmod.contentdialog.ContentDialog;
 import com.winlator.cmod.math.Mathf;
 import com.winlator.cmod.math.XForm;
+import com.winlator.cmod.renderer.material.BGRMaterial;
 import com.winlator.cmod.renderer.material.CursorMaterial;
 import com.winlator.cmod.renderer.material.ShaderMaterial;
 import com.winlator.cmod.renderer.material.WindowMaterial;
@@ -36,6 +39,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
     public final VertexAttribute quadVertices = new VertexAttribute("position", 2);
     private final float[] tmpXForm1 = XForm.getInstance();
     private final float[] tmpXForm2 = XForm.getInstance();
+    private final BGRMaterial bgrMaterial = new BGRMaterial();
     private final CursorMaterial cursorMaterial = new CursorMaterial();
     private final WindowMaterial windowMaterial = new WindowMaterial();
     public final ViewTransformation viewTransformation = new ViewTransformation();
@@ -122,6 +126,9 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
         if (XrActivity.isEnabled(null)) {
             xrImmersive = XrActivity.getImmersive();
             xrFrame = XrActivity.getInstance().beginFrame(xrImmersive, XrActivity.getSBS());
+            fullscreen = XrActivity.getVR();
+        } else {
+            fullscreen = false;
         }
 
         // Update the viewport if necessary
@@ -191,6 +198,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
 
         // Finalize XR frame if supported
         if (xrFrame) {
+            renderDialog();
             XrActivity.getInstance().endFrame();
             XrActivity.updateControllers();
             xServerView.requestRender();
@@ -241,11 +249,14 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
     }
 
     private void renderDrawable(Drawable drawable, int x, int y, ShaderMaterial material) {
-        renderDrawable(drawable, x, y, material, false);
+        renderDrawable(drawable, x, y, material, false, 1);
     }
 
     private void renderDrawable(Drawable drawable, int x, int y, ShaderMaterial material, boolean forceFullscreen) {
-        if (drawable == null) return;
+        renderDrawable(drawable, x, y, material, forceFullscreen, 1);
+    }
+
+    private void renderDrawable(Drawable drawable, int x, int y, ShaderMaterial material, boolean forceFullscreen, float scale) {
         synchronized (drawable.renderLock) {
             Texture texture = drawable.getTexture();
             texture.updateFromDrawable(drawable);
@@ -255,7 +266,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
                 short newWidth = (short)(((float)newHeight / drawable.height) * drawable.width);
                 XForm.set(tmpXForm1, (xServer.screenInfo.width - newWidth) * 0.5f, (xServer.screenInfo.height - newHeight) * 0.5f, newWidth, newHeight);
             }
-            else XForm.set(tmpXForm1, x, y, drawable.width, drawable.height);
+            else XForm.set(tmpXForm1, x, y, drawable.width * scale, drawable.height * scale);
 
             XForm.multiply(tmpXForm1, tmpXForm1, tmpXForm2);
 
@@ -294,12 +305,6 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
         }
 
         quadVertices.disable();
-
-        int error = GLES20.glGetError();
-        if (error != GLES20.GL_NO_ERROR) {
-            Log.e("GLRenderer", "OpenGL Error: " + error);
-        }
-
     }
 
     private void renderCursor() {
@@ -319,6 +324,26 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
             else renderDrawable(rootCursorDrawable, x, y, cursorMaterial);
         }
 
+        quadVertices.disable();
+    }
+
+    private void renderDialog() {
+        bgrMaterial.use();
+        GLES20.glUniform2f(bgrMaterial.getUniformLocation("viewSize"), xServer.screenInfo.width, xServer.screenInfo.height);
+        quadVertices.bind(bgrMaterial.programId);
+
+        try (XLock lock = xServer.lock(XServer.Lockable.DRAWABLE_MANAGER)) {
+            ContentDialog dialog = ContentDialog.getFrontInstance();
+            if (dialog != null) {
+                Drawable drawable = dialog.getDrawable();
+                if (drawable != null) {
+                    float scale = Build.MANUFACTURER.toUpperCase().compareTo("PICO") == 0 ? 0.3f : 0.4f;
+                    int offsetX = (int) ((xServer.screenInfo.width - drawable.width * scale) / 2);
+                    int offsetY = (int) ((xServer.screenInfo.height - drawable.height * scale) / 2);
+                    renderDrawable(drawable, offsetX, offsetY, bgrMaterial, false, scale);
+                }
+            }
+        }
         quadVertices.disable();
     }
 

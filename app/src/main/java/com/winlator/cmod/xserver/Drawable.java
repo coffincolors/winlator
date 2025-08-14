@@ -175,6 +175,12 @@ public class Drawable extends XResource {
         if (onDrawListener != null) onDrawListener.run();
     }
 
+    public void drawBitmap(Bitmap bitmap) {
+        fromBitmap(bitmap, data);
+        texture.setNeedsUpdate(true);
+        if (onDrawListener != null) onDrawListener.run();
+    }
+
     public void drawAlphaMaskedBitmap(byte foreRed, byte foreGreen, byte foreBlue, byte backRed, byte backGreen, byte backBlue, Drawable srcDrawable, Drawable maskDrawable) {
         drawAlphaMaskedBitmap(foreRed, foreGreen, foreBlue, backRed, backGreen, backBlue, srcDrawable.data, maskDrawable.data, this.data);
         this.data.rewind();

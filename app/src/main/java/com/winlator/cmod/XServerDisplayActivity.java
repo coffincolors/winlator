@@ -1351,8 +1351,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 return true;
 
             case R.id.main_menu_keyboard:
-                AppUtils.showKeyboard(this);
-                drawerLayout.closeDrawers();
+                if (XrActivity.isEnabled(this)) {
+                    drawerLayout.closeDrawers();
+                    XrActivity.getInstance().callMenuAction(id);
+                } else {
+                    AppUtils.showKeyboard(this);
+                    drawerLayout.closeDrawers();
+                }
                 return true;
 
             case R.id.main_menu_pause:
@@ -1456,6 +1461,10 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             case R.id.main_menu_exit:
                 exitApp();
                 return true;
+            default:
+                if (XrActivity.isEnabled(this)) {
+                    XrActivity.getInstance().callMenuAction(item.getItemId());
+                }
         }
 
         return true;

@@ -12,11 +12,13 @@ import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
+import android.content.SharedPreferences;
 
 import androidx.preference.PreferenceManager;
 
-import com.winlator.cmod.R;
 import com.winlator.cmod.container.Container;
+import com.winlator.cmod.contentdialog.ContentDialog;
+import com.winlator.cmod.contentdialog.NavigationDialog;
 import com.winlator.cmod.core.AppUtils;
 import com.winlator.cmod.xserver.Keyboard;
 import com.winlator.cmod.xserver.Pointer;
@@ -31,9 +33,10 @@ import com.winlator.cmod.xserver.XServer;
 public class XrActivity extends XServerDisplayActivity implements TextWatcher {
     // Order of the enum has to be the as in xr/main.cpp
     public enum ControllerAxis {
-        L_PITCH, L_YAW, L_ROLL, L_THUMBSTICK_X, L_THUMBSTICK_Y, L_X, L_Y, L_Z,
-        R_PITCH, R_YAW, R_ROLL, R_THUMBSTICK_X, R_THUMBSTICK_Y, R_X, R_Y, R_Z,
-        HMD_PITCH, HMD_YAW, HMD_ROLL, HMD_X, HMD_Y, HMD_Z, HMD_IPD
+        L_PITCH, L_YAW, L_ROLL, L_QX, L_QY, L_QZ, L_QW, L_THUMBSTICK_X, L_THUMBSTICK_Y, L_X, L_Y, L_Z,
+        R_PITCH, R_YAW, R_ROLL, R_QX, R_QY, R_QZ, R_QW, R_THUMBSTICK_X, R_THUMBSTICK_Y, R_X, R_Y, R_Z,
+        HMD_PITCH, HMD_YAW, HMD_ROLL, HMD_QX, HMD_QY, HMD_QZ, HMD_QW, HMD_X, HMD_Y, HMD_Z,
+        HMD_IPD, HMD_FOVX, HMD_FOVY, HMD_SYNC
     }
 
     // Order of the enum has to be the as in xr/main.cpp
@@ -47,13 +50,22 @@ public class XrActivity extends XServerDisplayActivity implements TextWatcher {
     private static boolean isEnabled = false;
     private static boolean isImmersive = false;
     private static boolean isSBS = false;
+    private static boolean isVR = false;
+    private static boolean usePassthrough = false;
+    private static boolean[] currentButtons = new boolean[ControllerButton.values().length];
     private static final KeyCharacterMap chars = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD);
     private static final float[] lastAxes = new float[ControllerAxis.values().length];
     private static final boolean[] lastButtons = new boolean[ControllerButton.values().length];
+    private static long lastDialogShown = 0;
     private static String lastText = "";
     private static float mouseSpeed = 1;
     private static final float[] smoothedMouse = new float[2];
     private static XrActivity instance;
+    private static XrAPI xrAPI = null;
+
+    public native void nativeSetUsePT(boolean enabled);
+    public native void nativeSetUseVR(boolean enabled);
+    public native void sendManufacturer(String manufacturer);
 
     @Override
     public synchronized void onPause() {
@@ -69,14 +81,29 @@ public class XrActivity extends XServerDisplayActivity implements TextWatcher {
         mouseSpeed = PreferenceManager.getDefaultSharedPreferences(this).getFloat("cursor_speed", 1.0f);
 
         EditText text = findViewById(R.id.XRTextInput);
-        text.setVisibility(View.VISIBLE);
         text.getEditableText().clear();
         text.addTextChangedListener(this);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        usePassthrough = prefs.getBoolean("use_pt", true);
+        nativeSetUsePT(usePassthrough);
+
+        String manufacturer = Build.MANUFACTURER.toUpperCase();
+        sendManufacturer(manufacturer);
     }
 
     @Override
     public synchronized void onDestroy() {
         super.onDestroy();
+
+        Intent intent = getBaseContext().getPackageManager()
+                .getLaunchIntentForPackage(getBaseContext().getPackageName());
+        if (intent != null) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
+
+        android.os.Process.killProcess(android.os.Process.myPid());
         System.exit(0);
     }
 
@@ -124,11 +151,15 @@ public class XrActivity extends XServerDisplayActivity implements TextWatcher {
     }
 
     public static boolean getImmersive() {
-        return isImmersive;
+        return isImmersive && ContentDialog.getFrontInstance() == null;
     }
 
     public static boolean getSBS() {
-        return isSBS;
+        return isSBS && ContentDialog.getFrontInstance() == null;
+    }
+
+    public static boolean getVR() {
+        return isVR && ContentDialog.getFrontInstance() == null;
     }
 
     public static boolean isEnabled(Context context) {
@@ -146,14 +177,48 @@ public class XrActivity extends XServerDisplayActivity implements TextWatcher {
             if (Build.MANUFACTURER.compareToIgnoreCase("OCULUS") == 0) {
                 isDeviceSupported = true;
             }
+            if (Build.MANUFACTURER.compareToIgnoreCase("PICO") == 0) {
+                isDeviceSupported = true;
+            }
             isDeviceDetectionFinished = true;
         }
         return isDeviceSupported;
     }
 
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        instance.findViewById(R.id.XRTextInput).setVisibility(View.GONE);
+    }
+
+    public void callMenuAction(int item) {
+        switch (item) {
+            case R.id.main_menu_keyboard:
+                new Thread(() -> {
+                    sleep(250); //ensure onWindowFocusChanged was called
+                    runOnUiThread(() -> {
+                        View input = instance.findViewById(R.id.XRTextInput);
+                        input.setVisibility(View.VISIBLE);
+                        isVR = false;
+                        isSBS = false;
+                        isImmersive = false;
+                        instance.resetText();
+                        AppUtils.showKeyboard(instance);
+                        input.requestFocus();
+                    });
+                }).start();
+                break;
+            case R.id.xr_passthrough:
+                usePassthrough = !usePassthrough;
+                nativeSetUsePT(usePassthrough);
+                break;
+        }
+    }
+
     public static void openIntent(Activity context, int containerId, String path) {
         // 0. Create the launch intent
-        Intent intent = new Intent(context, XrActivity.class);
+        boolean isPico = Build.MANUFACTURER.compareToIgnoreCase("PICO") == 0;
+        Intent intent = new Intent(context, isPico ? XrActivityPico.class : XrActivityMeta.class);
         intent.putExtra("container_id", containerId);
         if (path != null) {
             intent.putExtra("shortcut_path", path);
@@ -199,6 +264,28 @@ public class XrActivity extends XServerDisplayActivity implements TextWatcher {
         ControllerButton secondaryRight = primaryController == 1 ? ControllerButton.L_THUMBSTICK_RIGHT : ControllerButton.R_THUMBSTICK_RIGHT;
         ControllerButton secondaryPress = primaryController == 1 ? ControllerButton.L_THUMBSTICK_PRESS : ControllerButton.R_THUMBSTICK_PRESS;
 
+        // Android UI input
+        ContentDialog dialog = ContentDialog.getFrontInstance();
+        if (dialog != null) {
+            if (getButtonClicked(buttons, primaryPress)) instance.runOnUiThread(dialog::onBackPressed);
+            if (getButtonClicked(buttons, primaryUp)) instance.runOnUiThread(() -> dialog.onKeyAction(KeyEvent.KEYCODE_DPAD_UP));
+            if (getButtonClicked(buttons, primaryDown)) instance.runOnUiThread(() -> dialog.onKeyAction(KeyEvent.KEYCODE_DPAD_DOWN));
+            if (getButtonClicked(buttons, primaryTrigger)) instance.runOnUiThread(() -> dialog.onKeyAction(KeyEvent.KEYCODE_ENTER));
+            if (getButtonClicked(buttons, primaryLeft)) instance.runOnUiThread(() -> dialog.onKeyAction(KeyEvent.KEYCODE_DPAD_LEFT));
+            if (getButtonClicked(buttons, primaryRight)) instance.runOnUiThread(() -> dialog.onKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT));
+            System.arraycopy(buttons, 0, lastButtons, 0, buttons.length);
+            lastDialogShown = System.currentTimeMillis();
+            return;
+        } else if (getButtonClicked(buttons, primaryPress)) {
+            instance.runOnUiThread(() -> new NavigationDialog(instance).show());
+        }
+
+        // Block input shortly after dialog closed
+        if (System.currentTimeMillis() - lastDialogShown < 500) {
+            System.arraycopy(buttons, 0, lastButtons, 0, buttons.length);
+            return;
+        }
+
         try (XLock lock = instance.getXServer().lock(XServer.Lockable.WINDOW_MANAGER, XServer.Lockable.INPUT_DEVICE)) {
             // Mouse control with hand
             float f = 0.75f;
@@ -239,11 +326,13 @@ public class XrActivity extends XServerDisplayActivity implements TextWatcher {
             }
 
             // Set mouse status
-            mouse.setPosition((int) smoothedMouse[0], (int) smoothedMouse[1]);
-            mouse.setButton(Pointer.Button.BUTTON_LEFT, buttons[primaryTrigger.ordinal()]);
-            mouse.setButton(Pointer.Button.BUTTON_RIGHT, buttons[primaryGrip.ordinal()]);
-            mouse.setButton(Pointer.Button.BUTTON_SCROLL_UP, buttons[primaryUp.ordinal()]);
-            mouse.setButton(Pointer.Button.BUTTON_SCROLL_DOWN, buttons[primaryDown.ordinal()]);
+            if (!instance.getXServer().isRelativeMouseMovement()) {
+                mouse.setPosition((int) smoothedMouse[0], (int) smoothedMouse[1]);
+                mouse.setButton(Pointer.Button.BUTTON_LEFT, buttons[primaryTrigger.ordinal()]);
+                mouse.setButton(Pointer.Button.BUTTON_RIGHT, buttons[primaryGrip.ordinal()]);
+                mouse.setButton(Pointer.Button.BUTTON_SCROLL_UP, buttons[primaryUp.ordinal()]);
+                mouse.setButton(Pointer.Button.BUTTON_SCROLL_DOWN, buttons[primaryDown.ordinal()]);
+            }
 
             // Switch immersive/SBS mode
             if (getButtonClicked(buttons, secondaryPress)) {
@@ -255,22 +344,8 @@ public class XrActivity extends XServerDisplayActivity implements TextWatcher {
                 }
             }
 
-            // Show system keyboard
-            if (getButtonClicked(buttons, primaryPress)) {
-                instance.runOnUiThread(() -> {
-                    isSBS = false;
-                    isImmersive = false;
-                    instance.resetText();
-                    AppUtils.showKeyboard(instance);
-                    instance.findViewById(R.id.XRTextInput).requestFocus();
-                });
-            }
-
-            // Store the OpenXR data
-            System.arraycopy(axes, 0, lastAxes, 0, axes.length);
-            System.arraycopy(buttons, 0, lastButtons, 0, buttons.length);
-
             // Update keyboard
+            currentButtons = buttons;
             mapKey(ControllerButton.L_MENU, XKeycode.KEY_ESC.id);
             mapKey(ControllerButton.R_A, instance.container.getControllerMapping(Container.XrControllerMapping.BUTTON_A));
             mapKey(ControllerButton.R_B, instance.container.getControllerMapping(Container.XrControllerMapping.BUTTON_B));
@@ -282,6 +357,28 @@ public class XrActivity extends XServerDisplayActivity implements TextWatcher {
             mapKey(secondaryDown, instance.container.getControllerMapping(Container.XrControllerMapping.THUMBSTICK_DOWN));
             mapKey(secondaryLeft, instance.container.getControllerMapping(Container.XrControllerMapping.THUMBSTICK_LEFT));
             mapKey(secondaryRight, instance.container.getControllerMapping(Container.XrControllerMapping.THUMBSTICK_RIGHT));
+
+            // Store the OpenXR data
+            System.arraycopy(axes, 0, lastAxes, 0, axes.length);
+            System.arraycopy(buttons, 0, lastButtons, 0, buttons.length);
+
+            // Communication between XR and Win32 apps
+            try {
+                if (xrAPI == null) {
+                    //xrAPI = new XrAPI("/sdcard/Download/xrtemp");
+                    xrAPI = new XrAPI(XrAPI.DEFAULT_PATH);
+                    xrAPI.writeFile(XrAPI.FLAG_VERSION, XrAPI.CURRENT_VERSION);
+                }
+                isVR = xrAPI.hasFlag(XrAPI.FLAG_VR);
+                getInstance().nativeSetUseVR(isVR);
+                if (isVR) {
+                    isSBS = xrAPI.hasFlag(XrAPI.FLAG_SBS);
+                    xrAPI.sendUDP(xrAPI.encodeAxes(lastAxes, 0), XrAPI.DEFAULT_PORT);
+                    //xrAPI.sendFile(xrAPI.encodeAxes(lastAxes, 0), 0);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -302,10 +399,12 @@ public class XrActivity extends XServerDisplayActivity implements TextWatcher {
 
     private static void mapKey(ControllerButton xrButton, byte xKeycode) {
         Keyboard keyboard = instance.getXServer().keyboard;
-        if (lastButtons[xrButton.ordinal()]) {
-            keyboard.setKeyPress(xKeycode, 0);
-        } else {
-            keyboard.setKeyRelease(xKeycode);
+        if (currentButtons[xrButton.ordinal()] != lastButtons[xrButton.ordinal()]) {
+            if (currentButtons[xrButton.ordinal()]) {
+                keyboard.setKeyPress(xKeycode, 0);
+            } else {
+                keyboard.setKeyRelease(xKeycode);
+            }
         }
     }
 
