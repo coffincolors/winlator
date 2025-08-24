@@ -2,5 +2,5 @@
 	path = app/src/main/cpp/OpenXR-SDK
 	url = https://github.com/KhronosGroup/OpenXR-SDK.git
 [submodule "app/src/main/cpp/sdl2"]
-    path = app/src/main/cpp/sdl2"]
+    path = app/src/main/cpp/sdl2
     url = https://github.com/libsdl-org/SDL.git
