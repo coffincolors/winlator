@@ -1,0 +1,89 @@
+name: Java CI with Gradle
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseTag:
+        description: Release tag type
+        type: choice
+        options:
+          - Draft
+          - RC
+          - Release
+        default: Draft
+      releaseTagVersion:
+        description: Release tag version
+        type: number
+        default: 0
+  push:
+    branches: [ "cmod_bionic" ]
+  pull_request:
+    branches: [ "cmod_bionic" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      RX_VERSION: "Unknown"
+      RX_TAG: ${{ inputs.releaseTag == 'Release' && 2 || inputs.releaseTag == 'RC' && 2 || 0 }}
+      RX_TAG_VERSION: ${{ inputs.releaseTagVersion }}
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup CCache
+      uses: hendrikmuhs/ccache-action@v1.2
+
+    - name: Setup Gradle Cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-android-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-android-
+            
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: 17
+
+    - name: Decode Keystore
+      env:
+        KEYSTORE_ENCODED: ${{ secrets.KEYSTORE }}
+      run: | 
+        echo "$KEYSTORE_ENCODED" | base64 --decode > ${{ github.workspace }}/app/ks.jks
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Install packages
+      run: yes | sdkmanager "cmake;3.31.6"
+
+    - name: Export Variables (Draft)
+      if: github.event_name != 'workflow_dispatch' || inputs.releaseTag == 'Draft'
+      run: |
+        echo RX_VERSION=`git log --date=format:%Y%m%d --pretty=format:'%cd' -n 1` >> "${{ github.env }}"
+        echo RX_SHA=`git log --pretty=format:'%h' -n 1` >> "${{ github.env }}"
+
+    - name: Export Variables (Release)
+      if: github.event_name == 'workflow_dispatch' && inputs.releaseTag != 'Draft'
+      run: |
+        echo RX_VERSION=`git log --date=format:%Y%m%d --pretty=format:'%cd' -n 1` >> "${{ github.env }}"
+
+    - name: Build with Gradle
+      env: 
+        KEYSTORE_PATH: "ks.jks"
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+        CMAKE_C_COMPILER_LAUNCHER: "ccache"
+        CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
+      run: |
+        ./gradlew assembleRelease
