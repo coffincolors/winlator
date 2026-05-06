@@ -40,6 +40,7 @@ public class GamepadConfiguratorDialog {
     private final ContentDialog dialog;
     private final SharedPreferences preferences;
     private final HashMap<Byte, Spinner> mappingSpinners = new HashMap<>();
+    private static final String TAG = "GamepadConfiguratorDialog";
 
     private String currentProfileName;
 
@@ -391,7 +392,7 @@ public class GamepadConfiguratorDialog {
             preferences.edit().putStringSet("gamepad_profiles", profiles).apply();
 
         } catch (JSONException | IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to save gamepad profile", e);
         }
     }
 
@@ -418,7 +419,7 @@ public class GamepadConfiguratorDialog {
                 externalController.setButtonMapping(buttonIndex, mappedIndex);
             }
         } catch (IOException | JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to load gamepad profile", e);
             Toast.makeText(context, "Error loading profile", Toast.LENGTH_SHORT).show();
         }
     }

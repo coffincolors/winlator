@@ -2,6 +2,8 @@ package com.winlator.cmod.core;
 
 import com.winlator.cmod.math.Mathf;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +21,7 @@ import java.util.Iterator;
 import java.util.Locale;
 
 public class WineRegistryEditor implements Closeable {
+    private static final String TAG = "WineRegistryEditor";
     private final File file;
     private final File cloneFile;
     private boolean modified = false;
@@ -49,6 +52,7 @@ public class WineRegistryEditor implements Closeable {
             try {
                 cloneFile.createNewFile();
             } catch (IOException e) {
+                Log.e(TAG, "Failed to create clone file", e);
             }
         } else FileUtils.copy(file, cloneFile);
     }
@@ -124,6 +128,7 @@ public class WineRegistryEditor implements Closeable {
             while ((length = reader.read(buffer)) != -1) writer.write(buffer, 0, length);
             success = true;
         } catch (IOException e) {
+            Log.e(TAG, "Failed to create registry key", e);
         }
 
         if (success) {
@@ -197,6 +202,7 @@ public class WineRegistryEditor implements Closeable {
             reader.skip(valueLocation.start);
             success = reader.read(buffer) == buffer.length;
         } catch (IOException e) {
+            Log.e(TAG, "Failed to read registry value", e);
         }
         return success ? unescape(new String(buffer)) : null;
     }
@@ -237,6 +243,7 @@ public class WineRegistryEditor implements Closeable {
             while ((length = reader.read(buffer)) != -1) writer.write(buffer, 0, length);
             success = true;
         } catch (IOException e) {
+            Log.e(TAG, "Failed to write registry value", e);
         }
 
         if (success) {
@@ -295,6 +302,7 @@ public class WineRegistryEditor implements Closeable {
             while ((length = reader.read(buffer)) != -1) writer.write(buffer, 0, length);
             success = true;
         } catch (IOException e) {
+            Log.e(TAG, "Failed to remove registry region", e);
         }
 
         if (success) {

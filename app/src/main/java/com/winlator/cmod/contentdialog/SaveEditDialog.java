@@ -23,6 +23,7 @@ import com.winlator.cmod.saves.SaveManager;
 import java.io.File;
 
 public class SaveEditDialog extends ContentDialog {
+    private static final String TAG = "SaveEditDialog";
     public static final int REQUEST_CODE_CUSTOM_FILE_PICKER = 1;  // Match the SaveSettingsDialog constant
     private final SaveManager saveManager;
     private final ContainerManager containerManager;
@@ -115,7 +116,7 @@ public class SaveEditDialog extends ContentDialog {
                 }
                 dismiss();
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Failed to update save", e);
             }
         });
     }

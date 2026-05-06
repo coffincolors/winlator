@@ -47,6 +47,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class InputControlsView extends View {
+    private static final String TAG = "InputControlsView";
     public static final float DEFAULT_OVERLAY_OPACITY = 0.4f;
     private static final byte MOUSE_WHEEL_DELTA = 120;
     private boolean editMode = false;
@@ -767,7 +768,9 @@ public class InputControlsView extends View {
             try (InputStream is = context.getAssets().open("inputcontrols/icons/"+id+".png")) {
                 icons[id] = BitmapFactory.decodeStream(is);
             }
-            catch (IOException e) {}
+            catch (IOException e) {
+                Log.e(TAG, "Failed to load input control icon " + id, e);
+            }
         }
         return icons[id];
     }

@@ -26,10 +26,13 @@ import com.winlator.cmod.core.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import android.util.Log;
 
 import java.util.Locale;
 
 public class Box86_64EditPresetDialog extends ContentDialog {
+    private static final String TAG = "Box86_64EditPresetDialog";
+
     private final Context context;
     private final String prefix;
     private final Box86_64Preset preset;
@@ -137,7 +140,7 @@ public class Box86_64EditPresetDialog extends ContentDialog {
                 parent.addView(child);
             }
         }
-        catch (JSONException e) {}
+        catch (JSONException e) { Log.e(TAG, "Failed to load env vars list", e); }
     }
 
     private static void applyFieldSetLabelStyle(TextView textView, boolean isDarkMode) {

@@ -1,11 +1,14 @@
 package com.winlator.cmod.alsaserver;
 
+import android.util.Log;
+
 import com.winlator.cmod.sysvshm.SysVSharedMemory;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class ALSAClient {
+    private static final String TAG = "ALSAClient";
     public enum DataType {
         U8(1), S16LE(2), S16BE(2), FLOATLE(4), FLOATBE(4);
         public final byte byteCount;
@@ -158,14 +161,14 @@ public class ALSAClient {
         // If we are in normal mode, the underlying connection to Wine is
         // likely broken, and we should do nothing.
         if (!reflectorMode) {
-            System.out.println("Audio device change detected, but reflector mode is off. Ignoring.");
+            Log.d(TAG, "Audio device change detected, but reflector mode is off. Ignoring.");
             return;
         }
 
         // --- REFLECTOR MODE LOGIC ---
         // The pacer (streamPtr) is safe. We only need to rebuild the hardware stream (mirrorStreamPtr).
         if (mirrorStreamPtr != 0) {
-            System.out.println("Tearing down old playback stream...");
+            Log.d(TAG, "Tearing down old playback stream...");
             stop(mirrorStreamPtr);
             close(mirrorStreamPtr);
             mirrorStreamPtr = 0;
@@ -175,7 +178,7 @@ public class ALSAClient {
         final int RETRY_DELAY_MS = 200;
 
         for (int i = 0; i < MAX_RETRIES; i++) {
-            System.out.println("Attempting to rebuild playback stream (Attempt " + (i + 1) + ")");
+            Log.d(TAG, "Attempting to rebuild playback stream (Attempt " + (i + 1) + ")");
             long newStreamPtr = create(dataType.ordinal(), channelCount, sampleRate, bufferSize);
 
             if (newStreamPtr > 0) {
@@ -183,15 +186,15 @@ public class ALSAClient {
                     int result = start(newStreamPtr);
                     if (result == 0) { // AAUDIO_OK
                         mirrorStreamPtr = newStreamPtr;
-                        System.out.println("Successfully resumed playback on new stream.");
+                        Log.d(TAG, "Successfully resumed playback on new stream.");
                         return;
                     } else {
-                        System.out.println("Failed to start new stream, result code: " + result + ". Retrying...");
+                        Log.w(TAG, "Failed to start new stream, result code: " + result + ". Retrying...");
                         close(newStreamPtr);
                     }
                 } else {
                     mirrorStreamPtr = newStreamPtr;
-                    System.out.println("Successfully created new stream while paused.");
+                    Log.d(TAG, "Successfully created new stream while paused.");
                     return;
                 }
             }
@@ -199,7 +202,7 @@ public class ALSAClient {
                 Thread.sleep(RETRY_DELAY_MS);
             } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
         }
-        System.out.println("Failed to rebuild playback stream after " + MAX_RETRIES + " attempts.");
+        Log.e(TAG, "Failed to rebuild playback stream after " + MAX_RETRIES + " attempts.");
     }
 
     public int pointer() {

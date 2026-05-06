@@ -2,6 +2,7 @@ package com.winlator.cmod.sysvshm;
 
 import android.os.SharedMemory;
 import android.system.ErrnoException;
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.winlator.cmod.xconnector.XConnectorEpoll;
@@ -11,6 +12,7 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
 public class SysVSharedMemory {
+    private static final String TAG = "SysVSharedMemory";
     private static SysVSharedMemory instance;
     public static SysVSharedMemory getInstance() { return instance; }
 
@@ -109,10 +111,14 @@ public class SysVSharedMemory {
                     Object ret = method.invoke(sharedMemory);
                     if (ret != null) return (int)ret;
                 }
-                catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {}
+                catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                    Log.e(TAG, "Failed to get SharedMemory fd via reflection", e);
+                }
             }
         }
-        catch (ErrnoException e) {}
+        catch (ErrnoException e) {
+            Log.e(TAG, "Failed to create shared memory", e);
+        }
         return -1;
     }
 

@@ -3,9 +3,12 @@ package com.winlator.cmod.core;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import android.util.Log;
 import java.io.InputStream;
 
 public abstract class ElfHelper {
+    private static final String TAG = "ElfHelper";
+
     private static final byte ELF_CLASS_32 = 1;
     private static final byte ELF_CLASS_64 = 2;
 
@@ -17,7 +20,7 @@ public abstract class ElfHelper {
                 return header[4];
             }
         }
-        catch (IOException e) {}
+        catch (IOException e) { Log.e(TAG, "Failed to read ELF header", e); }
         return 0;
     }
 

@@ -57,7 +57,7 @@ public class CursorLocker extends TimerTask {
                 try {
                     pauseLock.wait();
                 }
-                catch (InterruptedException e) {}
+                catch (InterruptedException e) { Thread.currentThread().interrupt(); }
             }
         }
 

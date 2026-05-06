@@ -1,10 +1,13 @@
 package com.winlator.cmod.xconnector;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class Client {
+    private static final String TAG = "Client";
     public final ClientSocket clientSocket;
     private final XConnectorEpoll connector;
     private XInputStream inputStream;
@@ -53,6 +56,8 @@ public class Client {
             data.asLongBuffer().put(1);
             (new ClientSocket(shutdownFd)).write(data);
         }
-        catch (IOException e) {}
+        catch (IOException e) {
+            Log.e(TAG, "Failed to request shutdown", e);
+        }
     }
 }

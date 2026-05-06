@@ -82,7 +82,7 @@ import java.util.Locale;
 
 public class ContainerDetailFragment extends Fragment {
 
-    private static final String TAG = "FileUtils";
+    private static final String TAG = "ContainerDetailFragment";
 
     private ContainerManager manager;
     private ContentsManager contentsManager;
@@ -125,7 +125,9 @@ public class ContainerDetailFragment extends Fragment {
         try {
             gpuCards = new JSONArray(FileUtils.readString(getContext(), "gpu_cards.json"));
         }
-        catch (JSONException e) {}
+        catch (JSONException e) {
+            Log.e(TAG, "Failed to parse GPU cards JSON", e);
+        }
     }
 
     private static void applyFieldSetLabelStyle(TextView textView, boolean isDarkMode) {
@@ -701,7 +703,7 @@ public class ContainerDetailFragment extends Fragment {
                     });
                 }
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG, "JSON serialization error", e);
             }
         });
         return view;
@@ -723,7 +725,9 @@ public class ContainerDetailFragment extends Fragment {
                 registryEditor.setDwordValue("Software\\Wine\\Direct3D", "VideoPciDeviceID", gpuName.getInt("deviceID"));
                 registryEditor.setDwordValue("Software\\Wine\\Direct3D", "VideoPciVendorID", gpuName.getInt("vendorID"));
             }
-            catch (JSONException e) {}
+            catch (JSONException e) {
+                Log.e(TAG, "Failed to get GPU info from JSON", e);
+            }
 
             Spinner sOffscreenRenderingMode = view.findViewById(R.id.SOffscreenRenderingMode);
             registryEditor.setStringValue("Software\\Wine\\Direct3D", "OffScreenRenderingMode", sOffscreenRenderingMode.getSelectedItem().toString().toLowerCase(Locale.ENGLISH));
@@ -823,7 +827,9 @@ public class ContainerDetailFragment extends Fragment {
                 values.add(item.getString("name"));
             }
         }
-        catch (JSONException e) {}
+        catch (JSONException e) {
+            Log.e(TAG, "Failed to iterate GPU cards JSON", e);
+        }
 
         spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, values));
         spinner.setSelection(selectedPosition);

@@ -60,6 +60,8 @@ import java.util.List;
 import java.util.concurrent.Executors;
 
 public class ShortcutsFragment extends Fragment {
+    private static final String TAG = "ShortcutsFragment";
+
     private RecyclerView recyclerView;
     private TextView emptyTextView;
     private ContainerManager manager;
@@ -826,7 +828,7 @@ public class ShortcutsFragment extends Fragment {
         try {
             shortcutManager.disableShortcuts(Collections.singletonList(shortcut.getExtra("uuid")),
                     context.getString(R.string.shortcut_not_available));
-        } catch (Exception e) {}
+        } catch (Exception e) { Log.e(TAG, "Failed to disable shortcut", e); }
     }
 
     public void updateShortcutOnScreen(String shortLabel,

@@ -2,6 +2,7 @@ package com.winlator.cmod.core;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import com.winlator.cmod.container.Container;
 import com.winlator.cmod.xenvironment.ImageFs;
@@ -21,6 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class WineUtils {
+    private static final String TAG = "WineUtils";
     public static void createDosdevicesSymlinks(Container container) {
         String dosdevicesPath = (new File(container.getRootDir(), ".wine/dosdevices")).getPath();
         File[] files = (new File(dosdevicesPath)).listFiles();
@@ -92,7 +94,9 @@ public abstract class WineUtils {
                 else registryEditor.removeValue(dllOverridesKey, dlname);
             }
         }
-        catch (JSONException e) {}
+        catch (JSONException e) {
+            Log.e(TAG, "Failed to override Win component DLLs", e);
+        }
     }
 
     public static void setWinComponentRegistryKeys(File systemRegFile, String identifier, boolean useNative, Context context) {

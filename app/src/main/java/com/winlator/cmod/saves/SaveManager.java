@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class SaveManager {
+    private static final String TAG = "SaveManager";
     private final File savesDir;
     private final ContainerManager containerManager;  // Add this to handle containers
 
@@ -56,7 +57,7 @@ public class SaveManager {
             }
             return new Save(containerManager, container, file);  // Pass the ContainerManager when creating the Save object
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to parse save JSON", e);
             return null;
         }
     }

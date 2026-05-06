@@ -1,6 +1,7 @@
 package com.winlator.cmod.box86_64.rc;
 
 import android.content.Context;
+import android.util.Log;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
 import android.view.View;
@@ -30,6 +31,7 @@ public class RCManager {
     private final Context context;
     private int maxRCFileId;
     private boolean rcfilesLoaded = false;
+    private static final String TAG = "RCManager";
 
     public RCManager(Context context) {
         this.context = context;
@@ -62,7 +64,9 @@ public class RCManager {
             data.put("id", newId);
             data.put("name", newName);
             FileUtils.writeString(newFile, data.toString());
-        } catch (JSONException e) {}
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to duplicate RC file", e);
+        }
 
         RCFile rcfile = loadRCFile(context, newFile);
         rcfiles.add(rcfile);
@@ -108,7 +112,7 @@ public class RCManager {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to copy asset RC files", e);
         }
     }
 
@@ -135,7 +139,7 @@ public class RCManager {
                         maxRCFileId = Math.max(maxRCFileId, rcfile.id);
                         rcfiles.add(rcfile);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Failed to load RC file", e);
                     }
                 }
             }
@@ -203,7 +207,7 @@ public class RCManager {
 
             return rcfile;
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to parse RC file JSON", e);
         }
         return null;
     }

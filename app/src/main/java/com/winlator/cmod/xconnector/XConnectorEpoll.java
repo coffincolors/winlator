@@ -1,5 +1,6 @@
 package com.winlator.cmod.xconnector;
 
+import android.util.Log;
 import android.util.SparseArray;
 
 import androidx.annotation.Keep;
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class XConnectorEpoll implements Runnable {
+    private static final String TAG = "XConnectorEpoll";
     private final ConnectionHandler connectionHandler;
     private final RequestHandler requestHandler;
     private final int epollFd;
@@ -72,7 +74,9 @@ public class XConnectorEpoll implements Runnable {
             try {
                 epollThread.join();
             }
-            catch (InterruptedException e) {}
+            catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
         epollThread = null;
     }
@@ -140,7 +144,9 @@ public class XConnectorEpoll implements Runnable {
                     try {
                         client.pollThread.join();
                     }
-                    catch (InterruptedException e) {}
+                    catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
 
                 client.pollThread = null;
@@ -203,7 +209,9 @@ public class XConnectorEpoll implements Runnable {
             data.asLongBuffer().put(1);
             (new ClientSocket(shutdownFd)).write(data);
         }
-        catch (IOException e) {}
+        catch (IOException e) {
+            Log.e(TAG, "Failed to request shutdown", e);
+        }
     }
 
     public static native void closeFd(int fd);

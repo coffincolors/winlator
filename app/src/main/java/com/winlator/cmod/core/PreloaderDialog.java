@@ -2,6 +2,7 @@ package com.winlator.cmod.core;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -9,6 +10,7 @@ import android.widget.TextView;
 import com.winlator.cmod.R;
 
 public class PreloaderDialog {
+    private static final String TAG = "PreloaderDialog";
     private final Activity activity;
     private Dialog dialog;
 
@@ -49,7 +51,9 @@ public class PreloaderDialog {
                 dialog.dismiss();
             }
         }
-        catch (Exception e) {}
+        catch (Exception e) {
+            Log.e(TAG, "Failed to dismiss dialog", e);
+        }
     }
 
     public void closeOnUiThread() {

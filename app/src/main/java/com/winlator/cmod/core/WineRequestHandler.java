@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class WineRequestHandler {
+    private static final String TAG = "WineRequestHandler";
 
     abstract class RequestCodes {
         static final int OPEN_URL = 1;
@@ -56,6 +57,7 @@ public class WineRequestHandler {
                     handleRequest(inputStream, outputStream, requestCode);
                 }
             } catch (IOException e) {
+                Log.e(TAG, "Server socket error", e);
             }
         });
     }
@@ -65,6 +67,7 @@ public class WineRequestHandler {
             try {
                 serverSocket.close();
             } catch (IOException e) {
+                Log.w(TAG, "Failed to close server socket", e);
             }
         }
     }

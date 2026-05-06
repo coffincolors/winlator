@@ -2,10 +2,13 @@ package com.winlator.cmod.core;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import android.util.Log;
 
 import java.util.Arrays;
 
 public abstract class ArrayUtils {
+    private static final String TAG = "ArrayUtils";
+
     public static byte[] concat(byte[]... elements) {
         byte[] result = Arrays.copyOf(elements[0], elements[0].length);
         for (int i = 1; i < elements.length; i++) {
@@ -33,7 +36,7 @@ public abstract class ArrayUtils {
             try {
                 stringArray[i] = data.getString(i);
             }
-            catch (JSONException e) {}
+            catch (JSONException e) { Log.e(TAG, "Failed to convert JSONArray element to string", e); }
         }
         return stringArray;
     }

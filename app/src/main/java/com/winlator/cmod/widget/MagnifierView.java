@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.PointF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,6 +21,7 @@ import com.winlator.cmod.core.UnitUtils;
 import com.winlator.cmod.math.Mathf;
 
 public class MagnifierView extends FrameLayout {
+    private static final String TAG = "MagnifierView";
     private final SharedPreferences preferences;
     private boolean restoreSavedPosition = true;
     private short lastX = 0;
@@ -110,7 +112,9 @@ public class MagnifierView extends FrameLayout {
                     x = Short.parseShort(parts[0]);
                     y = Short.parseShort(parts[1]);
                 }
-                catch (NumberFormatException e) {}
+                catch (NumberFormatException e) {
+                    Log.e(TAG, "Failed to parse magnifier view position", e);
+                }
             }
 
             movePanel(x, y);

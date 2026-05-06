@@ -1,5 +1,7 @@
 package com.winlator.cmod.xserver;
 
+import android.util.Log;
+
 import androidx.collection.ArrayMap;
 
 import com.winlator.cmod.xconnector.XInputStream;
@@ -10,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class XClient implements XResourceManager.OnResourceLifecycleListener {
+    private static final String TAG = "XClient";
     public final XServer xServer;
     private boolean authenticated = false;
     public final Integer resourceIDBase;
@@ -54,7 +57,7 @@ public class XClient implements XResourceManager.OnResourceLifecycleListener {
             event.send(sequenceNumber, outputStream);
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to send event", e);
         }
     }
 

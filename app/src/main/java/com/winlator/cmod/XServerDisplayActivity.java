@@ -666,7 +666,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 public void onFailed(Exception e) {
                     try {
                         finalIn.close();
-                    } catch (Exception e2) {}
+                    } catch (Exception e2) { Log.w(TAG, "Failed to close resource", e2); }
                 }
             };
             try {
@@ -675,7 +675,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                     MidiManager.load(in, callback);
                 } else
                     MidiManager.load(new File(MidiManager.getSoundFontDir(this), midiSoundFont), callback);
-            } catch (Exception e) {}
+            } catch (Exception e) { Log.e(TAG, "Failed to load MIDI sound font", e); }
         }
 
         // Check if a profile is defined by the shortcut
@@ -2621,7 +2621,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
             if (!dlls.isEmpty()) restoreOriginalDllFiles(dlls.toArray(new String[0]));
         }
-        catch (JSONException e) {}
+        catch (JSONException e) { Log.e(TAG, "Failed to parse win components config", e); }
     }
 
     private void restoreOriginalDllFiles(final String... dlls) {

@@ -21,6 +21,8 @@ import java.io.File;
 import java.util.Iterator;
 
 public class Container {
+    private static final String TAG = "Container";
+
     public enum XrControllerMapping {
         BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y, BUTTON_GRIP, BUTTON_TRIGGER,
         THUMBSTICK_UP, THUMBSTICK_DOWN, THUMBSTICK_LEFT, THUMBSTICK_RIGHT
@@ -334,7 +336,7 @@ public class Container {
             }
             else extraData.remove(name);
         }
-        catch (JSONException e) {}
+        catch (JSONException e) { Log.e(TAG, "Failed to put extra data", e); }
     }
 
     public String getWineVersion() {
@@ -459,7 +461,7 @@ public class Container {
             if (!WineInfo.isMainWineVersion(wineVersion)) data.put("wineVersion", wineVersion);
             FileUtils.writeString(getConfigFile(), data.toString());
         }
-        catch (JSONException e) {}
+        catch (JSONException e) { Log.e(TAG, "Failed to save container data", e); }
     }
 
 
@@ -630,7 +632,7 @@ public class Container {
 
             data.put("wincomponents", result);
         }
-        catch (JSONException e) {}
+        catch (JSONException e) { Log.e(TAG, "Failed to check obsolete or missing properties", e); }
     }
 
     public static String getFallbackCPUList() {

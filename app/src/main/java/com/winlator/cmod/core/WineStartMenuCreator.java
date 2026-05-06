@@ -1,6 +1,7 @@
 package com.winlator.cmod.core;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.winlator.cmod.container.Container;
 
@@ -11,6 +12,8 @@ import org.json.JSONObject;
 import java.io.File;
 
 public abstract class WineStartMenuCreator {
+    private static final String TAG = "WineStartMenuCreator";
+
     private static int parseShowCommand(String value) {
         if (value.equals("SW_SHOWMAXIMIZED")) {
             return MSLink.SW_SHOWMAXIMIZED;
@@ -69,6 +72,6 @@ public abstract class WineStartMenuCreator {
             FileUtils.writeString(containerStartMenuFile, data.toString());
             for (int i = 0; i < data.length(); i++) createMenuEntry(data.getJSONObject(i), startMenuDir);
         }
-        catch (JSONException e) {}
+        catch (JSONException e) { Log.e(TAG, "Failed to create start menu", e); }
     }
 }

@@ -87,7 +87,7 @@ public abstract class FileUtils {
             return true;
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to write data to file: " + file.getAbsolutePath(), e);
         }
         return false;
     }
@@ -99,7 +99,7 @@ public abstract class FileUtils {
             return true;
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to write string to file: " + file.getAbsolutePath(), e);
         }
         return false;
     }
@@ -113,7 +113,9 @@ public abstract class FileUtils {
             (new File(linkFile)).delete();
             Os.symlink(linkTarget, linkFile);
         }
-        catch (ErrnoException e) {}
+        catch (ErrnoException e) {
+            Log.e(TAG, "Failed to create symlink", e);
+        }
     }
 
     public static boolean isSymlink(File file) {
@@ -180,7 +182,6 @@ public abstract class FileUtils {
                 if (callback != null) callback.call(dstFile);
                 return dstFile.exists();
             } catch (IOException e) {
-                e.printStackTrace();
                 Log.e(TAG, "Failed to copy file: " + srcFile.getAbsolutePath() + " to " + dstFile.getAbsolutePath(), e);
                 // Log error but don't return false, so we skip this file and continue with others
                 return true;
@@ -219,7 +220,7 @@ public abstract class FileUtils {
                     if (callback != null) callback.call(dstFile);
                     return dstFile.exists();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Failed to copy file: " + sourceFile.getAbsolutePath() + " to " + dstFile.getAbsolutePath(), e);
                     return false;
                 }
             }
@@ -241,12 +242,11 @@ public abstract class FileUtils {
                 if (callback != null) callback.call(dstFile);
                 return true;
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Failed to copy URI to file: " + dstFile.getAbsolutePath(), e);
                 return false;
             }
         }
 
-        // Return false if src is neither File nor Uri
         return false;
     }
 
@@ -266,7 +266,9 @@ public abstract class FileUtils {
                     else copy(context, relativePath, dstFile);
                 }
             }
-            catch (IOException e) {}
+            catch (IOException e) {
+                Log.w(TAG, "Failed to close resource", e);
+            }
         }
         else {
             if (dstFile.isDirectory()) dstFile = new File(dstFile, FileUtils.getName(assetFile));
@@ -276,7 +278,9 @@ public abstract class FileUtils {
                  BufferedOutputStream outStream = new BufferedOutputStream(new FileOutputStream(dstFile), StreamUtils.BUFFER_SIZE)) {
                 StreamUtils.copy(inStream, outStream);
             }
-            catch (IOException e) {}
+            catch (IOException e) {
+                Log.w(TAG, "Failed to close resource", e);
+            }
         }
     }
 
@@ -289,7 +293,7 @@ public abstract class FileUtils {
             while ((length = inputStream.read(buffer)) > 0)
                 outputStream.write(buffer, 0, length);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to copy URI to file: " + dest.getAbsolutePath(), e);
             return false;
         }
         return true;
@@ -303,7 +307,7 @@ public abstract class FileUtils {
             while ((line = reader.readLine()) != null) lines.add(line);
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to read lines from file: " + file.getAbsolutePath(), e);
         }
         return lines;
     }
@@ -330,7 +334,9 @@ public abstract class FileUtils {
         try {
             Os.chmod(file.getAbsolutePath(), mode);
         }
-        catch (ErrnoException e) {}
+        catch (ErrnoException e) {
+            Log.e(TAG, "Failed to chmod file", e);
+        }
     }
 
     public static File createTempFile(File parent, String prefix) {
@@ -467,7 +473,9 @@ public abstract class FileUtils {
                 result = !line.isEmpty() ? Integer.parseInt(line) : 0;
             }
         }
-        catch (Exception e) {}
+        catch (Exception e) {
+            Log.e(TAG, "Failed to read int from file", e);
+        }
         return result;
     }
 

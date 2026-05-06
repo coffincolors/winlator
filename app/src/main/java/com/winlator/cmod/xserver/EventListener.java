@@ -1,10 +1,13 @@
 package com.winlator.cmod.xserver;
 
+import android.util.Log;
+
 import com.winlator.cmod.xserver.events.Event;
 
 import java.io.IOException;
 
 public class EventListener {
+    private static final String TAG = "EventListener";
     public final XClient client;
     public final Bitmask eventMask;
 
@@ -26,7 +29,7 @@ public class EventListener {
             event.send(client.getSequenceNumber(), client.getOutputStream());
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to send event", e);
         }
     }
 }

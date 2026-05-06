@@ -81,6 +81,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class SettingsFragment extends Fragment {
+    private static final String TAG = "SettingsFragment";
+
     public static final String DEFAULT_WINE_DEBUG_CHANNELS = "warn,err,fixme";
     private Callback<Uri> installSoundFontCallback;
     private PreloaderDialog preloaderDialog;
@@ -646,7 +648,7 @@ public class SettingsFragment extends Fragment {
             try {
                 jsonArray = new JSONArray(FileUtils.readString(context, "wine_debug_channels.json"));
             }
-            catch (JSONException e) {}
+            catch (JSONException e) { Log.e(TAG, "Failed to load wine debug channels", e); }
 
             final String[] items = ArrayUtils.toStringArray(jsonArray);
             ContentDialog.showMultipleChoiceList(context, R.string.wine_debug_channel, items, (selectedPositions) -> {

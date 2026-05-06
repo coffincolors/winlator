@@ -1,6 +1,7 @@
 package com.winlator.cmod.inputcontrols;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class ControlsProfile implements Comparable<ControlsProfile> {
+    private static final String TAG = "ControlsProfile";
     public final int id;
     private String name;
     private float cursorSpeed = 1.0f;
@@ -131,7 +133,9 @@ public class ControlsProfile implements Comparable<ControlsProfile> {
 
             FileUtils.writeString(file, data.toString());
         }
-        catch (JSONException e) {}
+        catch (JSONException e) {
+            Log.e(TAG, "Failed to save profile", e);
+        }
     }
 
     public static File getProfileFile(Context context, int id) {
@@ -187,7 +191,7 @@ public class ControlsProfile implements Comparable<ControlsProfile> {
             controllersLoaded = true;
         }
         catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to load controllers from profile", e);
         }
         return controllers;
     }
@@ -231,7 +235,7 @@ public class ControlsProfile implements Comparable<ControlsProfile> {
             elementsLoaded = true;
         }
         catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to load elements from profile", e);
         }
     }
 }

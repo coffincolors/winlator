@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SaveSettingsDialog extends ContentDialog {
+    private static final String TAG = "SaveSettingsDialog";
     public static final int REQUEST_CODE_CUSTOM_FILE_PICKER = 1;
     private final SaveManager saveManager;
     private final ContainerManager containerManager;
@@ -120,7 +121,7 @@ public class SaveSettingsDialog extends ContentDialog {
                     }
                     dismiss();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Failed to add save", e);
                 }
             } else {
                 AppUtils.showToast(context, R.string.fill_all_fields);

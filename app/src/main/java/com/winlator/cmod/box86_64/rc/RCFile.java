@@ -1,6 +1,7 @@
 package com.winlator.cmod.box86_64.rc;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -21,6 +22,7 @@ public class RCFile implements Comparable<RCFile> {
     private String name = "";
     private ArrayList<RCGroup> groups = new ArrayList<>();
     private final Context context;
+    private static final String TAG = "RCFile";
 
     public RCFile(Context context, int id) {
         this.context = context;
@@ -65,7 +67,7 @@ public class RCFile implements Comparable<RCFile> {
         try {
             FileUtils.writeString(file, this.toJson().toString());
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to save RC file", e);
         }
     }
 

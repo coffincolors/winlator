@@ -6,6 +6,7 @@ import android.content.res.AssetManager;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
 import android.util.JsonReader;
+import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class InputControlsManager {
+    private static final String TAG = "InputControlsManager";
     private final Context context;
     private ArrayList<ControlsProfile> profiles;
     private int maxProfileId;
@@ -88,7 +90,9 @@ public class InputControlsManager {
                 }
             }
         }
-        catch (IOException e) {}
+        catch (IOException e) {
+            Log.e(TAG, "Failed to copy asset profiles", e);
+        }
     }
 
     public void loadProfiles(boolean ignoreTemplates) {
@@ -142,7 +146,9 @@ public class InputControlsManager {
             if (data.has("template")) data.remove("template");
             FileUtils.writeString(newFile, data.toString());
         }
-        catch (JSONException e) {}
+        catch (JSONException e) {
+            Log.e(TAG, "Failed to duplicate profile", e);
+        }
 
         ControlsProfile profile = loadProfile(context, newFile);
         profiles.add(profile);

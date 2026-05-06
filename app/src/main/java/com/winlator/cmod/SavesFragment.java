@@ -23,6 +23,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
@@ -51,6 +52,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.Locale;
 
 public class SavesFragment extends Fragment {
@@ -61,6 +63,7 @@ public class SavesFragment extends Fragment {
     private ContainerManager containerManager;
 
     private static final int REQUEST_CODE_IMPORT_ARCHIVE = 1001;
+    private static final String TAG = "SavesFragment";
 
     private boolean isDarkMode;
 
@@ -183,7 +186,7 @@ public class SavesFragment extends Fragment {
         PreloaderDialog preloaderDialog = new PreloaderDialog(getActivity());
         preloaderDialog.showOnUiThread(R.string.importing_save);
 
-        new Thread(() -> {
+        Executors.newSingleThreadExecutor().execute(() -> {
             try {
                 File tempDir = new File(getContext().getCacheDir(), "import_temp");
                 if (tempDir.exists()) {
@@ -276,10 +279,10 @@ public class SavesFragment extends Fragment {
                 }));
             } catch (Exception e) {
                 AppUtils.showToast(getContext(), "Import failed: " + e.getMessage());
-                e.printStackTrace(); // Log the error to console
+                Log.e(TAG, "Save import failed", e);
                 preloaderDialog.closeOnUiThread();
             }
-        }).start();
+        });
     }
 
 
@@ -375,7 +378,7 @@ public class SavesFragment extends Fragment {
             PreloaderDialog preloaderDialog = new PreloaderDialog(getActivity());
             preloaderDialog.showOnUiThread(R.string.exporting_save);
 
-            new Thread(() -> {
+            Executors.newSingleThreadExecutor().execute(() -> {
                 try {
                     File saveDirectory = new File(save.path);
                     if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
@@ -437,7 +440,7 @@ public class SavesFragment extends Fragment {
                 } finally {
                     preloaderDialog.closeOnUiThread();
                 }
-            }).start();
+            });
         }
 
 

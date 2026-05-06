@@ -37,6 +37,7 @@ public class ContainerManager {
     private int maxContainerId = 0;
     private final File homeDir;
     private final Context context;
+    private static final String TAG = "ContainerManager";
 
     private boolean isInitialized = false; // New flag to track initialization
 
@@ -154,7 +155,7 @@ public class ContainerManager {
             containers.add(container);
             return container;
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to create container", e);
         }
         return null;
     }

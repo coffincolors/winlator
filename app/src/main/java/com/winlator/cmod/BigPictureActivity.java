@@ -84,6 +84,7 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Toast;
 
 public class BigPictureActivity extends AppCompatActivity {
+    private static final String TAG = "BigPictureActivity";
     private ImageView coverArtView;
     private TextView gameTitleView, graphicsDriverView, graphicsDriverVersionView, dxWrapperView, dxWrapperConfigView, audioDriverView, box64PresetView, playCountView, playtimeView;
     private RecyclerView recyclerView;
@@ -306,7 +307,7 @@ public class BigPictureActivity extends AppCompatActivity {
                     try {
                         applyWallpaper(Uri.fromFile(wallpaperFile), preferences.getString(WALLPAPER_DISPLAY_PREF_KEY, "center"));
                     } catch (FileNotFoundException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Wallpaper file not found", e);
                     }
                 }
             }
@@ -1164,7 +1165,7 @@ public class BigPictureActivity extends AppCompatActivity {
                 shortcut.setCoverArt(coverArt);
                 runOnUiThread(() -> coverArtView.setImageBitmap(coverArt));
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Cover art download failed", e);
             }
         });
     }
@@ -1181,7 +1182,7 @@ public class BigPictureActivity extends AppCompatActivity {
             outputStream.flush();
             outputStream.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Cover art cache write failed", e);
         }
     }
 
@@ -1193,7 +1194,7 @@ public class BigPictureActivity extends AppCompatActivity {
                 return BitmapFactory.decodeFile(coverFile.getAbsolutePath());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Cached cover art load failed", e);
         }
         return null;
     }
@@ -1241,7 +1242,7 @@ public class BigPictureActivity extends AppCompatActivity {
                             .show();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Wallpaper selection failed", e);
             }
 
         }
@@ -1299,7 +1300,7 @@ public class BigPictureActivity extends AppCompatActivity {
                     });
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Custom cover art upload failed", e);
             }
         }
 
@@ -1386,7 +1387,7 @@ public class BigPictureActivity extends AppCompatActivity {
             mediaPlayer.prepare();  // Prepare synchronously
             mediaPlayer.setOnPreparedListener(mp -> mediaPlayer.start());  // Start playback once prepared
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "MP3 playback failed", e);
         }
     }
 
@@ -1583,7 +1584,7 @@ public class BigPictureActivity extends AppCompatActivity {
             mediaPlayer.start();
             afd.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Default MP3 playback failed", e);
         }
     }
 
@@ -1649,7 +1650,7 @@ public class BigPictureActivity extends AppCompatActivity {
                         bitmaps.add(bmp);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "PNG frame load failed", e);
                 }
             }
         }

@@ -9,6 +9,8 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.winlator.cmod.R;
@@ -22,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class DebugDialog extends ContentDialog implements Callback<String> {
+    private static final String TAG = "DebugDialog";
     private final LogView logView;
     private static boolean paused = false;
     private BufferedWriter writer;
@@ -33,6 +36,7 @@ public class DebugDialog extends ContentDialog implements Callback<String> {
         logView = findViewById(R.id.LogView);
         
         logView.getLayoutParams().width = (int)UnitUtils.dpToPx(UnitUtils.pxToDp(AppUtils.getScreenWidth()) * 0.7f);
+        logView.setOnScrollPauseListener(DebugDialog::setPaused);
 
         findViewById(R.id.BTCancel).setVisibility(View.GONE);
 
@@ -60,7 +64,20 @@ public class DebugDialog extends ContentDialog implements Callback<String> {
             writer = new BufferedWriter(new FileWriter(logView.getLogFile()));
         }
         catch (IOException e) {
-            throw new RuntimeException(e);
+            Log.e(TAG, "Failed to create log file", e);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Failed to close log writer", e);
+            }
+            writer = null;
         }
     }
 
@@ -72,7 +89,7 @@ public class DebugDialog extends ContentDialog implements Callback<String> {
             writer.flush();
         }
         catch (IOException e) {
-            throw new RuntimeException(e);
+            Log.e(TAG, "Failed to write log line", e);
         }
     }
     

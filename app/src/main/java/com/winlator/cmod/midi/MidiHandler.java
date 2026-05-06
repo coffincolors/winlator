@@ -1,5 +1,7 @@
 package com.winlator.cmod.midi;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -54,6 +56,7 @@ public class MidiHandler {
 
                 }
             } catch (IOException e) {
+                Log.e(TAG, "Failed to receive MIDI data", e);
             }
         });
     }
@@ -84,7 +87,9 @@ public class MidiHandler {
                         lastMidiMsgTime = System.currentTimeMillis();
                         message.setMessage(received.get(), received.get(), received.get());
                         recv.send(message, -1);
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to send MIDI short message", e);
+                    }
                 }
                 break;
             case RequestCodes.MIDI_LONG:
@@ -154,7 +159,7 @@ public class MidiHandler {
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Failed to send all notes off", e);
             }
         }
     }

@@ -17,7 +17,8 @@ import java.util.List;
 import java.util.concurrent.Executors;
 
 public abstract class ProcessHelper {
-    public static final boolean PRINT_DEBUG = true; // FIXME change to false
+    public static final boolean PRINT_DEBUG = false;
+    private static final String TAG = "ProcessHelper";
     private static final ArrayList<Callback<String>> debugCallbacks = new ArrayList<>();
     private static final byte SIGCONT = 18;
     private static final byte SIGSTOP = 19;
@@ -259,7 +260,9 @@ public abstract class ProcessHelper {
                 BufferedReader br = new BufferedReader(new InputStreamReader(fr));
                 data = br.readLine();
             }
-            catch (IOException e) {}
+            catch (IOException e) {
+                Log.e(TAG, "Failed to read process stat", e);
+            }
             for (String filter : filterList) {
                 if (data.contains(filter))
                     filteredPids.add(allPids[index]);

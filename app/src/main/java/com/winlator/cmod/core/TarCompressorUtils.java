@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public abstract class TarCompressorUtils {
+    private static final String TAG = "TarCompressorUtils";
     public enum Type {XZ, ZSTD}
 
     // Interface to define the exclusion filter
@@ -42,7 +43,9 @@ public abstract class TarCompressorUtils {
             }
             tar.closeArchiveEntry();
         }
-        catch (Exception e) {}
+        catch (Exception e) {
+            Log.e(TAG, "Failed to add file to tar archive", e);
+        }
     }
 
     private static void addLinkFile(ArchiveOutputStream tar, File file, String entryName) {
@@ -52,7 +55,9 @@ public abstract class TarCompressorUtils {
             tar.putArchiveEntry(entry);
             tar.closeArchiveEntry();
         }
-        catch (Exception e) {}
+        catch (Exception e) {
+            Log.e(TAG, "Failed to add link file to tar archive", e);
+        }
     }
 
     private static void addDirectory(ArchiveOutputStream tar, File folder, String basePath, ExclusionFilter filter) throws IOException {
@@ -103,7 +108,7 @@ public abstract class TarCompressorUtils {
             }
             tar.finish();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to compress files", e);
         }
     }
 
@@ -190,7 +195,7 @@ public abstract class TarCompressorUtils {
             return true;
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to extract tar archive", e);
             return false;
         }
     }
@@ -236,7 +241,7 @@ public abstract class TarCompressorUtils {
             }
             tar.finish();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to archive files", e);
         }
     }
 

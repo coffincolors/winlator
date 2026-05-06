@@ -1,6 +1,7 @@
 package com.winlator.cmod.xenvironment;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.util.Locale;
 
 public class ImageFs {
+    private static final String TAG = "ImageFs";
     public static final String USER = "xuser";
     public static final String HOME_PATH = "/home/"+USER;
     public static final String CACHE_PATH = HOME_PATH+"/.cache";
@@ -66,7 +68,7 @@ public class ImageFs {
             FileUtils.writeString(file, String.valueOf(version));
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to create image version file", e);
         }
     }
 

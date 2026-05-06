@@ -11,6 +11,7 @@ import android.view.Display;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.View;
+import android.util.Log;
 import android.widget.EditText;
 
 import androidx.preference.PreferenceManager;
@@ -54,6 +55,7 @@ public class XrActivity extends XServerDisplayActivity implements TextWatcher {
     private static float mouseSpeed = 1;
     private static final float[] smoothedMouse = new float[2];
     private static XrActivity instance;
+    private static final String TAG = "XrActivity";
 
     @Override
     public synchronized void onPause() {
@@ -313,7 +315,7 @@ public class XrActivity extends XServerDisplayActivity implements TextWatcher {
         try {
             Thread.sleep(ms);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Thread sleep interrupted", e);
         }
     }
 

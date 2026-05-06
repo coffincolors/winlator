@@ -28,7 +28,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class AdrenotoolsManager {
-    
+    private static final String TAG = "AdrenotoolsManager";
+
     private File adrenotoolsContentDir;
     private Context mContext;
     
@@ -48,6 +49,7 @@ public class AdrenotoolsManager {
             libraryName = jsonObject.getString("libraryName");
         }
         catch (JSONException e) {
+            Log.e(TAG, "Failed to read library name from meta.json", e);
         }
         return libraryName;
     }
@@ -61,6 +63,7 @@ public class AdrenotoolsManager {
             driverName = jsonObject.getString("name");
         }
         catch (JSONException e) {
+            Log.e(TAG, "Failed to read driver name from meta.json", e);
         }
         return driverName;
     }
@@ -74,6 +77,7 @@ public class AdrenotoolsManager {
             driverVersion = jsonObject.getString("driverVersion");
         }
         catch (JSONException e) {
+            Log.e(TAG, "Failed to read driver version from meta.json", e);
         }
         return driverVersion;
     }

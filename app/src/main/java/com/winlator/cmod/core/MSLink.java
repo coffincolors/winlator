@@ -11,6 +11,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
 public abstract class MSLink {
+    private static final String TAG = "MSLink";
     public static final byte SW_SHOWNORMAL = 1;
     public static final byte SW_SHOWMAXIMIZED = 3;
     public static final byte SW_SHOWMINNOACTIVE = 7;
@@ -172,7 +173,7 @@ public abstract class MSLink {
             if (StringData.length > 0) os.write(StringData);
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to create link file", e);
         }
     }
 

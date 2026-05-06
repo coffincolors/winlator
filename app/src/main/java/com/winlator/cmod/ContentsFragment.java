@@ -76,7 +76,7 @@ public class ContentsFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        new Thread(() -> {
+        Executors.newSingleThreadExecutor().execute(() -> {
             String json = FileUtils.readString(getActivity(), ContentsManager.REMOTE_PROFILES);
             if (json == null)
                 return;
@@ -84,7 +84,7 @@ public class ContentsFragment extends Fragment {
                 manager.setRemoteProfiles(json);
                 loadContentList();
             });
-        }).start();
+        });
     }
 
     @Override
@@ -333,7 +333,7 @@ public class ContentsFragment extends Fragment {
 
                 Intent intent = new Intent();
                 intent.setData(Uri.parse(profile.remoteUrl));
-                new Thread(() -> {
+                Executors.newSingleThreadExecutor().execute(() -> {
                     long timestamp = System.currentTimeMillis();
                     File output = new File(getContext().getCacheDir(), "temp_" + timestamp);
                     if (Downloader.downloadFile(profile.remoteUrl, output)) {
@@ -344,7 +344,7 @@ public class ContentsFragment extends Fragment {
                         holder.ibDownload.setVisibility(View.VISIBLE);
                         onActivityResult(MainActivity.OPEN_FILE_REQUEST_CODE, Activity.RESULT_OK, intent);
                     });
-                }).start();
+                });
             });
         }
 

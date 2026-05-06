@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.Iterator;
 
 public class Save {
+    private static final String TAG = "Save";
     public int id;
     public Container container;
     private String title;
@@ -49,7 +50,7 @@ public class Save {
                 }
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to parse save data", e);
         }
 
         this.title = title;
@@ -88,7 +89,7 @@ public class Save {
             FileUtils.writeString(file, saveData.toString());
             Log.d("Save", "Data written to file: " + file.getAbsolutePath());
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to save data", e);
         }
     }
 }

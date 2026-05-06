@@ -64,6 +64,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class ContainersFragment extends Fragment {
     private static final int REQUEST_CODE_IMPORT_CONTAINER = 1070;
@@ -386,7 +387,7 @@ public class ContainersFragment extends Fragment {
         preloaderDialog.show(R.string.importing_container);
 
         // Run the import operation on a background thread
-        new Thread(() -> {
+        Executors.newSingleThreadExecutor().execute(() -> {
             try {
                 // Now use the import directory directly for importing the container
                 manager.importContainer(importDir, () -> {
@@ -404,7 +405,7 @@ public class ContainersFragment extends Fragment {
                     AppUtils.showToast(getContext(), "Error importing container: " + e.getMessage());
                 });
             }
-        }).start();
+        });
     }
 
 

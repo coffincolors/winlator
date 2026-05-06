@@ -28,7 +28,8 @@ import java.nio.file.Files;
         public final String wmClass;
         private final JSONObject extraData = new JSONObject();
         private Bitmap coverArt; // Changed to private to use getter method
-        private String customCoverArtPath; // Path to custom cover art
+        private String customCoverArtPath;
+        private static final String TAG = "Shortcut";
 
         private static final String COVER_ART_DIR = "app_data/cover_arts/"; // Removed leading "/" to keep it relative
 
@@ -181,7 +182,9 @@ import java.nio.file.Files;
                 }
                 else extraData.remove(name);
             }
-            catch (JSONException e) {}
+            catch (JSONException e) {
+                Log.e(TAG, "Failed to put extra data", e);
+            }
         }
 
         public void saveData() {
@@ -198,7 +201,9 @@ import java.nio.file.Files;
                     String key = keys.next();
                     try {
                         content += key + "=" + extraData.getString(key) + "\n";
-                    } catch (JSONException e) {}
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Failed to read extra data for saving", e);
+                    }
                 }
             }
 
@@ -240,7 +245,7 @@ import java.nio.file.Files;
                     Log.e("Shortcut", "Failed to save custom cover art.");
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Failed to save custom cover art", e);
             }
         }
 

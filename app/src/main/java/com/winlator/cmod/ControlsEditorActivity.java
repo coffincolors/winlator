@@ -16,6 +16,7 @@ import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -36,6 +37,8 @@ import java.io.InputStream;
 import java.util.Arrays;
 
 public class ControlsEditorActivity extends AppCompatActivity implements View.OnClickListener {
+    private static final String TAG = "ControlsEditorActivity";
+
     private InputControlsView inputControlsView;
     private ControlsProfile profile;
 
@@ -334,7 +337,7 @@ public class ControlsEditorActivity extends AppCompatActivity implements View.On
                 iconIds[i] = Byte.parseByte(FileUtils.getBasename(filenames[i]));
             }
         }
-        catch (IOException e) {}
+        catch (IOException e) { Log.e(TAG, "Failed to load icon assets", e); }
 
         Arrays.sort(iconIds);
 
@@ -359,7 +362,7 @@ public class ControlsEditorActivity extends AppCompatActivity implements View.On
             try (InputStream is = getAssets().open("inputcontrols/icons/"+id+".png")) {
                 imageView.setImageBitmap(BitmapFactory.decodeStream(is));
             }
-            catch (IOException e) {}
+            catch (IOException e) { Log.e(TAG, "Failed to load icon image", e); }
 
             parent.addView(imageView);
         }

@@ -13,7 +13,6 @@ import android.view.View;
 import androidx.annotation.Nullable;
 
 import com.winlator.cmod.R;
-import com.winlator.cmod.contentdialog.DebugDialog;
 import com.winlator.cmod.core.UnitUtils;
 import com.winlator.cmod.math.Mathf;
 
@@ -22,6 +21,10 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class LogView extends View {
+    public interface OnScrollPauseListener {
+        void onScrollPauseChanged(boolean paused);
+    }
+
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final ArrayList<String> lines = new ArrayList<>();
     private final float rowHeight = UnitUtils.dpToPx(30);
@@ -35,6 +38,7 @@ public class LogView extends View {
     private boolean scrollingHorizontally = false;
     private boolean scrollingVertically = false;
     private final Object lock = new Object();
+    private OnScrollPauseListener scrollPauseListener;
 
     public LogView(Context context) {
         this(context, null);
@@ -50,6 +54,10 @@ public class LogView extends View {
 
     public LogView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+    }
+
+    public void setOnScrollPauseListener(OnScrollPauseListener listener) {
+        this.scrollPauseListener = listener;
     }
 
     @Override
@@ -215,14 +223,14 @@ public class LogView extends View {
                     if (Math.abs(dy) > 10) scrollingVertically = true;
 
                     if (scrollingHorizontally) {
-                        DebugDialog.setPaused(true);
+                        if (scrollPauseListener != null) scrollPauseListener.onScrollPauseChanged(true);
                         scrollPosition.x = Mathf.clamp(scrollPosition.x - dx, 0, getScrollMaxLeft());
                         lastPoint.set(event.getX(), event.getY());
                         invalidate();
                     }
 
                     if (scrollingVertically) {
-                        DebugDialog.setPaused(true);
+                        if (scrollPauseListener != null) scrollPauseListener.onScrollPauseChanged(true);
                         scrollPosition.y = Mathf.clamp(scrollPosition.y - dy, 0, getScrollMaxTop());
                         lastPoint.set(event.getX(), event.getY());
                         invalidate();
@@ -230,7 +238,7 @@ public class LogView extends View {
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                DebugDialog.setPaused(false);
+                if (scrollPauseListener != null) scrollPauseListener.onScrollPauseChanged(false);
                 isActionDown = false;
                 break;
         }

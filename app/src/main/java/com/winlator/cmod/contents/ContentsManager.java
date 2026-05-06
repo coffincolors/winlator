@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ContentsManager {
+    private static final String TAG = "ContentsManager";
     public static final String PROFILE_NAME = "profile.json";
     public static final String REMOTE_PROFILES = "contents.json";
     public static final String[] DXVK_TRUST_FILES = {"${system32}/d3d8.dll", "${system32}/d3d9.dll", "${system32}/d3d10.dll", "${system32}/d3d10_1.dll",
@@ -107,11 +108,11 @@ public class ContentsManager {
                     remoteProfile.verCode = object.getInt("verCode");
                     remoteProfiles.add(remoteProfile);
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Failed to parse remote profile item", e);
                 }
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to parse remote profiles list", e);
         }
         syncContents();
     }
@@ -410,6 +411,7 @@ public class ContentsManager {
                     return profile;
             }
         } catch (Exception e) {
+            Log.e(TAG, "Failed to find profile for entry", e);
         }
 
         return null;

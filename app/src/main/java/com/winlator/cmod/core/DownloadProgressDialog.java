@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.util.Log;
 import android.widget.TextView;
 
 import com.google.android.material.progressindicator.CircularProgressIndicator;
@@ -12,6 +13,8 @@ import com.winlator.cmod.R;
 import com.winlator.cmod.math.Mathf;
 
 public class DownloadProgressDialog {
+    private static final String TAG = "DownloadProgressDialog";
+
     private final Activity activity;
     private Dialog dialog;
 
@@ -74,7 +77,7 @@ public class DownloadProgressDialog {
                 dialog.dismiss();
             }
         }
-        catch (Exception e) {}
+        catch (Exception e) { Log.e(TAG, "Failed to close dialog", e); }
     }
 
     public boolean closeOnUiThread() {

@@ -12,7 +12,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import android.util.Log;
+
 public abstract class ImageUtils {
+    private static final String TAG = "ImageUtils";
     private static int calculateInSampleSize(BitmapFactory.Options options, int maxSize) {
         final int height = options.outHeight;
         final int width = options.outWidth;
@@ -42,13 +45,15 @@ public abstract class ImageUtils {
             else bitmap = BitmapFactory.decodeStream(is);
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to read bitmap from URI", e);
         }
         finally {
             try {
                 if (is != null) is.close();
             }
-            catch (IOException e) {}
+            catch (IOException e) {
+                Log.w(TAG, "Failed to close resource", e);
+            }
         }
         return bitmap;
     }
@@ -70,13 +75,15 @@ public abstract class ImageUtils {
             options.inSampleSize = inSampleSize;
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to decode bitmap bounds from URI", e);
         }
         finally {
             try {
                 if (is != null) is.close();
             }
-            catch (IOException e) {}
+            catch (IOException e) {
+                Log.w(TAG, "Failed to close resource", e);
+            }
         }
 
         return getBitmapFromUri(context, uri, options);
@@ -89,7 +96,7 @@ public abstract class ImageUtils {
             return bitmap.compress(compressFormat, quality, fos);
         }
         catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to save bitmap to file", e);
         }
         finally {
             try {
@@ -99,7 +106,7 @@ public abstract class ImageUtils {
                 }
             }
             catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Failed to close output stream", e);
             }
         }
         return false;

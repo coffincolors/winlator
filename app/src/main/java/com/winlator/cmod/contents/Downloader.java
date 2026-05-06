@@ -1,5 +1,7 @@
 package com.winlator.cmod.contents;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,6 +12,7 @@ import java.net.URL;
 import java.net.URLConnection;
 
 public class Downloader {
+    private static final String TAG = "Downloader";
 
     public static boolean downloadFile(String address, File file) {
         try {
@@ -38,7 +41,7 @@ public class Downloader {
             input.close();
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to download file: " + address, e);
             return false;
         }
     }
@@ -59,7 +62,7 @@ public class Downloader {
             reader.close();
             return sb.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to download string: " + address, e);
             return null;
         }
     }
